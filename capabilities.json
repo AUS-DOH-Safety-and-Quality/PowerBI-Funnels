@@ -1,0 +1,97 @@
+{
+    "supportsHighlight": true,
+    "dataRoles": [
+        {
+            "displayName": "Groups",
+            "name": "group",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Numerator",
+            "name": "numerator",
+            "kind": "Measure"
+        },
+        {
+            "displayName": "Denominator",
+            "name": "denominator",
+            "kind": "Measure"
+        }
+    ],
+    "objects": {
+        "xAxis" : {
+            "displayName": "X Axis",
+            "properties": {
+                "show": {
+                    "displayName": "Show X Axis",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },
+        "yAxis" : {
+            "displayName": "Y Axis",
+            "properties": {
+                "show": {
+                    "displayName": "Show Y Axis",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },
+        "dataColors":{
+            "displayName": "Data Colours",
+            "properties": {
+                "fill":{
+                    "displayName": "Colour",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                 }
+            }
+        }
+    },
+    "dataViewMappings": [
+        {
+            "conditions": [
+                {
+                    "group": {
+                        "max": 1
+                    },
+                    "measure": {
+                        "max": 1
+                    }
+                }
+            ],
+            "categorical": {
+                "categories": {
+                    "for": {
+                        "in": "group"
+                    },
+                    "dataReductionAlgorithm": {
+                        "top": {}
+                    }
+                },
+                "values": {
+                    "select": [
+                        {
+                            "for": {
+                                "in": "numerator"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "denominator"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
