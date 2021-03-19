@@ -340,10 +340,10 @@ export class Visual implements IVisual {
         let metadata = dv[0].metadata;
 
         // Get name of data column being used for category
-        let categoryColumnName = metadata.columns.filter(c => c.roles["category"])[0].displayName;
+        let categoryColumnName = metadata.columns.filter(c => c.roles["group"])[0].displayName;
 
         // Get name of data column being used for measure/values being plotted
-        let valueColumnName = metadata.columns.filter(c => c.roles["measure"])[0].displayName;
+        let valueColumnName = metadata.columns.filter(c => c.roles["numerator"])[0].displayName;
 
         // Loop over all input Category/Value pairs and push into ViewModel for plotting
         for (let i = 0; i < Math.max(categories.values.length, numerator.values.length);  i++) {

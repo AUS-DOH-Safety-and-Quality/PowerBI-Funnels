@@ -5,9 +5,9 @@ import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualC
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
 
-var FunnelNewF30829F441604A19810D9552E06150AC_DEBUG: IVisualPlugin = {
-    name: 'FunnelNewF30829F441604A19810D9552E06150AC_DEBUG',
-    displayName: 'FunnelNew',
+var testVizF30829F441604A19810D9552E06150AC: IVisualPlugin = {
+    name: 'testVizF30829F441604A19810D9552E06150AC',
+    displayName: 'TestViz',
     class: 'Visual',
     apiVersion: '2.6.0',
     create: (options: VisualConstructorOptions) => {
@@ -23,7 +23,7 @@ var FunnelNewF30829F441604A19810D9552E06150AC_DEBUG: IVisualPlugin = {
 if (typeof powerbi !== "undefined") {
     powerbi.visuals = powerbi.visuals || {};
     powerbi.visuals.plugins = powerbi.visuals.plugins || {};
-    powerbi.visuals.plugins["FunnelNewF30829F441604A19810D9552E06150AC_DEBUG"] = FunnelNewF30829F441604A19810D9552E06150AC_DEBUG;
+    powerbi.visuals.plugins["testVizF30829F441604A19810D9552E06150AC"] = testVizF30829F441604A19810D9552E06150AC;
 }
 
-export default FunnelNewF30829F441604A19810D9552E06150AC_DEBUG;
+export default testVizF30829F441604A19810D9552E06150AC;
