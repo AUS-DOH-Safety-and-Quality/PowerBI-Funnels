@@ -47,6 +47,7 @@ export class Visual implements IVisual {
     private host: IVisualHost;
     private svg: d3.Selection<SVGElement, any, any, any>;
     private dotGroup: d3.Selection<SVGElement, any, any, any>;
+    private lineGroup: d3.Selection<SVGElement, any, any, any>;
     private viewModel: ViewModel;
 
     // Padding between dots
@@ -109,6 +110,8 @@ export class Visual implements IVisual {
         // Add a grouping ('g') element to the canvas that will later become the dots
         this.dotGroup = this.svg.append("g")
                                 .classed("dot-group", true);
+        this.lineGroup = this.svg.append("g")
+                                 .classed("line-group", true);
 
         // Add a grouping ('g') element to the canvas that will later become the x-axis
         this.xAxisGroup = this.svg.append("g")
@@ -151,6 +154,13 @@ export class Visual implements IVisual {
                        // Map to screen coordinates of available space
                        //   - Add padding below plot to put axis
                        .range([height - xAxisPadding, 0]);
+
+        let yScale_inv = d3.scaleLinear()
+                            // Map to screen coordinates of available space
+                            //   - Add padding below plot to put axis
+                            .domain([height - xAxisPadding, 0])
+                            // Specify y-axis range of plot, including extra padding at the top
+                            .range([0, this.viewModel.maxRatio  + this.settings.border.top.value]);
         
         let yAxis = d3.axisLeft(yScale);
 
@@ -162,7 +172,13 @@ export class Visual implements IVisual {
         let xScale = d3.scaleLinear()
                        .domain([0, 300])
                        // Specify plotting width as space between y-axis and end of plot
-                       .rangeRound([yAxisPadding, width]);
+                       .range([yAxisPadding, width]);
+
+        // Define conversion of x-axis scale to dot groupings
+        let xScale_inv = d3.scaleLinear()
+        // Specify plotting width as space between y-axis and end of plot
+                            .domain([yAxisPadding, width])
+                            .range([0, 300]);
 
         // Define x-axis for plot
         // Type of axis (discrete/continous) and range of values
@@ -195,15 +211,106 @@ export class Visual implements IVisual {
 
         // If dots do not exist yet, create them
         makeDots(dots.enter()
-                          .append("circle")
-                          .classed("dot", true),
+                     .append("circle")
+                     .classed("dot", true),
                  this,xScale,yScale);
         //Update existing dots with new data
         makeDots(dots,this,xScale,yScale);
 
+        let lines = this.lineGroup
+                       // List all child elements of dotGroup that have CSS class '.dot'
+                       .selectAll(".line")
+                       // Matches input array to a list, returns three result sets
+                       //   - HTML element for which there are no matching datapoint (if so, creates new elements to be appended)
+                       .data([this.viewModel.dataPoints]);
+
+
+        let lineFunc = d3.line<DataPoint>().x(d => xScale(d.denominator) ).y(d => yScale(d.ratio) );
+
+        lines.enter()
+             .append("path")
+             .classed("line", true)
+             .attr("d", d => lineFunc(d))
+             .attr("fill", "none")
+             .attr("stroke", "steelblue")
+             .attr("stroke-width", 1.5)
+             .on("mouseover", d => {
+                // Get screen coordinates of mouse pointer, tooltip will
+                //   be displayed at these coordinates
+                //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
+                //      to d3 properly
+                let x = (<any>d3).event.pageX;
+                let y = (<any>d3).event.pageY;
+
+                this.host.tooltipService.show({
+                    dataItems: [{
+                        displayName: "Ratio",
+                        value: (yScale_inv(y)).toFixed(2)
+                    },{
+                        displayName: "Denominator",
+                        value: (xScale_inv(x)).toFixed(2)
+                    }],
+                    identities: [0],
+                    coordinates: [x, y],
+                    isTouchEvent: false
+                });
+            });
+
+        lines.attr("d", d => lineFunc(d))
+            // Apply CSS class to elements so that they can be looked up later
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .on("mouseover", d => {
+                // Get screen coordinates of mouse pointer, tooltip will
+                //   be displayed at these coordinates
+                //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
+                //      to d3 properly
+                let x = (<any>d3).event.pageX;
+                let y = (<any>d3).event.pageY;
+
+                this.host.tooltipService.show({
+                    dataItems: [{
+                        displayName: "Ratio",
+                        value: (yScale_inv(y)).toFixed(2)
+                    },{
+                        displayName: "Denominator",
+                        value: (xScale_inv(x)).toFixed(2)
+                    }],
+                    identities: [0],
+                    coordinates: [x, y],
+                    isTouchEvent: false
+                });
+            })
+            .on("mousemove", d => {
+                // Get screen coordinates of mouse pointer, tooltip will
+                //   be displayed at these coordinates
+                //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
+                //      to d3 properly
+                let x = (<any>d3).event.pageX;
+                let y = (<any>d3).event.pageY;
+        
+                this.host.tooltipService.move({
+                    dataItems: [{
+                        displayName: "Ratio",
+                        value: (yScale_inv(y)).toFixed(2)
+                    },{
+                        displayName: "Denominator",
+                        value: (xScale_inv(x)).toFixed(2)
+                    }],
+                    identities: [0],
+                    coordinates: [x, y],
+                    isTouchEvent: false
+                });
+            });
+
         // Remove any dots when the data is no longer present (i.e., filtering)
             // Get the HTML elements with no matching datapoint
         dots.exit()
+            // Remove them
+            .remove();
+
+        lines.exit()
             // Remove them
             .remove();
     }
