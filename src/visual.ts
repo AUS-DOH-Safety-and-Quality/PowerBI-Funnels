@@ -14,6 +14,7 @@ import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import * as d3 from "d3";
+import makeDots from "../src/dots";
 
 // I don't know why it needs this, and at this point I'm too afraid to ask
 type Selection<T extends d3.BaseType> = d3.Selection<T, any, any, any>;
@@ -127,6 +128,7 @@ export class Visual implements IVisual {
 
         // Insert the viewModel object containing the user-input data
         this.viewModel = this.getViewModel(options);
+        console.log(this.viewModel);
 
         // Get the width and height of plotting space
         let width = options.viewport.width;
@@ -192,80 +194,12 @@ export class Visual implements IVisual {
                        .data(this.viewModel.dataPoints);
 
         // If dots do not exist yet, create them
-            // Gets the list of new elements generated above
-        dots.enter()
-            // Define new elements as circles, and add to plot
-            .append("circle")
-            // Apply CSS class to elements so that they can be looked up later
-            .classed("dot", true);
-
-            // Calculate the height of each dot, accounting for padding
-        dots.attr("height", d => height - yScale(d.numerator) - xAxisPadding)
-            // Place the dot on the canvas at the appropriate coordinates
-            .attr("cy", d => yScale(d.ratio))
-            .attr("cx", d => xScale(d.denominator))
-            // Specify width/size of dot
-            .attr("r", 5)
-            // Fill each dot with the colour in each DataPoint
-            .style("fill", d => d.colour)
-            // Change opacity (highlighting) with selections in other plots
-            .style("fill-opacity", d => this.viewModel.highlights ? (d.highlighted ? 1.0 : 0.5) : 1.0)
-            // Specify actions to take when clicking on dots
-            .on("click", d => {
-                // Pass identities of selected data back to PowerBI
-                this.selectionManager
-                    // Propagate identities of selected data based to PowerBI based on all selected dots
-                    .select(d.identity, true)
-                    // Change opacity of non-selected dots
-                    .then(ids => {
-                        dots.style(
-                            "fill-opacity",d => 
-                            ids.length > 0 ? 
-                            (ids.indexOf(d.identity) >= 0 ? 1.0 : 0.5) 
-                            : 1.0
-                        );
-                    })
-            })
-            // Display tooltip content on mouseover
-            .on("mouseover", d => {
-                // Get screen coordinates of mouse pointer, tooltip will
-                //   be displayed at these coordinates
-                //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
-                //      to d3 properly
-                let x = (<any>d3).event.pageX;
-                let y = (<any>d3).event.pageY;
-
-                this.host.tooltipService.show({
-                    dataItems: d.tooltips,
-                    identities: [d.identity],
-                    coordinates: [x, y],
-                    isTouchEvent: false
-                });
-            })
-            // Specify that tooltips should move with the mouse
-            .on("mousemove", d => {
-                // Get screen coordinates of mouse pointer, tooltip will
-                //   be displayed at these coordinates
-                //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
-                //      to d3 properly
-                let x = (<any>d3).event.pageX;
-                let y = (<any>d3).event.pageY;
-
-                // Use the 'move' service for more responsive display
-                this.host.tooltipService.move({
-                    dataItems: d.tooltips,
-                    identities: [d.identity],
-                    coordinates: [x, y],
-                    isTouchEvent: false
-                });
-            })
-            // Hide tooltip when mouse moves out of dot
-            .on("mouseout", d => {
-                this.host.tooltipService.hide({
-                    immediately: true,
-                    isTouchEvent: false
-                })
-            });
+        makeDots(dots.enter()
+                          .append("circle")
+                          .classed("dot", true),
+                 this,xScale,yScale);
+        //Update existing dots with new data
+        makeDots(dots,this,xScale,yScale);
 
         // Remove any dots when the data is no longer present (i.e., filtering)
             // Get the HTML elements with no matching datapoint
@@ -356,10 +290,7 @@ export class Visual implements IVisual {
                 ratio: <number>numerator.values[i]/<number>denominator.values[i],
                 // Check whether objects array exists with user-specified fill colours, apply those colours if so
                 //   otherwise use default palette
-                colour: objects && objects[i] && dataViewObjects.getFillColor(objects[i], {
-                    objectName: "dataColors",
-                    propertyName: "fill"
-                }, null) || this.host.colorPalette.getColor(<string>categories.values[i]).value,
+                colour: "black",
                 // Create selection identity for each data point, to control cross-plot highlighting
                 identity: this.host.createSelectionIdBuilder()
                                    .withCategory(categories, i)
