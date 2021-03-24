@@ -1,11 +1,20 @@
 import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 
-// Query PowerBI for data requested by user, then convert to format
-//   to fit with current ViewModel (plotting structure)
-//   - VisualUpdateOptions object made available with every call to
-//       update function
-function getViewModel(options, settings, ThisBase) {
+/**
+ * Interfacing function between PowerBI data and visual rendering. Reads in
+ * user-specified data, calculates the funnel control limits to plot, and
+ * packages into a format ready for plotting. This function is called on
+ * each plot update (e.g., resizing, filtering).
+ *
+ * @param options  - VisualUpdateOptions object containing user data
+ * @param settings - Object containing user-specified plot settings
+ * @param host     - Reference to base IVisualHost object
+ * 
+ * @returns ViewModel object containing calculated limits and all
+ *            data needed for plotting
+*/
+function getViewModel(options, settings, host) {
     let dv = options.dataViews;
 
     let viewModel = {
@@ -73,15 +82,11 @@ function getViewModel(options, settings, ThisBase) {
             ratio: <number>numerator.values[i]/<number>denominator.values[i],
             // Check whether objects array exists with user-specified fill colours, apply those colours if so
             //   otherwise use default palette
-            colour: /*objects && objects[i] && dataViewObjects.getFillColor(objects[i], {
-                objectName: "dataColors",
-                propertyName: "fill"
-            }, null) || this.host.colorPalette.getColor(<string>categories.values[i]).value*/
-            "black",
+            colour:  "black",
             // Create selection identity for each data point, to control cross-plot highlighting
-            identity: ThisBase.host.createSelectionIdBuilder()
-                                .withCategory(categories, i)
-                                .createSelectionId(),
+            identity: host.createSelectionIdBuilder()
+                          .withCategory(categories, i)
+                          .createSelectionId(),
             // Check if highlights array exists, if it does, check if dot should
             //   be highlighted
             highlighted: highlights ? (highlights[i] ? true : false) : false,

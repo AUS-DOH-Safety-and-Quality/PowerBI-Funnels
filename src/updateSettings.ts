@@ -1,29 +1,22 @@
-// Function to get user-specified settings from properties pane and update
-//   internal objects
-function updateSettings(settings, options, dataViewObjects) {
-    settings.axis.x.show.value = dataViewObjects.getValue(
-        options.dataViews[0].metadata.objects, {
-            objectName: "xAxis",
-            propertyName: "show"
-        },
-        settings.axis.x.show.default
-    )
-    settings.axis.y.show.value = dataViewObjects.getValue(
-        options.dataViews[0].metadata.objects, {
-            objectName: "yAxis",
-            propertyName: "show"
-        },
-        settings.axis.y.show.default
-    )
+import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
+
+/**
+ * Function for updating an internal object of plot settings with
+ *   user-specified settings
+ * 
+ * @param settings        - Existing settings object to update
+ * @param objects         - List of settings objects to get values from
+ */
+function updateSettings(settings, objects) {
     settings.funnel.data_type.value = dataViewObjects.getValue(
-        options.dataViews[0].metadata.objects, {
+        objects, {
             objectName: "funnel",
             propertyName: "data_type"
         },
         settings.funnel.data_type.default
     )
     settings.funnel.od_adjust.value = dataViewObjects.getValue(
-        options.dataViews[0].metadata.objects, {
+        objects, {
             objectName: "funnel",
             propertyName: "od_adjust"
         },

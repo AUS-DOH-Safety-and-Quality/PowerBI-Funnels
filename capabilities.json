@@ -18,28 +18,6 @@
         }
     ],
     "objects": {
-        "xAxis" : {
-            "displayName": "X Axis",
-            "properties": {
-                "show": {
-                    "displayName": "Show X Axis",
-                    "type": {
-                        "bool": true
-                    }
-                }
-            }
-        },
-        "yAxis" : {
-            "displayName": "Y Axis",
-            "properties": {
-                "show": {
-                    "displayName": "Show Y Axis",
-                    "type": {
-                        "bool": true
-                    }
-                }
-            }
-        },
         "funnel" : {
             "displayName": "Funnel Setting",
             "properties": {
@@ -77,21 +55,6 @@
                         ]
                     }
                 }
-            }
-        },
-        "dataColors":{
-            "displayName": "Data Colours",
-            "properties": {
-                "fill":{
-                    "displayName": "Colour",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                 }
             }
         }
     },

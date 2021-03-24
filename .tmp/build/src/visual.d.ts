@@ -10,15 +10,17 @@ export declare class Visual implements IVisual {
     private host;
     private svg;
     private dotGroup;
-    private viewModel;
-    private xPadding;
-    private selectionManager;
+    private UL99Group;
+    private LL99Group;
+    private UL95Group;
+    private LL95Group;
+    private targetGroup;
     private xAxisGroup;
     private yAxisGroup;
+    private viewModel;
+    private selectionManager;
     private settings;
     constructor(options: VisualConstructorOptions);
     update(options: VisualUpdateOptions): void;
-    private updateSettings;
-    private getViewModel;
     enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration;
 }

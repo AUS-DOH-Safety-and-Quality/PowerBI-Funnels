@@ -1,17 +1,28 @@
 import * as d3 from "d3";
 
-function makeDots(DotObject,ThisBase,x_scale,y_scale) {
+/**
+ * Function for rendering scatter dots on the chart, adding tooltips,
+ * and managing interactivity
+ * 
+ * @param DotObject         - Base object to render scatter points to
+ * @param highlights        - Boolean indicating whether point should be highlighted
+ * @param selectionManager  - PowerBI interface for managing cross-plot interactivity
+ * @param tooltipService    - Object for management of tooltip rendering
+ * @param x_scale           - d3 scale function for translating axis coordinates to screen coordinates
+ * @param y_scale           - d3 scale function for translating axis coordinates to screen coordinates
+ */
+function makeDots(DotObject, highlights, selectionManager, tooltipService, x_scale, y_scale) {
     DotObject.attr("cy", d => y_scale(d.ratio))
     .attr("cx", d => x_scale(d.denominator))
     .attr("r", 4)
     // Fill each dot with the colour in each DataPoint
     .style("fill", d => d.colour)
     // Change opacity (highlighting) with selections in other plots
-    .style("fill-opacity", d => ThisBase.viewModel.highlights ? (d.highlighted ? 1.0 : 0.2) : 1.0)
+    .style("fill-opacity", (d,idx) => highlights ? (d.highlighted ? 1.0 : 0.2) : 1.0)
     // Specify actions to take when clicking on dots
     .on("click", d => {
         // Pass identities of selected data back to PowerBI
-        ThisBase.selectionManager
+        selectionManager
             // Propagate identities of selected data based to PowerBI based on all selected dots
             .select(d.identity, true)
             // Change opacity of non-selected dots
@@ -33,7 +44,7 @@ function makeDots(DotObject,ThisBase,x_scale,y_scale) {
         let x = (<any>d3).event.pageX;
         let y = (<any>d3).event.pageY;
 
-        ThisBase.host.tooltipService.show({
+        tooltipService.show({
             dataItems: d.tooltips,
             identities: [d.identity],
             coordinates: [x, y],
@@ -50,7 +61,7 @@ function makeDots(DotObject,ThisBase,x_scale,y_scale) {
         let y = (<any>d3).event.pageY;
 
         // Use the 'move' service for more responsive display
-        ThisBase.host.tooltipService.move({
+        tooltipService.move({
             dataItems: d.tooltips,
             identities: [d.identity],
             coordinates: [x, y],
@@ -59,7 +70,7 @@ function makeDots(DotObject,ThisBase,x_scale,y_scale) {
     })
     // Hide tooltip when mouse moves out of dot
     .on("mouseout", d => {
-        ThisBase.host.tooltipService.hide({
+        tooltipService.hide({
             immediately: true,
             isTouchEvent: false
         })

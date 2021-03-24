@@ -69,16 +69,14 @@ export class Visual implements IVisual {
     private UL95Group: d3.Selection<SVGElement, any, any, any>;
     private LL95Group: d3.Selection<SVGElement, any, any, any>;
     private targetGroup: d3.Selection<SVGElement, any, any, any>;
+    private xAxisGroup: d3.Selection<SVGGElement, any, any, any>;
+    private yAxisGroup: d3.Selection<SVGGElement, any, any, any>;
     private viewModel: ViewModel;
 
     // Method for notifying PowerBI of changes in the visual to propagate to the
     //   rest of the report
     private selectionManager: ISelectionManager;
 
-    // Group for managing x-axis settings
-    private xAxisGroup: d3.Selection<SVGGElement, any, any, any>;
-    // Group for managing y-axis settings
-    private yAxisGroup: d3.Selection<SVGGElement, any, any, any>;
 
     // Settings for plot aesthetics
     private settings = {
@@ -87,27 +85,13 @@ export class Visual implements IVisual {
                 padding: {
                     default: 50,
                     value: 50
-                },
-                show: {
-                    default: true,
-                    value: true
                 }
             },
             y: {
                 padding: {
                     default: 50,
                     value: 50
-                },
-                show: {
-                    default: true,
-                    value: true
                 }
-            }
-        },
-        border: {
-            top: {
-                default: 1,
-                value: 1
             }
         },
         funnel: {
@@ -158,68 +142,57 @@ export class Visual implements IVisual {
     }
 
     public update(options: VisualUpdateOptions) {
-        // Update settings object
-        updateSettings(this.settings, options, dataViewObjects);
+        // Update settings object with user-specified values (if present)
+        updateSettings(this.settings, options.dataViews[0].metadata.objects);
 
         // Insert the viewModel object containing the user-input data
-        this.viewModel = getViewModel(options, this.settings, this);
+        //   This function contains the construction of the funnel
+        //   control limits
+        this.viewModel = getViewModel(options, this.settings, this.host);
 
         // Get the width and height of plotting space
         let width = options.viewport.width;
         let height = options.viewport.height;
 
-        // Check whether the user wants to display the x-axis, and if so add appropriate padding
-        let xAxisPadding = this.settings.axis.x.show.value ? this.settings.axis.x.padding.value : 0;
-
-        // Check whether the user wants to display the y-axis, and if so add appropriate padding
-        let yAxisPadding = this.settings.axis.y.show.value ? this.settings.axis.y.padding.value : 0;
+        // Add appropriate padding so that plotted data doesn't overlay axis
+        let xAxisPadding = this.settings.axis.x.padding.value;
+        let yAxisPadding = this.settings.axis.y.padding.value;
 
         // Dynamically scale chart to use all available space
         this.svg.attr("width", width)
                 .attr("height", height);
 
-        // Define y-axis scale for chart
+        // Define axes for chart.
+        //   Takes a given plot axis value and returns the appropriate screen height
+        //     to plot at.
         let yScale = d3.scaleLinear()
-                       // Specify y-axis range of plot, including extra padding at the top
                        .domain([0, this.viewModel.maxRatio])
-                       // Map to screen coordinates of available space
-                       //   - Add padding below plot to put axis
                        .range([height - xAxisPadding, 0]);
+        let xScale = d3.scaleLinear()
+                        .domain([0, this.viewModel.maxDenominator])
+                        .range([yAxisPadding, width]);
 
+        // Specify inverse scaling that will return a plot axis value given an input
+        //   screen height. Used to display line chart tooltips.
         let yScale_inv = d3.scaleLinear()
                        .domain([height - xAxisPadding, 0])
                        .range([0, this.viewModel.maxRatio]);
+        let xScale_inv = d3.scaleLinear()
+                            .domain([yAxisPadding, width])
+                            .range([0, this.viewModel.maxDenominator]);
 
         let yAxis = d3.axisLeft(yScale);
+        let xAxis = d3.axisBottom(xScale);
 
+        // Draw axes on plot
         this.yAxisGroup
             .call(yAxis)
             .attr("transform", "translate(" +  yAxisPadding + ",0)");
 
-        // Define conversion of x-axis scale to dot groupings
-        let xScale = d3.scaleLinear()
-                       .domain([0, this.viewModel.maxDenominator])
-                       // Specify plotting width as space between y-axis and end of plot
-                       .range([yAxisPadding, width]);
-
-        // Define conversion of x-axis scale to dot groupings
-        let xScale_inv = d3.scaleLinear()
-        // Specify plotting width as space between y-axis and end of plot
-                            .domain([yAxisPadding, width])
-                            .range([0, this.viewModel.maxDenominator]);
-
-        // Define x-axis for plot
-        // Type of axis (discrete/continous) and range of values
-        //   extracted from the xScale object
-        let xAxis = d3.axisBottom(xScale);
-
-        // Draw x-axis on plot
         this.xAxisGroup
             .call(xAxis)
             // Plots the axis at the correct height
             .attr("transform", "translate(0, " + (height - xAxisPadding) + ")")
-            // Change colour of axis
-            //.style("fill", "#777777")
             .selectAll("text")
             // Rotate tick labels
             .attr("transform","rotate(-35)")
@@ -237,17 +210,18 @@ export class Visual implements IVisual {
                        //   - HTML element for which there are no matching datapoint (if so, creates new elements to be appended)
                        .data(this.viewModel.scatterDots);
 
-        // If dots do not exist yet, create them
-            // Gets the list of new elements generated above
-
+        // Initial plotting of scatter points, run when chart is first rendered
         makeDots(dots.enter()
-            .append("circle")
-            .classed("dot", true), this, xScale, yScale);
+                     .append("circle")
+                     .classed("dot", true),
+                 this.viewModel.highlights, this.selectionManager,
+                 this.host.tooltipService, xScale, yScale);
 
-            // Calculate the height of each dot, accounting for padding
-        makeDots(dots, this, xScale, yScale);
+        // Re-rendering of scatter points, run each time chart is updated
+        makeDots(dots, this.viewModel.highlights, this.selectionManager,
+                 this.host.tooltipService, xScale, yScale);
 
-
+        // Bind calculated control limits and target line to respective plotting objects
         let linesLL99 = this.LL99Group
             .selectAll(".line")
             .data([this.viewModel.lowerLimit99]);
@@ -268,44 +242,58 @@ export class Visual implements IVisual {
             .selectAll(".line")
             .data([this.viewModel.upperLimit99]);
         
+        // Initial construction of lines, run when plot is first rendered.
+        //   Text argument specifies which type of line is required (controls aesthetics),
+        //   inverse scale objects used to display tooltips on drawn control limits 
         makeLines(linesLL99.enter()
                             .append("path")
                             .classed("line", true),
-                    xScale, yScale, "99.8%", this,
+                    xScale, yScale, "99.8%",
+                    this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
         
         makeLines(linesLL95.enter()
                             .append("path")
                             .classed("line", true),
-                    xScale, yScale, "95%", this,
+                    xScale, yScale, "95%",
+                    this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
         makeLines(linesUL95.enter()
                             .append("path")
                             .classed("line", true),
-                    xScale, yScale, "95%", this,
+                    xScale, yScale, "95%",
+                    this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
         makeLines(linesUL99.enter()
                             .append("path")
                             .classed("line", true),
-                    xScale, yScale, "99.8%", this,
+                    xScale, yScale, "99.8%",
+                    this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
         makeLines(lineTarget.enter()
                             .append("path")
                             .classed("line", true),
-                    xScale, yScale, "target", this);
+                    xScale, yScale, "target",
+                    this.viewModel, this.host.tooltipService,);
 
-        makeLines(linesLL99, xScale, yScale, "99.8%", this,
+        // Re-render control limits and target line whenever the plot is updated
+        makeLines(linesLL99, xScale, yScale, "99.8%",
+        this.viewModel, this.host.tooltipService,
                   xScale_inv, yScale_inv);
-        makeLines(linesLL95, xScale, yScale, "95%", this,
+        makeLines(linesLL95, xScale, yScale, "95%",
+        this.viewModel, this.host.tooltipService,
                   xScale_inv, yScale_inv);
-        makeLines(linesUL95, xScale, yScale, "95%", this,
+        makeLines(linesUL95, xScale, yScale, "95%",
+        this.viewModel, this.host.tooltipService,
                   xScale_inv, yScale_inv);
-        makeLines(linesUL99, xScale, yScale, "99.8%", this,
+        makeLines(linesUL99, xScale, yScale, "99.8%",
+        this.viewModel, this.host.tooltipService,
                   xScale_inv, yScale_inv);
-        makeLines(lineTarget, xScale, yScale, "target", this);
+        makeLines(lineTarget, xScale, yScale, "target",
+                  this.viewModel, this.host.tooltipService,);
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
@@ -317,47 +305,6 @@ export class Visual implements IVisual {
 
             // Call a different function for each specified property group
             switch (propertyGroupName) {
-                // Specify behaviour for x-axis settings
-                case "xAxis":
-                    // Add x-axis settings to object to be rendered
-                    properties.push({
-                        objectName: propertyGroupName,
-                        properties: {
-                            show: this.settings.axis.x.show.value
-                        },
-                        selector: null
-                    });
-                    break; 
-                    
-                // Specify behaviour for x-axis settings
-                case "yAxis":
-                    // Add y-axis settings to object to be rendered
-                    properties.push({
-                        objectName: propertyGroupName,
-                        properties: {
-                            show: this.settings.axis.y.show.value
-                        },
-                        selector: null
-                    });
-                    break; 
-                case "dataColors":
-                    if (this.viewModel) {
-                        // Push a different property object for each datapoint
-                        for (let dp of this.viewModel.scatterDots) {
-                            properties.push({
-                                objectName: propertyGroupName,
-                                // Push the property name for each datapoint as the category name
-                                displayName: dp.category,
-                                properties: {
-                                    fill: dp.colour
-                                },
-                                // Store the property as belonging to a given datapoint
-                                selector: dp.identity.getSelector()
-                            })
-                        }
-                    }
-                    break;
-                    
                 // Specify behaviour for x-axis settings
                 case "funnel":
                     // Add y-axis settings to object to be rendered
