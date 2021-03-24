@@ -1,7 +1,30 @@
 import * as rmath from "lib-r-math.js";
+import truncateLimits from "../Funnel Calculations/truncateLimits"
 
+/**
+ * Function to generate control limits, either adjusted or un-adjusted.
+ *    Adjusted control limits are generated using an additive random
+ *    effects adjustment to the normal approximation for each data type.
+ * 
+ * Unadjusted limits are given by the normal approximation for proportion
+ *     data and by the quantiles of the Chi-Squared distribution for
+ *     standardised ratio data.
+ * 
+ * As limits given by the normal approximation can exceed possible values
+ *     (e.g., proportions greater than 1 or negative counts) they are
+ *     truncated before being returned.
+ * 
+ * @param q 
+ * @param target 
+ * @param denominator 
+ * @param SE 
+ * @param tau2 
+ * @param od_adjust 
+ * @param data_type 
+ * @returns 
+ */
 function getLimit(q, target, denominator, SE, tau2, od_adjust, data_type) {
-    var limits;
+    var limits: number[];
 
     if (data_type == "PR") {
         if (od_adjust) {
@@ -15,15 +38,6 @@ function getLimit(q, target, denominator, SE, tau2, od_adjust, data_type) {
                              target + q * d]
             );
         }
-        return limits.map(d => {
-            if (d[1] > 1.0) {
-                return [d[0], 1.0];
-            } else if (d[1] < 0.0) {
-                return [d[0], 0.0];
-            } else {
-                return d;
-            }
-        });
     } else if (data_type == "SR") {
         if(od_adjust) {
             limits = SE.map(
@@ -39,14 +53,9 @@ function getLimit(q, target, denominator, SE, tau2, od_adjust, data_type) {
                       (rmath.ChiSquared().qchisq(p, 2 * (d + offset)) / 2.0) / d]
             );
         }
-        return limits.map(d => {
-            if (d[1] < 0.0) {
-                return [d[0], 0.0];
-            } else {
-                return d;
-            }
-        });
     }
+
+    return truncateLimits(limits, data_type);
 }
 
 export default getLimit;
