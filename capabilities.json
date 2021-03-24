@@ -40,6 +40,45 @@
                 }
             }
         },
+        "funnel" : {
+            "displayName": "Funnel Setting",
+            "properties": {
+                "data_type": {
+                    "displayName": "Data Type",
+                    "type" : {
+                        "enumeration" : [
+                          {
+                            "displayName" : "Indirectly Standardised (HSMR)",
+                            "value" : "SR"
+                          },
+                          {
+                            "displayName" : "Proportion",
+                            "value" : "PR"
+                          }
+                        ]
+                    }
+                },
+                "od_adjust": {
+                    "displayName": "OD Adjustment",
+                    "type" : {
+                        "enumeration" : [
+                          {
+                            "displayName" : "Automatic",
+                            "value" : "auto"
+                          },
+                          {
+                            "displayName" : "Yes",
+                            "value" : "yes"
+                          },
+                          {
+                            "displayName" : "No",
+                            "value" : "no"
+                          }
+                        ]
+                    }
+                }
+            }
+        },
         "dataColors":{
             "displayName": "Data Colours",
             "properties": {

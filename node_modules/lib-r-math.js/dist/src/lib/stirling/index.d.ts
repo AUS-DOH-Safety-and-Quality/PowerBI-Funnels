@@ -1,0 +1,1 @@
+export { stirlerr } from './stirlerror';

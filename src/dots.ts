@@ -3,7 +3,7 @@ import * as d3 from "d3";
 function makeDots(DotObject,ThisBase,x_scale,y_scale) {
     DotObject.attr("cy", d => y_scale(d.ratio))
     .attr("cx", d => x_scale(d.denominator))
-    .attr("r", 3)
+    .attr("r", 4)
     // Fill each dot with the colour in each DataPoint
     .style("fill", d => d.colour)
     // Change opacity (highlighting) with selections in other plots
@@ -64,6 +64,8 @@ function makeDots(DotObject,ThisBase,x_scale,y_scale) {
             isTouchEvent: false
         })
     });
+
+    DotObject.exit().remove();
 }
 
 export default makeDots;
