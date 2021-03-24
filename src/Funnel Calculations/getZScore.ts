@@ -8,7 +8,7 @@
  * @param target 
  * @returns 
  */
-function getZScore(y, SE, target) {
+function getZScore(y: number[], SE: number[], target: number) {
     return y.map(
         (d, idx) => (d - target) / SE[idx]
     );

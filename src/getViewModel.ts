@@ -108,7 +108,7 @@ function getViewModel(options, settings, host) {
         });
     }
 
-    for (let i = 0; i < limitsArray[0].length;  i++) {
+    for (let i = 0; i < (<number[][]>limitsArray[0]).length;  i++) {
         viewModel.lowerLimit99.push({
             limit: limitsArray[0][i][1],
             denominator: limitsArray[0][i][0],
@@ -171,7 +171,7 @@ function getViewModel(options, settings, host) {
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
-    viewModel.target = limitsArray[4];
+    viewModel.target = <number>limitsArray[4];
 
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;

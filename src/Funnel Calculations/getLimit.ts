@@ -23,8 +23,9 @@ import truncateLimits from "../Funnel Calculations/truncateLimits"
  * @param data_type 
  * @returns 
  */
-function getLimit(q, target, denominator, SE, tau2, od_adjust, data_type) {
-    var limits: number[];
+function getLimit(q: number, target: number, denominator: number[], SE: number[],
+                  tau2: number, od_adjust: boolean, data_type: string):number[][] {
+    let limits: number[][];
 
     if (data_type == "PR") {
         if (od_adjust) {

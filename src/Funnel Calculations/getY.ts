@@ -11,7 +11,7 @@
  * @param data_type 
  * @returns 
  */
-function getY(numerator, denominator, data_type) {
+function getY(numerator: number[], denominator: number[], data_type: string) {
     if (data_type == "PR") {
         return numerator.map(
             (d, idx) => Math.asin(Math.sqrt(d / denominator[idx]))

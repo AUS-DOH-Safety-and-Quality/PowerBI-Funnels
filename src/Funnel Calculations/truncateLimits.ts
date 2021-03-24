@@ -1,4 +1,4 @@
-function truncateLimits(limits, data_type) {
+function truncateLimits(limits: number[][], data_type: string):number[][] {
     if (data_type == "PR") {
         return limits.map(d => {
             if (d[1] > 1.0) {
