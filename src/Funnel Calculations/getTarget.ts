@@ -16,7 +16,7 @@ import * as d3 from "d3";
  * @returns             - Target value
  */
 function getTarget(numerator: number[], denominator: number[],
-                   type: string, transformed: boolean) {
+                   type: string, transformed: boolean): number {
     if (type == "SR") {
         return 1.0;
     } else if (type == "PR") {

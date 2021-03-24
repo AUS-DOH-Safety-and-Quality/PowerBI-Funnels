@@ -42,8 +42,6 @@ interface ScatterDots {
 interface LimitLines {
     limit: number;
     denominator: number;
-    // Tooltip data to print
-    tooltips: VisualTooltipDataItem[];
 };
 
 // Separator between code that gets data from PBI, and code that renders
@@ -281,16 +279,16 @@ export class Visual implements IVisual {
 
         // Re-render control limits and target line whenever the plot is updated
         makeLines(linesLL99, xScale, yScale, "99.8%",
-        this.viewModel, this.host.tooltipService,
+                  this.viewModel, this.host.tooltipService,
                   xScale_inv, yScale_inv);
         makeLines(linesLL95, xScale, yScale, "95%",
-        this.viewModel, this.host.tooltipService,
+                  this.viewModel, this.host.tooltipService,
                   xScale_inv, yScale_inv);
         makeLines(linesUL95, xScale, yScale, "95%",
-        this.viewModel, this.host.tooltipService,
+                  this.viewModel, this.host.tooltipService,
                   xScale_inv, yScale_inv);
         makeLines(linesUL99, xScale, yScale, "99.8%",
-        this.viewModel, this.host.tooltipService,
+                  this.viewModel, this.host.tooltipService,
                   xScale_inv, yScale_inv);
         makeLines(lineTarget, xScale, yScale, "target",
                   this.viewModel, this.host.tooltipService,);

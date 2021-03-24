@@ -28,7 +28,7 @@
  *                          the target value is needed
  * @returns 
  */
-function getSE(denominator: number[], data_type: string, adjusted: boolean, target?: number) {
+function getSE(denominator: number[], data_type: string, adjusted: boolean, target?: number): number[] {
     // Adjusted SE is the same, but branching for clarity
     if (data_type == "PR") {
         if (adjusted) {

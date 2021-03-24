@@ -10,7 +10,7 @@ import * as rmath from "lib-r-math.js";
  * @param SE    - Array of standard errors for each unit
  * @returns 
  */
-function getTau2(phi: number, SE: number[]) {
+function getTau2(phi: number, SE: number[]): number {
     let N = SE.length;
     // Check for sufficient dispersion
     if (N * phi < N - 1) { return 0.0; }

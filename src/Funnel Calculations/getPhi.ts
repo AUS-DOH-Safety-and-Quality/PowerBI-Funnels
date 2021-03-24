@@ -7,7 +7,7 @@ import * as mathjs from "mathjs";
  * @param z_adj 
  * @returns 
  */
-function getPhi(z_adj: number[]) {
+function getPhi(z_adj: number[]): number {
     return mathjs.sum(mathjs.square(z_adj)) / z_adj.length;
 }
 
