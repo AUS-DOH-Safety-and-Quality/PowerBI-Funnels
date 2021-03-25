@@ -142,7 +142,7 @@ export class Visual implements IVisual {
         this.selectionManager = this.host.createSelectionManager();
 
         this.selectionManager.registerOnSelectCallback(() => {
-            syncSelectionState(this.dots, <ISelectionId[]>this.selectionManager.getSelectionIds(), this);
+            syncSelectionState(this.dots, <ISelectionId[]>this.selectionManager.getSelectionIds());
         });
 
     }
