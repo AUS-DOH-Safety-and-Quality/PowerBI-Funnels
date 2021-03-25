@@ -17,14 +17,14 @@ function makeDots(DotObject, highlights, selectionManager, tooltipService, x_sca
     .attr("r", 4)
     // Fill each dot with the colour in each DataPoint
     .style("fill", d => d.colour)
+    .style("fill-opacity", d => highlights ? (d.highlighted ? 1.0 : 0.2) : 1.0)
     // Change opacity (highlighting) with selections in other plots
-    .style("fill-opacity", (d,idx) => highlights ? (d.highlighted ? 1.0 : 0.2) : 1.0)
     // Specify actions to take when clicking on dots
     .on("click", d => {
         // Pass identities of selected data back to PowerBI
         selectionManager
             // Propagate identities of selected data based to PowerBI based on all selected dots
-            .select(d.identity, true)
+            .select(d.identity, false)
             // Change opacity of non-selected dots
             .then(ids => {
                 DotObject.style(

@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { map } from "mathjs";
 import getLimitsArray from "../src/getLimitsArray";
 
 /**

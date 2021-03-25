@@ -21,7 +21,8 @@ import truncateLimits from "../Funnel Calculations/truncateLimits"
  * @param tau2 
  * @param od_adjust 
  * @param data_type 
- * @returns 
+ * @returns An array where each entry is a two-dimensional array containing
+ *              the denominator and the associated standard error
  */
 function getLimit(q: number, target: number, denominator: number[], SE: number[],
                   tau2: number, od_adjust: boolean, data_type: string):number[][] {

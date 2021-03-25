@@ -143,6 +143,7 @@ export class Visual implements IVisual {
         // Update settings object with user-specified values (if present)
         updateSettings(this.settings, options.dataViews[0].metadata.objects);
 
+
         // Insert the viewModel object containing the user-input data
         //   This function contains the construction of the funnel
         //   control limits
@@ -208,15 +209,15 @@ export class Visual implements IVisual {
                        //   - HTML element for which there are no matching datapoint (if so, creates new elements to be appended)
                        .data(this.viewModel.scatterDots);
 
-        // Initial plotting of scatter points, run when chart is first rendered
-        makeDots(dots.enter()
-                     .append("circle")
-                     .classed("dot", true),
-                 this.viewModel.highlights, this.selectionManager,
-                 this.host.tooltipService, xScale, yScale);
+        // Update the datapoints if data is refreshed
+        const dots_merged = dots.enter()
+            .append("circle")
+            .merge(<any>dots)
+            .classed("dot", true);
 
-        // Re-rendering of scatter points, run each time chart is updated
-        makeDots(dots, this.viewModel.highlights, this.selectionManager,
+        // Plotting of scatter points
+        makeDots(dots_merged,
+                 this.viewModel.highlights, this.selectionManager,
                  this.host.tooltipService, xScale, yScale);
 
         // Bind calculated control limits and target line to respective plotting objects
@@ -235,63 +236,61 @@ export class Visual implements IVisual {
         let linesLL95 = this.LL95Group
             .selectAll(".line")
             .data([this.viewModel.lowerLimit95]);
+        
+        const linesLL99Merged = linesLL99.enter()
+                                            .append("path")
+                                            .merge(<any>linesLL99)
+                                            .classed("line", true)
+        
+        const linesLL95_merged = linesLL95.enter()
+                                            .append("path")
+                                            .merge(<any>linesLL95)
+                                            .classed("line", true)
+        const linesUL95_merged = linesUL95.enter()
+                                          .append("path")
+                                          .merge(<any>linesUL95)
+                                          .classed("line", true)
+        
+        const linesUL99_merged = linesUL99.enter()
+                                          .append("path")
+                                          .merge(<any>linesUL99)
+                                          .classed("line", true)
 
         let lineTarget = this.targetGroup
-            .selectAll(".line")
-            .data([this.viewModel.upperLimit99]);
+                             .selectAll(".line")
+                             .data([this.viewModel.upperLimit99]);
+
+        const lineTarget_merged = lineTarget.enter()
+                                            .append("path")
+                                            .merge(<any>lineTarget)
+                                            .classed("line", true)
         
         // Initial construction of lines, run when plot is first rendered.
         //   Text argument specifies which type of line is required (controls aesthetics),
         //   inverse scale objects used to display tooltips on drawn control limits 
-        makeLines(linesLL99.enter()
-                            .append("path")
-                            .classed("line", true),
+        makeLines(linesLL99Merged,
                     xScale, yScale, "99.8%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
         
-        makeLines(linesLL95.enter()
-                            .append("path")
-                            .classed("line", true),
+        makeLines(linesLL95_merged,
                     xScale, yScale, "95%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(linesUL95.enter()
-                            .append("path")
-                            .classed("line", true),
+        makeLines(linesUL95_merged,
                     xScale, yScale, "95%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(linesUL99.enter()
-                            .append("path")
-                            .classed("line", true),
+        makeLines(linesUL99_merged,
                     xScale, yScale, "99.8%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(lineTarget.enter()
-                            .append("path")
-                            .classed("line", true),
+        makeLines(lineTarget_merged,
                     xScale, yScale, "target",
-                    this.viewModel, this.host.tooltipService,);
-
-        // Re-render control limits and target line whenever the plot is updated
-        makeLines(linesLL99, xScale, yScale, "99.8%",
-                  this.viewModel, this.host.tooltipService,
-                  xScale_inv, yScale_inv);
-        makeLines(linesLL95, xScale, yScale, "95%",
-                  this.viewModel, this.host.tooltipService,
-                  xScale_inv, yScale_inv);
-        makeLines(linesUL95, xScale, yScale, "95%",
-                  this.viewModel, this.host.tooltipService,
-                  xScale_inv, yScale_inv);
-        makeLines(linesUL99, xScale, yScale, "99.8%",
-                  this.viewModel, this.host.tooltipService,
-                  xScale_inv, yScale_inv);
-        makeLines(lineTarget, xScale, yScale, "target",
-                  this.viewModel, this.host.tooltipService,);
+                    this.viewModel, this.host.tooltipService);
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane

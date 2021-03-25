@@ -35,7 +35,7 @@ import getLimit from "./Funnel Calculations/getLimit";
  * @param od_adjust        - Whether to adjust for overdispersion ("auto", "yes", "no")
  * @returns Array of control limit arrays and unadjusted target value for plotting
  */
-function getLimitsArray(numerator, denominator, maxDenominator, data_type, od_adjust) {
+function getLimitsArray(numerator: number[], denominator: number[], maxDenominator: number, data_type: string, od_adjust: string) {
 
      // Series of steps to estimate dispersion ratio (phi) and
      //    between-hospital variance (tau2). These are are used to
@@ -57,6 +57,8 @@ function getLimitsArray(numerator, denominator, maxDenominator, data_type, od_ad
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
     let x_range = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 0.5);
 
+    var od_bool: boolean;
+
     // Messy approach converting od_adjust option to boolean. Uses the 
     //   estimate of between-unit variance (tau2) to determine whether to
     //   adjust if user wants auto-adjustment
@@ -64,31 +66,31 @@ function getLimitsArray(numerator, denominator, maxDenominator, data_type, od_ad
         // tau2 is fixed to zero if the dispersion test is not met
         //    so a value greater than 0 indicates sufficient dispersion
         if(tau2 > 0) {
-            od_adjust = true;
+            od_bool = true;
         } else {
-            od_adjust = false;
+            od_bool = false;
         }
     } else if (od_adjust == "yes") {
-        od_adjust = true;
+        od_bool = true;
     } else {
-        od_adjust = false;
+        od_bool = false;
     }
 
     // If unadjusted limits for proportion data are requested then
     //    the unadjusted target line is needed for estimating the
     //    standard errors.
-    let target = getTarget(numerator, denominator, data_type, od_adjust);
+    let target = getTarget(numerator, denominator, data_type, od_bool);
 
     // Estimate the associated standard error for each denominator value
-    let se_range = getSE(x_range, data_type, od_adjust, target);
+    let se_range = getSE(x_range, data_type, od_bool, target);
 
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.
     return [
-            getLimit(q99[0], target, x_range, se_range, tau2, od_adjust, data_type).sort((a,b) => a[0] - b[0]),
-            getLimit(q95[0], target, x_range, se_range, tau2, od_adjust, data_type).sort((a,b) => a[0] - b[0]),
-            getLimit(q95[1], target, x_range, se_range, tau2, od_adjust, data_type).sort((a,b) => a[0] - b[0]),
-            getLimit(q99[1], target, x_range, se_range, tau2, od_adjust, data_type).sort((a,b) => a[0] - b[0]),
+            getLimit(q99[0], target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]),
+            getLimit(q95[0], target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]),
+            getLimit(q95[1], target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]),
+            getLimit(q99[1], target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]),
             getTarget(numerator, denominator, data_type, false)
             ];
 }
