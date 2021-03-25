@@ -14,11 +14,11 @@ import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import ISelectionId = powerbi.visuals.ISelectionId;
-import makeDots from "../src/dots";
-import makeLines from "../src/lines";
+import makeDots from "../src/makeDots";
+import makeLines from "../src/makeLines";
 import updateSettings from "../src/updateSettings";
 import getViewModel from "../src/getViewModel";
-import syncSelectionState from "../src/syncSelectionState";
+import highlightIfSelected from "./highlightIfSelected";
 import * as d3 from "d3";
 import * as mathjs from "mathjs";
 import * as rmath from "lib-r-math.js";
@@ -142,7 +142,7 @@ export class Visual implements IVisual {
         this.selectionManager = this.host.createSelectionManager();
 
         this.selectionManager.registerOnSelectCallback(() => {
-            syncSelectionState(this.dots, <ISelectionId[]>this.selectionManager.getSelectionIds());
+            highlightIfSelected(this.dots, <ISelectionId[]>this.selectionManager.getSelectionIds());
         });
 
     }

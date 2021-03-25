@@ -1,5 +1,5 @@
 
-function isSelectionIdInArray(selectionIds, selectionId): boolean {
+function checkIDSelected(selectionIds, selectionId): boolean {
     if (!selectionIds || !selectionId) {
         return false;
     }
@@ -9,4 +9,4 @@ function isSelectionIdInArray(selectionIds, selectionId): boolean {
     });
 }
 
-export default isSelectionIdInArray;
+export default checkIDSelected;

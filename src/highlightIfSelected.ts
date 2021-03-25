@@ -1,19 +1,18 @@
-import isSelectionIdInArray from "../src/isSelectionIdInArray";
+import checkIDSelected from "./checkIDSelected";
 import * as d3 from "d3";
 
-function syncSelectionState(DotObject, selectionIds) {
+function highlightIfSelected(DotObject, selectionIds) {
     if (!DotObject || !selectionIds) {
         return;
     }
 
     if (!selectionIds.length) {
         DotObject.style("fill-opacity", 1.0);
-
         return;
     }
 
     DotObject.each(d => {
-        const isSelected: boolean = isSelectionIdInArray(selectionIds, d.identity);
+        const isSelected: boolean = checkIDSelected(selectionIds, d.identity);
 
         const opacity: number = isSelected ? 1.0 : 0.2;
 
@@ -22,4 +21,4 @@ function syncSelectionState(DotObject, selectionIds) {
     });
 }
 
-export default syncSelectionState;
+export default highlightIfSelected;

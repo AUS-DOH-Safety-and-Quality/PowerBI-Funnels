@@ -57,6 +57,7 @@ function getLimit(q: number, target: number, denominator: number[], SE: number[]
         }
     }
 
+    // Truncate any limits exceeding the appropriate bounds
     return truncateLimits(limits, data_type);
 }
 

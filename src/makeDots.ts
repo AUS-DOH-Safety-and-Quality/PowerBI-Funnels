@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import syncSelectionState from "../src/syncSelectionState";
+import highlightIfSelected from "./highlightIfSelected";
 
 /**
  * Function for rendering scatter dots on the chart, adding tooltips,
@@ -19,7 +19,7 @@ function makeDots(DotObject, highlights, selectionManager, tooltipService, x_sca
             // Fill each dot with the colour in each DataPoint
              .style("fill", d => d.colour);
 
-    syncSelectionState(DotObject, selectionManager.getSelectionIds());
+    highlightIfSelected(DotObject, selectionManager.getSelectionIds());
 
     // Change opacity (highlighting) with selections in other plots
     // Specify actions to take when clicking on dots
