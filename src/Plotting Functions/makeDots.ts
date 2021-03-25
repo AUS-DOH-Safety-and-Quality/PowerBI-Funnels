@@ -12,12 +12,16 @@ import highlightIfSelected from "../Selection Helpers/highlightIfSelected";
  * @param x_scale           - d3 scale function for translating axis coordinates to screen coordinates
  * @param y_scale           - d3 scale function for translating axis coordinates to screen coordinates
  */
-function makeDots(DotObject, highlights, selectionManager, tooltipService, x_scale, y_scale) {
+function makeDots(DotObject, settings, highlights, selectionManager,
+                  tooltipService, x_scale, y_scale) {
+    let dot_size = settings.scatter.size.value;
+    let dot_colour = settings.scatter.colour.value;
+
     DotObject.attr("cy", d => y_scale(d.ratio))
              .attr("cx", d => x_scale(d.denominator))
-             .attr("r", 4)
+             .attr("r", dot_size)
             // Fill each dot with the colour in each DataPoint
-             .style("fill", d => d.colour);
+             .style("fill", d => dot_colour);
 
     highlightIfSelected(DotObject, selectionManager.getSelectionIds());
 

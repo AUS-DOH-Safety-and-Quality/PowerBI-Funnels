@@ -63,7 +63,6 @@ export class Visual implements IVisual {
     private host: IVisualHost;
     private svg: d3.Selection<SVGElement, any, any, any>;
     private dotGroup: d3.Selection<SVGElement, any, any, any>;
-    private dots: d3.Selection<d3.BaseType, any, d3.BaseType, any>;
     private UL99Group: d3.Selection<SVGElement, any, any, any>;
     private LL99Group: d3.Selection<SVGElement, any, any, any>;
     private UL95Group: d3.Selection<SVGElement, any, any, any>;
@@ -102,6 +101,16 @@ export class Visual implements IVisual {
             od_adjust: {
                 default: "auto",
                 value: "auto"
+            }
+        },
+        scatter: {
+            size: {
+                default: 4,
+                value: 4
+            },
+            colour: {
+                default: "#99999",
+                value: "#99999"
             }
         }
     }
@@ -203,7 +212,7 @@ export class Visual implements IVisual {
 
 
         // Bind input data to dotGroup reference
-        this.dots = this.dotGroup
+        let dots = this.dotGroup
                        // List all child elements of dotGroup that have CSS class '.dot'
                        .selectAll(".dot")
                        // Matches input array to a list, returns three result sets
@@ -211,13 +220,13 @@ export class Visual implements IVisual {
                        .data(this.viewModel.scatterDots);
 
         // Update the datapoints if data is refreshed
-        const dots_merged = this.dots.enter()
+        const dots_merged = dots.enter()
             .append("circle")
-            .merge(<any>this.dots)
+            .merge(<any>dots)
             .classed("dot", true);
 
         // Plotting of scatter points
-        makeDots(dots_merged,
+        makeDots(dots_merged, this.settings,
                  this.viewModel.highlights, this.selectionManager,
                  this.host.tooltipService, xScale, yScale);
 
@@ -312,6 +321,18 @@ export class Visual implements IVisual {
                         properties: {
                             data_type: this.settings.funnel.data_type.value,
                             od_adjust: this.settings.funnel.od_adjust.value
+                        },
+                        selector: null
+                    });
+                    break; 
+                // Specify behaviour for x-axis settings
+                case "scatter":
+                    // Add y-axis settings to object to be rendered
+                    properties.push({
+                        objectName: propertyGroupName,
+                        properties: {
+                            size: this.settings.scatter.size.value,
+                            colour: this.settings.scatter.colour.value
                         },
                         selector: null
                     });

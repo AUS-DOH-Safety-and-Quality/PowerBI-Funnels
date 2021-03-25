@@ -19,7 +19,7 @@
     ],
     "objects": {
         "funnel" : {
-            "displayName": "Funnel Setting",
+            "displayName": "Data Settings",
             "properties": {
                 "data_type": {
                     "displayName": "Data Type",
@@ -55,6 +55,27 @@
                         ]
                     }
                 }
+            }
+        },
+        "scatter": {
+            "displayName": "Scatter Settings",
+            "properties": {
+                "size": {
+                    "displayName": "Dot Size",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "colour":{
+                    "displayName": "Colour",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                 }
             }
         }
     },

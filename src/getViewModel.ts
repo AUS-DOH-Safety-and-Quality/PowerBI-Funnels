@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { map } from "mathjs";
 import getLimitsArray from "../src/getLimitsArray";
+import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
@@ -83,7 +84,7 @@ function getViewModel(options, settings, host) {
             ratio: <number>numerator.values[i]/<number>denominator.values[i],
             // Check whether objects array exists with user-specified fill colours, apply those colours if so
             //   otherwise use default palette
-            colour:  "black",
+            colour: settings.scatter.colour.value,
             // Create selection identity for each data point, to control cross-plot highlighting
             identity: host.createSelectionIdBuilder()
                           .withCategory(categories, i)

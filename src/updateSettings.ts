@@ -22,6 +22,20 @@ function updateSettings(settings, objects) {
         },
         settings.funnel.od_adjust.default
     )
+    settings.scatter.size.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "scatter",
+            propertyName: "size"
+        },
+        settings.scatter.size.default
+    )
+    settings.scatter.colour.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "scatter",
+            propertyName: "colour"
+        },
+        settings.scatter.colour.default
+    )
 }
 
 export default updateSettings;
