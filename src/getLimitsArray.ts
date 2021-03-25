@@ -59,22 +59,14 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
 
     var od_bool: boolean;
 
-    // Messy approach converting od_adjust option to boolean. Uses the 
+    // Converting od_adjust option to boolean. Uses the 
     //   estimate of between-unit variance (tau2) to determine whether to
     //   adjust if user wants auto-adjustment
-    if(od_adjust == "auto") {
+
         // tau2 is fixed to zero if the dispersion test is not met
         //    so a value greater than 0 indicates sufficient dispersion
-        if(tau2 > 0) {
-            od_bool = true;
-        } else {
-            od_bool = false;
-        }
-    } else if (od_adjust == "yes") {
-        od_bool = true;
-    } else {
-        od_bool = false;
-    }
+    od_bool = (od_adjust == "auto") ? (tau2 > 0) : (od_adjust == "yes");
+
 
     // If unadjusted limits for proportion data are requested then
     //    the unadjusted target line is needed for estimating the
