@@ -57,15 +57,13 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
     let x_range = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 0.5);
 
-    var od_bool: boolean;
-
     // Converting od_adjust option to boolean. Uses the 
     //   estimate of between-unit variance (tau2) to determine whether to
     //   adjust if user wants auto-adjustment
 
         // tau2 is fixed to zero if the dispersion test is not met
         //    so a value greater than 0 indicates sufficient dispersion
-    od_bool = (od_adjust == "auto") ? (tau2 > 0) : (od_adjust == "yes");
+    var od_bool: boolean = (od_adjust == "auto") ? (tau2 > 0) : (od_adjust == "yes");
 
 
     // If unadjusted limits for proportion data are requested then
