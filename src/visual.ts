@@ -117,8 +117,6 @@ export class Visual implements IVisual {
                     // Create new svg element inside container
                      .append("svg");
 
-        this.dotGroup = this.svg.append("g")
-                                .classed("dot-group", true);
         this.UL99Group = this.svg.append("g")
                                 .classed("line-group", true);
         this.LL99Group = this.svg.append("g")
@@ -129,6 +127,8 @@ export class Visual implements IVisual {
                                 .classed("line-group", true);
         this.targetGroup = this.svg.append("g")
                                 .classed("line-group", true);
+        this.dotGroup = this.svg.append("g")
+                                .classed("dot-group", true);
 
         // Add a grouping ('g') element to the canvas that will later become the x-axis
         this.xAxisGroup = this.svg.append("g")
@@ -298,6 +298,7 @@ export class Visual implements IVisual {
         makeLines(lineTarget_merged,
                     xScale, yScale, "target",
                     this.viewModel, this.host.tooltipService);
+
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
