@@ -13,10 +13,12 @@ import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+import ISelectionId = powerbi.visuals.ISelectionId;
 import makeDots from "../src/dots";
 import makeLines from "../src/lines";
 import updateSettings from "../src/updateSettings";
 import getViewModel from "../src/getViewModel";
+import syncSelectionState from "../src/syncSelectionState";
 import * as d3 from "d3";
 import * as mathjs from "mathjs";
 import * as rmath from "lib-r-math.js";
@@ -62,6 +64,7 @@ export class Visual implements IVisual {
     private host: IVisualHost;
     private svg: d3.Selection<SVGElement, any, any, any>;
     private dotGroup: d3.Selection<SVGElement, any, any, any>;
+    private dots: d3.Selection<d3.BaseType, any, d3.BaseType, any>;
     private UL99Group: d3.Selection<SVGElement, any, any, any>;
     private LL99Group: d3.Selection<SVGElement, any, any, any>;
     private UL95Group: d3.Selection<SVGElement, any, any, any>;
@@ -137,12 +140,16 @@ export class Visual implements IVisual {
 
         // Request a new selectionManager tied to the visual
         this.selectionManager = this.host.createSelectionManager();
+
+        this.selectionManager.registerOnSelectCallback(() => {
+            syncSelectionState(this.dots, <ISelectionId[]>this.selectionManager.getSelectionIds(), this);
+        });
+
     }
 
     public update(options: VisualUpdateOptions) {
         // Update settings object with user-specified values (if present)
         updateSettings(this.settings, options.dataViews[0].metadata.objects);
-
 
         // Insert the viewModel object containing the user-input data
         //   This function contains the construction of the funnel
@@ -202,7 +209,7 @@ export class Visual implements IVisual {
 
 
         // Bind input data to dotGroup reference
-        let dots = this.dotGroup
+        this.dots = this.dotGroup
                        // List all child elements of dotGroup that have CSS class '.dot'
                        .selectAll(".dot")
                        // Matches input array to a list, returns three result sets
@@ -210,9 +217,9 @@ export class Visual implements IVisual {
                        .data(this.viewModel.scatterDots);
 
         // Update the datapoints if data is refreshed
-        const dots_merged = dots.enter()
+        const dots_merged = this.dots.enter()
             .append("circle")
-            .merge(<any>dots)
+            .merge(<any>this.dots)
             .classed("dot", true);
 
         // Plotting of scatter points

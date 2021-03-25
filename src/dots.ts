@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import syncSelectionState from "../src/syncSelectionState";
 
 /**
  * Function for rendering scatter dots on the chart, adding tooltips,
@@ -16,24 +17,31 @@ function makeDots(DotObject, highlights, selectionManager, tooltipService, x_sca
     .attr("cx", d => x_scale(d.denominator))
     .attr("r", 4)
     // Fill each dot with the colour in each DataPoint
-    .style("fill", d => d.colour)
-    .style("fill-opacity", d => highlights ? (d.highlighted ? 1.0 : 0.2) : 1.0)
+    .style("fill", d => d.colour);
+
+    syncSelectionState(DotObject, selectionManager.getSelectionIds(), this);
+
     // Change opacity (highlighting) with selections in other plots
     // Specify actions to take when clicking on dots
-    .on("click", d => {
+    DotObject
+        .style("fill-opacity", d => highlights ? (d.highlighted ? 1.0 : 0.2) : 1.0)
+        .on("click", d => {
+        
+        const isCtrlPressed: boolean = (<any>d3).event.ctrlKey;
+    
         // Pass identities of selected data back to PowerBI
         selectionManager
             // Propagate identities of selected data based to PowerBI based on all selected dots
-            .select(d.identity, false)
+            .select(d.identity, isCtrlPressed)
             // Change opacity of non-selected dots
             .then(ids => {
                 DotObject.style(
-                    "fill-opacity",d => 
+                    "fill-opacity", d => 
                     ids.length > 0 ? 
                     (ids.indexOf(d.identity) >= 0 ? 1.0 : 0.2) 
                     : 1.0
                 );
-            })
+            });
     })
     // Display tooltip content on mouseover
     .on("mouseover", d => {
