@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import highlightIfSelected from "./highlightIfSelected";
+import highlightIfSelected from "../Selection Helpers/highlightIfSelected";
 
 /**
  * Function for rendering scatter dots on the chart, adding tooltips,
