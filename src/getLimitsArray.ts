@@ -56,8 +56,7 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
 
     // Specify the intervals for the limits: 95% and 99.8%
     // TODO(Andrew): Allow user to specify
-    let q99 = rmath.Normal().qnorm([0.001, 0.999]);
-    let q95 = rmath.Normal().qnorm([0.025, 0.975]);
+    let qs = rmath.Normal().qnorm([0.001, 0.025, 0.975, 0.999]);
 
     // Generate sequence of values to calculate limits for, specifying that the
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
@@ -83,18 +82,14 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
     if (data_type == "RC") {
         se_range = getSE(x_range, data_type, od_bool, 0, x_range);
     } else {
-        se_range = getSE(x_range, data_type, true, target);
+        se_range = getSE(x_range, data_type, od_bool, target);
     }
+    let limitsArray = getLimit(qs, target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]);
 
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.
-    return [
-            getLimit(q99[0], target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]),
-            getLimit(q95[0], target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]),
-            getLimit(q95[1], target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]),
-            getLimit(q99[1], target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]),
-            getTarget(numerator, denominator, data_type, false)
-            ];
+    return limitsArray.concat(
+            [getTarget(numerator, denominator, data_type, false)]);
 }
 
 export default getLimitsArray;

@@ -1,5 +1,7 @@
 import * as rmath from "lib-r-math.js";
-import truncateLimits from "../Funnel Calculations/truncateLimits"
+import { prop_limit } from "./limitFunctions";
+import { smr_limit } from "./limitFunctions";
+import { rc_limit } from "./limitFunctions";
 
 /**
  * Function to generate control limits, either adjusted or un-adjusted.
@@ -24,52 +26,26 @@ import truncateLimits from "../Funnel Calculations/truncateLimits"
  * @returns An array where each entry is a two-dimensional array containing
  *              the denominator and the associated standard error
  */
-function getLimit(q: number, target: number, denominator: number[], SE: number[],
+function getLimit(qs: number[], target: number, denominator: number[], SE: number[],
                   tau2: number, od_adjust: boolean, data_type: string):number[][] {
-    let limits: number[][];
+    var limitFunction;
 
     if (data_type == "PR") {
-        if (od_adjust) {
-            limits =  SE.map(
-                (d, idx) => [denominator[idx],
-                             Math.pow(Math.sin(target + q * Math.sqrt(Math.pow(d,2) + tau2)), 2)]
-            );
-        } else {
-            limits = SE.map(
-                (d, idx) => [denominator[idx],
-                             target + q * d]
-            );
-        }
+        limitFunction = prop_limit;
     } else if (data_type == "SR") {
-        if(od_adjust) {
-            limits = SE.map(
-                (d, idx) => [denominator[idx],
-                             target + q * Math.sqrt(Math.pow(d,2) + tau2)]
-            );
-        } else {
-            let p = rmath.Normal().pnorm(q);
-            let is_upper = p > 0.5;
-            let offset = is_upper ? 1 : 0;
-            limits = denominator.map(
-                d => [d,
-                      (rmath.ChiSquared().qchisq(p, 2 * (d + offset)) / 2.0) / d]
-            );
-        }
+        limitFunction = smr_limit;
     } else if (data_type == "RC") {
-        if (od_adjust) {
-            limits = SE.map(
-                (d, idx) => [denominator[idx],
-                            Math.exp(target + q * Math.sqrt(Math.pow(d,2) + tau2))]
-            );
-        } else {
-            limits = SE.map(
-                (d, idx) => [denominator[idx],
-                            target + Math.exp(q * d)]
-            );
-        }
+        limitFunction = rc_limit;
     }
-    // Truncate any limits exceeding the appropriate bounds
-    return truncateLimits(limits, data_type);
+
+    return denominator.map(
+        (d, idx) =>
+            [d].concat(
+                qs.map(
+                    q => limitFunction(q, target, SE[idx], tau2, od_adjust, d))
+                )
+        );
+
 }
 
 export default getLimit;

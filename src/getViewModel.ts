@@ -3,6 +3,10 @@ import { map } from "mathjs";
 import getLimitsArray from "../src/getLimitsArray";
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
+function checkValid(value, data_type?) {
+    return value !== null && value !== undefined && value > 0;
+}
+
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
  * user-specified data, calculates the funnel control limits to plot, and
@@ -63,12 +67,13 @@ function getViewModel(options, settings, host) {
     // Filter zero-denominator observations from proportion data
     let valid_ids = <number[]>denominator.values.map(
         (d,idx) => {
-            if (data_type == "PR") {
-                if (d > 0) {return idx;}
-            } else {
+            var is_valid: boolean =
+            checkValid(d, data_type) &&
+            checkValid(<number[]>numerator.values[idx]);
+
+            if(is_valid) {
                 return idx;
             }
-            
         }
     );
 
@@ -83,13 +88,17 @@ function getViewModel(options, settings, host) {
 
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
     for (let i = 0; i < categories.values.length;  i++) {
+        let num_value: number = <number>numerator.values[i];
+        let den_value: number = <number>denominator.values[i];
+        let grp_value: string = <string>categories.values[i];
+
         viewModel.scatterDots.push({
             // The inputs have to explicitly cast to requested types, as PowerBI
             //   stores them as type 'PrimitiveValue[]'
-            category: <string>categories.values[i],
-            numerator: <number>numerator.values[i],
-            denominator: <number>denominator.values[i],
-            ratio: <number>numerator.values[i]/<number>denominator.values[i],
+            category: grp_value,
+            numerator: num_value,
+            denominator: den_value,
+            ratio: num_value/den_value,
             // Check whether objects array exists with user-specified fill colours, apply those colours if so
             //   otherwise use default palette
             colour: settings.scatter.colour.value,
@@ -104,63 +113,64 @@ function getViewModel(options, settings, host) {
             // Specify content to print in tooltip
             tooltips: [{
                 displayName: "Group",
-                value: <string>categories.values[i]
+                value: grp_value
             }, {
                 displayName: "Numerator",
-                value: (<number>numerator.values[i]).toFixed(2)
+                value: (num_value == null) ? "" : (num_value).toFixed(2)
             }, {
                 displayName: "Denominator",
-                value: (<number>denominator.values[i]).toFixed(2)
+                value: (den_value == null) ? "" : (den_value).toFixed(2)
             }, {
                 displayName: "Ratio",
-                value: (<number>numerator.values[i]/<number>denominator.values[i]).toFixed(2)
+                value: (num_value == null ||
+                        den_value == null) ? "" : (num_value/den_value).toFixed(2)
             }]
         });
     }
 
-    for (let i = 0; i < (<number[][]>limitsArray[0]).length;  i++) {
+    for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
         viewModel.lowerLimit99.push({
-            limit: limitsArray[0][i][1],
-            denominator: limitsArray[0][i][0],
+            limit: limitsArray[i][1],
+            denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Lower 99.8%",
-                value: limitsArray[0][i][1]
+                value: limitsArray[i][1]
             }, {
                 displayName: "Denominator",
-                value: limitsArray[0][i][0]
+                value: limitsArray[i][0]
             }]
         });
         viewModel.lowerLimit95.push({
-            limit: limitsArray[1][i][1],
-            denominator: limitsArray[1][i][0],
+            limit: limitsArray[i][2],
+            denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Lower 95%",
-                value: limitsArray[1][i][1]
+                value: limitsArray[i][1][1]
             }, {
                 displayName: "Denominator",
-                value: limitsArray[1][i][0]
+                value: limitsArray[i][0]
             }]
         });
         viewModel.upperLimit95.push({
-            limit: limitsArray[2][i][1],
-            denominator: limitsArray[2][i][0],
+            limit: limitsArray[i][3],
+            denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Upper 95%",
-                value: limitsArray[2][i][1]
+                value: limitsArray[i][3]
             }, {
                 displayName: "Denominator",
-                value: limitsArray[2][i][0]
+                value: limitsArray[i][0]
             }]
         });
         viewModel.upperLimit99.push({
-            limit: limitsArray[3][i][1],
-            denominator: limitsArray[3][i][0],
+            limit: limitsArray[i][4],
+            denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Upper 99.8%",
-                value: limitsArray[3][i][1]
+                value: limitsArray[i][4]
             }, {
                 displayName: "Denominator",
-                value: limitsArray[3][i][0]
+                value: limitsArray[i][0]
             }]
         });
     }
@@ -174,7 +184,7 @@ function getViewModel(options, settings, host) {
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
-    viewModel.target = <number>limitsArray[4];
+    viewModel.target = +limitsArray[limitsArray.length-1];
 
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
