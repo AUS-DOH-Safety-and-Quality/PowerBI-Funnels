@@ -9,18 +9,18 @@ import * as d3 from "d3";
  * @param selectionIds  - List of current selection ids returned for getSelectionIds
  * @returns 
  */
-function highlightIfSelected(DotObject, selectionIds) {
+function highlightIfSelected(DotObject, selectionIds, opacitySelected, opacityUnselected) {
     if (!DotObject || !selectionIds) {
         return;
     }
 
     if (!selectionIds.length) {
-        DotObject.style("fill-opacity", 1.0);
+        DotObject.style("fill-opacity", opacitySelected);
         return;
     }
 
     DotObject.each(d => {
-        const opacity = checkIDSelected(selectionIds, d.identity) ? 1.0 : 0.2;
+        const opacity = checkIDSelected(selectionIds, d.identity) ? opacitySelected : opacityUnselected;
 
         (<any>d3).select(DotObject)
                  .style("fill-opacity", opacity);

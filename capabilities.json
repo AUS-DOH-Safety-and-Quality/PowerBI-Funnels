@@ -66,6 +66,18 @@
                         "numeric": true
                     }
                 },
+                "opacity": {
+                    "displayName": "Opacity",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "opacity_unselected": {
+                    "displayName": "Opacity if Unselected",
+                    "type": {
+                        "numeric": true
+                    }
+                },
                 "colour":{
                     "displayName": "Colour",
                     "type": {
@@ -76,6 +88,59 @@
                         }
                     }
                  }
+            }
+        },
+        "lines": {
+            "displayName": "Line Settings",
+            "properties": {
+                "width_99": {
+                    "displayName": "99.8% Line Width",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "width_95": {
+                    "displayName": "95% Line Width",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "width_target": {
+                    "displayName": "Target Line Width",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "colour_99":{
+                    "displayName": "99.8% Line Colour",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "colour_95":{
+                    "displayName": "95% Line Colour",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "colour_target":{
+                    "displayName": "Target Line Colour",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
             }
         }
     },

@@ -13,20 +13,28 @@ import * as d3 from "d3";
  * @param x_scale_inv      - d3 scale function for translating screen coordinates to axis coordinates
  * @param y_scale_inv      - d3 scale function for translating screen coordinates to axis coordinates
  */
-function makeLines(LineObject, x_scale, y_scale,
+function makeLines(LineObject, settings, x_scale, y_scale,
                    linetype, viewModel, tooltipService,
                    x_scale_inv?, y_scale_inv?) {
+    let l99_width = settings.lines.width_99.value;
+    let l95_width = settings.lines.width_95.value;
+    let target_width = settings.lines.width_target.value;
+    let l99_colour = settings.lines.colour_99.value;
+    let l95_colour = settings.lines.colour_95.value;
+    let target_colour = settings.lines.colour_target.value;
     if (linetype != "target") {
         LineObject.attr("d", d3.line<typeof viewModel.LimitLines>()
                                .x(d => x_scale(d.denominator))
                                .y(d => y_scale(d.limit)))
             .attr("fill","none")
-            .attr("stroke", "steelblue")
-            .attr("stroke-width", 3);
         if (linetype == "95%") {
             LineObject.style("stroke-dasharray",("3,3"))
+                      .attr("stroke", l95_colour)
+                      .attr("stroke-width", l95_width);
         } else if(linetype == "99.8%") {
             LineObject.style("stroke-dasharray",("6,3"))
+                      .attr("stroke", l99_colour)
+                      .attr("stroke-width", l99_width);
         }
         LineObject.on("mouseover", d => {
                         // Get screen coordinates of mouse pointer, tooltip will
@@ -91,8 +99,8 @@ function makeLines(LineObject, x_scale, y_scale,
                                .y(d => y_scale(viewModel.target)))
             // Apply CSS class to elements so that they can be looked up later
             .attr("fill","none")
-            .attr("stroke", "steelblue")
-            .attr("stroke-width", 1.5);
+            .attr("stroke", target_colour)
+            .attr("stroke-width", target_width);
     }
 
     LineObject.exit()

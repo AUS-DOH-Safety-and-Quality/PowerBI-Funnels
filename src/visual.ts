@@ -111,6 +111,40 @@ export class Visual implements IVisual {
             colour: {
                 default: "#99999",
                 value: "#99999"
+            },
+            opacity: {
+                default: 1,
+                value: 1
+            },
+            opacity_unselected: {
+                default: 0.2,
+                value: 0.2
+            }
+        },
+        lines: {
+            width_99: {
+                default: 3,
+                value: 3
+            },
+            width_95: {
+                default: 3,
+                value: 3
+            },
+            width_target: {
+                default: 1.5,
+                value: 1.5
+            },
+            colour_99: {
+                default: "#4682B4",
+                value: "#4682B4"
+            },
+            colour_95: {
+                default: "#4682B4",
+                value: "#4682B4"
+            },
+            colour_target: {
+                default: "#4682B4",
+                value: "#4682B4"
             }
         }
     }
@@ -278,27 +312,27 @@ export class Visual implements IVisual {
         // Initial construction of lines, run when plot is first rendered.
         //   Text argument specifies which type of line is required (controls aesthetics),
         //   inverse scale objects used to display tooltips on drawn control limits 
-        makeLines(linesLL99Merged,
+        makeLines(linesLL99Merged, this.settings,
                     xScale, yScale, "99.8%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
         
-        makeLines(linesLL95_merged,
+        makeLines(linesLL95_merged, this.settings,
                     xScale, yScale, "95%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(linesUL95_merged,
+        makeLines(linesUL95_merged, this.settings,
                     xScale, yScale, "95%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(linesUL99_merged,
+        makeLines(linesUL99_merged, this.settings,
                     xScale, yScale, "99.8%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(lineTarget_merged,
+        makeLines(lineTarget_merged, this.settings,
                     xScale, yScale, "target",
                     this.viewModel, this.host.tooltipService);
 
@@ -324,19 +358,33 @@ export class Visual implements IVisual {
                         },
                         selector: null
                     });
-                    break; 
-                // Specify behaviour for x-axis settings
+                break; 
                 case "scatter":
-                    // Add y-axis settings to object to be rendered
                     properties.push({
                         objectName: propertyGroupName,
                         properties: {
                             size: this.settings.scatter.size.value,
-                            colour: this.settings.scatter.colour.value
+                            colour: this.settings.scatter.colour.value,
+                            opacity: this.settings.scatter.opacity.value,
+                            opacity_unselected: this.settings.scatter.opacity_unselected.value
                         },
                         selector: null
                     });
-                    break; 
+                break; 
+                case "lines":
+                    properties.push({
+                        objectName: propertyGroupName,
+                        properties: {
+                            width_99: this.settings.lines.width_99.value,
+                            width_95: this.settings.lines.width_95.value,
+                            width_target: this.settings.lines.width_target.value,
+                            colour_99: this.settings.lines.colour_99.value,
+                            colour_95: this.settings.lines.colour_95.value,
+                            colour_target: this.settings.lines.colour_target.value
+                        },
+                        selector: null
+                    });
+                break; 
             };
             return properties;
         }

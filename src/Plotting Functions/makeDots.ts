@@ -16,6 +16,8 @@ function makeDots(DotObject, settings, highlights, selectionManager,
                   tooltipService, x_scale, y_scale) {
     let dot_size = settings.scatter.size.value;
     let dot_colour = settings.scatter.colour.value;
+    let dot_opacity = settings.scatter.opacity.value;
+    let dot_opacity_unsel = settings.scatter.opacity_unselected.value;
 
     DotObject.attr("cy", d => y_scale(d.ratio))
              .attr("cx", d => x_scale(d.denominator))
@@ -23,12 +25,13 @@ function makeDots(DotObject, settings, highlights, selectionManager,
             // Fill each dot with the colour in each DataPoint
              .style("fill", d => dot_colour);
 
-    highlightIfSelected(DotObject, selectionManager.getSelectionIds());
+    highlightIfSelected(DotObject, selectionManager.getSelectionIds(),
+                        dot_opacity, dot_opacity_unsel);
 
     // Change opacity (highlighting) with selections in other plots
     // Specify actions to take when clicking on dots
     DotObject
-        .style("fill-opacity", d => highlights ? (d.highlighted ? 1.0 : 0.2) : 1.0)
+        .style("fill-opacity", d => highlights ? (d.highlighted ? dot_opacity : dot_opacity_unsel) : dot_opacity)
         .on("click", d => {
             // Pass identities of selected data back to PowerBI
             selectionManager
@@ -40,8 +43,8 @@ function makeDots(DotObject, settings, highlights, selectionManager,
                     DotObject.style(
                         "fill-opacity", d => 
                         ids.length > 0 ? 
-                        (ids.indexOf(d.identity) >= 0 ? 1.0 : 0.2) 
-                        : 1.0
+                        (ids.indexOf(d.identity) >= 0 ? dot_opacity : dot_opacity_unsel) 
+                        : dot_opacity
                     );
                 });
          })
