@@ -32,6 +32,10 @@
                           {
                             "displayName" : "Proportion",
                             "value" : "PR"
+                          },
+                          {
+                            "displayName" : "Rate",
+                            "value" : "RC"
                           }
                         ]
                     }

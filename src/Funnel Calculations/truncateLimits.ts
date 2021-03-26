@@ -9,7 +9,7 @@ function truncateLimits(limits: number[][], data_type: string):number[][] {
                 return d;
             }
         });
-    } else if (data_type == "SR") {
+    } else if (data_type == "SR" || data_type == "RC") {
         return limits.map(d => {
             if (d[1] < 0.0) {
                 return [d[0], 0.0];

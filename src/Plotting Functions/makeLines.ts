@@ -22,6 +22,7 @@ function makeLines(LineObject, settings, x_scale, y_scale,
     let l99_colour = settings.lines.colour_99.value;
     let l95_colour = settings.lines.colour_95.value;
     let target_colour = settings.lines.colour_target.value;
+
     if (linetype != "target") {
         LineObject.attr("d", d3.line<typeof viewModel.LimitLines>()
                                .x(d => x_scale(d.denominator))

@@ -28,7 +28,9 @@
  *                          the target value is needed
  * @returns 
  */
-function getSE(denominator: number[], data_type: string, adjusted: boolean, target?: number): number[] {
+function getSE(denominator: number[], data_type: string,
+              adjusted: boolean, target?: number,
+              numerator?: number[]): number[] {
     // Adjusted SE is the same, but branching for clarity
     if (data_type == "PR") {
         if (adjusted) {
@@ -43,6 +45,10 @@ function getSE(denominator: number[], data_type: string, adjusted: boolean, targ
         } else {
             return [];
         }
+    } else if (data_type = "RC") {
+        return denominator.map(
+            (d,idx) => Math.sqrt(1/(d+0.5) + 1/(numerator[idx]+0.5))
+        )
     }
 }
 

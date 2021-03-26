@@ -20,6 +20,10 @@ function getY(numerator: number[], denominator: number[], data_type: string): nu
         return numerator.map(
             (d, idx) => Math.sqrt(d / denominator[idx])
         );
+    } else if (data_type == "RC") {
+        return numerator.map(
+            (d,idx) => Math.log(d+0.5) - Math.log(denominator[idx]+0.5)
+        )
     }
 }
 

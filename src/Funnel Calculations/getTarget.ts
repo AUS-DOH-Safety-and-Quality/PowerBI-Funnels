@@ -26,6 +26,13 @@ function getTarget(numerator: number[], denominator: number[],
         } else {
             return ratio;
         }
+    } else if (type == "RC") {
+        if (transformed) {
+            return Math.log(d3.sum(numerator.map(d=>d+0.5))) -
+                            Math.log(d3.sum(denominator.map(d=>d+0.5)));
+        } else {
+            return d3.sum(numerator) / d3.sum(denominator);
+        }
     }
 }
 

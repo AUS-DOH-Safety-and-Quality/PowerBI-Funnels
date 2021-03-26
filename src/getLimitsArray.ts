@@ -36,12 +36,18 @@ import getLimit from "./Funnel Calculations/getLimit";
  * @returns Array of control limit arrays and unadjusted target value for plotting
  */
 function getLimitsArray(numerator: number[], denominator: number[], maxDenominator: number, data_type: string, od_adjust: string) {
-
+    
      // Series of steps to estimate dispersion ratio (phi) and
      //    between-hospital variance (tau2). These are are used to
      //    test and adjust for overdispersion
     let target_od = getTarget(numerator, denominator, data_type, true);
-    let SE = getSE(numerator, data_type, true);
+    
+    var SE: number[];
+    if (data_type == "RC") {
+        SE = getSE(numerator, data_type, true, 0, denominator);
+    } else {
+        SE = getSE(numerator, data_type, true);
+    }
     let y = getY(numerator, denominator, data_type);
     let z = getZScore(y, SE, target_od);
     let z_adj = winsoriseZScore(z);
@@ -55,7 +61,8 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
 
     // Generate sequence of values to calculate limits for, specifying that the
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
-    let x_range = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 0.5);
+    let x_range = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 
+                                  maxDenominator*0.01);
 
     // Converting od_adjust option to boolean. Uses the 
     //   estimate of between-unit variance (tau2) to determine whether to
@@ -65,14 +72,19 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
         //    so a value greater than 0 indicates sufficient dispersion
     var od_bool: boolean = (od_adjust == "auto") ? (tau2 > 0) : (od_adjust == "yes");
 
-
     // If unadjusted limits for proportion data are requested then
     //    the unadjusted target line is needed for estimating the
     //    standard errors.
     let target = getTarget(numerator, denominator, data_type, od_bool);
-
+    
+    
     // Estimate the associated standard error for each denominator value
-    let se_range = getSE(x_range, data_type, od_bool, target);
+    var se_range: number[];
+    if (data_type == "RC") {
+        se_range = getSE(x_range, data_type, od_bool, 0, x_range);
+    } else {
+        se_range = getSE(x_range, data_type, true, target);
+    }
 
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.

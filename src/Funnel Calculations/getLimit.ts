@@ -55,8 +55,19 @@ function getLimit(q: number, target: number, denominator: number[], SE: number[]
                       (rmath.ChiSquared().qchisq(p, 2 * (d + offset)) / 2.0) / d]
             );
         }
+    } else if (data_type == "RC") {
+        if (od_adjust) {
+            limits = SE.map(
+                (d, idx) => [denominator[idx],
+                            Math.exp(target + q * Math.sqrt(Math.pow(d,2) + tau2))]
+            );
+        } else {
+            limits = SE.map(
+                (d, idx) => [denominator[idx],
+                            target + Math.exp(q * d)]
+            );
+        }
     }
-
     // Truncate any limits exceeding the appropriate bounds
     return truncateLimits(limits, data_type);
 }

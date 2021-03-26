@@ -57,17 +57,25 @@ function getViewModel(options, settings, host) {
     // Get name of data column being used for measure/values being plotted
     let valueColumnName = metadata.columns.filter(c => c.roles["numerator"])[0].displayName;
 
+    let data_type = settings.funnel.data_type.value;
+    let od_adjust = settings.funnel.od_adjust.value;
     
+    // Filter zero-denominator observations from proportion data
     let valid_ids = <number[]>denominator.values.map(
-        (d,idx) => {if (d > 0) {return idx;}}
+        (d,idx) => {
+            if (data_type == "PR") {
+                if (d > 0) {return idx;}
+            } else {
+                return idx;
+            }
+            
+        }
     );
 
     let numerator_in = (<number[]>numerator.values).filter((d,idx) => valid_ids.indexOf(idx) != -1);
     let denominator_in = (<number[]>denominator.values).filter((d,idx) => valid_ids.indexOf(idx) != -1);
     let group_in = (<string[]>categories.values).filter((d,idx) => valid_ids.indexOf(idx) != -1);
 
-    let data_type = settings.funnel.data_type.value;
-    let od_adjust = settings.funnel.od_adjust.value;
     let maxDenominator = d3.max(denominator_in);
 
     let limitsArray = getLimitsArray(numerator_in, denominator_in, maxDenominator,
@@ -157,19 +165,12 @@ function getViewModel(options, settings, host) {
         });
     }
 
-    var ymax;
-
-    if (data_type == "PR") {
-        ymax = 1.1;
-    } else if (data_type = "SR") {
-        let max_tmp = d3.max(numerator_in.map(
-            (d,idx) => d / denominator_in[idx]
-        ));
-        ymax = max_tmp + max_tmp*0.1;
-    }
+    let maxRatio = d3.max(numerator_in.map(
+        (d,idx) => d / denominator_in[idx]
+    ));
 
     // Extract maximum value of input data and add to viewModel
-    viewModel.maxRatio = ymax;
+    viewModel.maxRatio = maxRatio + maxRatio*0.1;
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
