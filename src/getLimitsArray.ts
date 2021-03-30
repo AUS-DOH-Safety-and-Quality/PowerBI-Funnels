@@ -88,8 +88,7 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
 
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.
-    return limitsArray.concat(
-            [getTarget(numerator, denominator, data_type, false)]);
+    return limitsArray.concat([getTarget(numerator, denominator, data_type, false)]);
 }
 
 export default getLimitsArray;

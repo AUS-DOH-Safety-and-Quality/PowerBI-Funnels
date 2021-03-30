@@ -109,8 +109,8 @@ export class Visual implements IVisual {
                 value: 4
             },
             colour: {
-                default: "#99999",
-                value: "#99999"
+                default: "#000000",
+                value: "#000000"
             },
             opacity: {
                 default: 1,
