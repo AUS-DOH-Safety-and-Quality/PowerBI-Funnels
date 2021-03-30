@@ -3,7 +3,7 @@ import { map } from "mathjs";
 import getLimitsArray from "../src/getLimitsArray";
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
-function checkValid(value, data_type?) {
+function checkValid(value) {
     return value !== null && value !== undefined && value > 0;
 }
 
@@ -68,8 +68,8 @@ function getViewModel(options, settings, host) {
     let valid_ids = <number[]>denominator.values.map(
         (d,idx) => {
             var is_valid: boolean =
-            checkValid(d, data_type) &&
-            checkValid(<number[]>numerator.values[idx]);
+                checkValid(d) &&
+                checkValid(<number[]>numerator.values[idx]);
 
             if(is_valid) {
                 return idx;
