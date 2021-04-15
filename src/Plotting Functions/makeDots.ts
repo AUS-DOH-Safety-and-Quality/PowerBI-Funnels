@@ -47,6 +47,7 @@ function makeDots(DotObject, settings, highlights, selectionManager,
                         : dot_opacity
                     );
                 });
+                (<any>d3).event.stopPropagation();
          })
         // Display tooltip content on mouseover
         .on("mouseover", d => {

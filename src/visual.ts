@@ -21,9 +21,7 @@ import getViewModel from "../src/getViewModel";
 import * as d3 from "d3";
 import * as mathjs from "mathjs";
 import * as rmath from "lib-r-math.js";
-
-// I don't know why it needs this, and at this point I'm too afraid to ask
-type Selection<T extends d3.BaseType> = d3.Selection<T, any, any, any>;
+import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
 
 // Used to represent the different datapoints on the chart
 interface ScatterDots {
@@ -63,6 +61,7 @@ export class Visual implements IVisual {
     private host: IVisualHost;
     private svg: d3.Selection<SVGElement, any, any, any>;
     private dotGroup: d3.Selection<SVGElement, any, any, any>;
+    private dots: d3.Selection<any, any, any, any>;
     private UL99Group: d3.Selection<SVGElement, any, any, any>;
     private LL99Group: d3.Selection<SVGElement, any, any, any>;
     private UL95Group: d3.Selection<SVGElement, any, any, any>;
@@ -175,7 +174,8 @@ export class Visual implements IVisual {
                     //   (reference to html container for visual)
         this.svg = d3.select(options.element)
                     // Create new svg element inside container
-                     .append("svg");
+                     .append("svg")
+                     .classed("funnelchart", true);
 
         this.UL99Group = this.svg.append("g")
                                 .classed("line-group", true);
@@ -188,7 +188,7 @@ export class Visual implements IVisual {
         this.targetGroup = this.svg.append("g")
                                 .classed("line-group", true);
         this.dotGroup = this.svg.append("g")
-                                .classed("dot-group", true);
+                                .classed("dotGroup", true);
 
         // Add a grouping ('g') element to the canvas that will later become the x-axis
         this.xAxisGroup = this.svg.append("g")
@@ -200,6 +200,11 @@ export class Visual implements IVisual {
 
         // Request a new selectionManager tied to the visual
         this.selectionManager = this.host.createSelectionManager();
+        this.selectionManager.registerOnSelectCallback(() => {
+            highlightIfSelected(this.dots, this.selectionManager.getSelectionIds(),
+                                this.settings.scatter.opacity.value,
+                                this.settings.scatter.opacity_unselected.value);
+        })
     }
 
     public update(options: VisualUpdateOptions) {
@@ -276,23 +281,25 @@ export class Visual implements IVisual {
 
 
         // Bind input data to dotGroup reference
-        let dots = this.dotGroup
+        this.dots = this.dotGroup
                        // List all child elements of dotGroup that have CSS class '.dot'
                        .selectAll(".dot")
                        // Matches input array to a list, returns three result sets
                        //   - HTML element for which there are no matching datapoint (if so, creates new elements to be appended)
-                       .data(this.viewModel.scatterDots.filter(d => (d.ratio > yAxisMin && d.ratio < yAxisMax)));
+                       .data(this.viewModel.scatterDots.filter(d => (d.ratio > yAxisMin && d.ratio < yAxisMax && d.denominator > xAxisMin && d.denominator < xAxisMax)));
 
         // Update the datapoints if data is refreshed
-        const dots_merged = dots.enter()
+        const dots_merged = this.dots.enter()
             .append("circle")
-            .merge(<any>dots)
-            .classed("dot", true);
+            .merge(<any>this.dots);
+
+        dots_merged.classed("dot", true);
 
         // Plotting of scatter points
         makeDots(dots_merged, this.settings,
                  this.viewModel.highlights, this.selectionManager,
                  this.host.tooltipService, xScale, yScale);
+    
 
         // Bind calculated control limits and target line to respective plotting objects
         let linesLL99 = this.LL99Group
@@ -365,7 +372,15 @@ export class Visual implements IVisual {
         makeLines(lineTarget_merged, this.settings,
                     xScale, yScale, "target",
                     this.viewModel, this.host.tooltipService);
+        
+        this.dots.exit().remove();
 
+        this.svg.on('click', (d) => {
+            this.selectionManager.clear();
+            
+            highlightIfSelected(dots_merged, [],
+            this.settings.scatter.opacity.value, this.settings.scatter.opacity_unselected.value);
+        });
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
