@@ -179,6 +179,11 @@ function getViewModel(options, settings, host) {
         (d,idx) => d / denominator_in[idx]
     ));
 
+    let maxLimit = d3.max(viewModel.upperLimit95.map((d,idx) => Math.max(d.limit, viewModel.upperLimit99[idx].limit)));
+    console.log(maxLimit);
+
+    maxRatio = maxLimit > maxRatio ? maxLimit : maxRatio;
+
     // Extract maximum value of input data and add to viewModel
     viewModel.maxRatio = maxRatio + maxRatio*0.1;
     // Extract maximum value of input data and add to viewModel
@@ -188,7 +193,8 @@ function getViewModel(options, settings, host) {
 
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
-
+    
+    console.log(viewModel);
     return viewModel;
 }
 

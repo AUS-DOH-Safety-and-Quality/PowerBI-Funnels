@@ -86,6 +86,25 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
     }
     let limitsArray = getLimit(qs, target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]);
 
+    // Filtering to handle weird limit behaviour
+    limitsArray.map((d,idx) => {
+        if(idx < limitsArray.length-1) {
+            if(d[1] > limitsArray[idx+1][1]) {
+                d[1] = -9999
+            }
+            if(d[2] > limitsArray[idx+1][2]) {
+                d[2] = -9999
+            }
+            if(d[3] < limitsArray[idx+1][3]) {
+                d[3] = -9999
+            }
+            if(d[4] < limitsArray[idx+1][4]) {
+                d[4] = -9999
+            }
+        }
+    })
+    console.log(limitsArray);
+
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.
     return limitsArray.concat([getTarget(numerator, denominator, data_type, false)]);

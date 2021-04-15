@@ -92,6 +92,34 @@ function updateSettings(settings, objects) {
         },
         settings.lines.colour_target.default
     )
+    settings.axis.ylimit_l.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "axis",
+            propertyName: "ylimit_l"
+        },
+        settings.axis.ylimit_l.default
+    )
+    settings.axis.ylimit_u.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "axis",
+            propertyName: "ylimit_u"
+        },
+        settings.axis.ylimit_u.default
+    )
+    settings.axis.xlimit_l.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "axis",
+            propertyName: "xlimit_l"
+        },
+        settings.axis.xlimit_l.default
+    )
+    settings.axis.xlimit_u.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "axis",
+            propertyName: "xlimit_u"
+        },
+        settings.axis.xlimit_u.default
+    )
 }
 
 export default updateSettings;

@@ -146,6 +146,35 @@
                     }
                 }
             }
+        },
+        "axis": {
+            "displayName": "Axis Settings",
+            "properties": {
+                "ylimit_l": {
+                    "displayName": "Y-Axis Lower Limit",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "ylimit_u": {
+                    "displayName": "Y-Axis Upper Limit",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "xlimit_l": {
+                    "displayName": "X-Axis Lower Limit",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "xlimit_u": {
+                    "displayName": "X-Axis Upper Limit",
+                    "type": {
+                        "numeric": true
+                    }
+                }
+            }
         }
     },
     "dataViewMappings": [
