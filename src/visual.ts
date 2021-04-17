@@ -227,14 +227,6 @@ export class Visual implements IVisual {
         let xAxisMax = this.settings.axis.xlimit_u.value ? this.settings.axis.xlimit_u.value : this.viewModel.maxDenominator;
         let yAxisMin = this.settings.axis.ylimit_l.value ? this.settings.axis.ylimit_l.value : 0;
         let yAxisMax = this.settings.axis.ylimit_u.value ? this.settings.axis.ylimit_u.value : this.viewModel.maxRatio;
-/*
-        this.viewModel.lowerLimit99.map(d => d.limit = Math.max(d.limit,yAxisMin));
-        this.viewModel.lowerLimit95.map(d => d.limit = Math.max(d.limit,yAxisMin));
-        this.viewModel.upperLimit95.map(d => d.limit = Math.min(d.limit,yAxisMax));
-        this.viewModel.upperLimit99.map(d => d.limit = Math.min(d.limit,yAxisMax));*/
-        //this.viewModel.scatterDots.map(d => d.ratio =  ? d.ratio : null);
-        //console.log(this.viewModel.scatterDots);
-        //console.log(yAxisMin);
 
         // Dynamically scale chart to use all available space
         this.svg.attr("width", width)

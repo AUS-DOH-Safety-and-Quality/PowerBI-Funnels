@@ -5,8 +5,8 @@ import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualC
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
 
-var PBIFUN_DEBUG: IVisualPlugin = {
-    name: 'PBIFUN_DEBUG',
+var PBIFUN: IVisualPlugin = {
+    name: 'PBIFUN',
     displayName: 'PBI Funnels',
     class: 'Visual',
     apiVersion: '2.6.0',
@@ -23,7 +23,7 @@ var PBIFUN_DEBUG: IVisualPlugin = {
 if (typeof powerbi !== "undefined") {
     powerbi.visuals = powerbi.visuals || {};
     powerbi.visuals.plugins = powerbi.visuals.plugins || {};
-    powerbi.visuals.plugins["PBIFUN_DEBUG"] = PBIFUN_DEBUG;
+    powerbi.visuals.plugins["PBIFUN"] = PBIFUN;
 }
 
-export default PBIFUN_DEBUG;
+export default PBIFUN;

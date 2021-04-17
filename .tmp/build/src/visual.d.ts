@@ -10,6 +10,7 @@ export declare class Visual implements IVisual {
     private host;
     private svg;
     private dotGroup;
+    private dots;
     private UL99Group;
     private LL99Group;
     private UL95Group;
