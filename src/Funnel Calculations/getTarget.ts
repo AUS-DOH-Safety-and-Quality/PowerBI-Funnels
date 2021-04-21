@@ -28,8 +28,7 @@ function getTarget(numerator: number[], denominator: number[],
         }
     } else if (type == "RC") {
         if (transformed) {
-            return Math.log(d3.sum(numerator.map(d=>d+0.5))) -
-                            Math.log(d3.sum(denominator.map(d=>d+0.5)));
+            return Math.log(d3.sum(numerator)) - Math.log(d3.sum(denominator));
         } else {
             return d3.sum(numerator) / d3.sum(denominator);
         }

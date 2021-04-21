@@ -31,7 +31,6 @@
 function getSE(denominator: number[], data_type: string,
               adjusted: boolean, target?: number,
               numerator?: number[]): number[] {
-    // Adjusted SE is the same, but branching for clarity
     if (data_type == "PR") {
         if (adjusted) {
             return denominator.map(d => 1.0 / (2.0 * Math.sqrt(d)));
@@ -47,7 +46,9 @@ function getSE(denominator: number[], data_type: string,
         }
     } else if (data_type = "RC") {
         return denominator.map(
-            (d,idx) => Math.sqrt(1/(d+0.5) + 1/(numerator[idx]+0.5))
+            (d,idx) => Math.sqrt(
+                d/Math.pow(d+0.5,2) + numerator[idx]/Math.pow(numerator[idx]+0.5,2)
+                )
         )
     }
 }

@@ -58,6 +58,12 @@
                           }
                         ]
                     }
+                },
+                "multiplier": {
+                    "displayName": "Multiplier",
+                    "type": {
+                        "numeric": true
+                    }
                 }
             }
         },

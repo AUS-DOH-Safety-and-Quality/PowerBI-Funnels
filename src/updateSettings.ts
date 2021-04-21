@@ -22,6 +22,13 @@ function updateSettings(settings, objects) {
         },
         settings.funnel.od_adjust.default
     )
+    settings.funnel.multiplier.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "funnel",
+            propertyName: "multiplier"
+        },
+        settings.funnel.multiplier.default
+    )
     settings.scatter.size.value = dataViewObjects.getValue(
         objects, {
             objectName: "scatter",

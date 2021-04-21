@@ -100,6 +100,10 @@ export class Visual implements IVisual {
             od_adjust: {
                 default: "auto",
                 value: "auto"
+            },
+            multiplier: {
+                default: 1,
+                value: 1
             }
         },
         scatter: {
@@ -223,6 +227,7 @@ export class Visual implements IVisual {
         // Add appropriate padding so that plotted data doesn't overlay axis
         let xAxisPadding = this.settings.axispad.x.padding.value;
         let yAxisPadding = this.settings.axispad.y.padding.value;
+        let multiplier = this.settings.funnel.multiplier.value;
         let xAxisMin = this.settings.axis.xlimit_l.value ? this.settings.axis.xlimit_l.value : 0;
         let xAxisMax = this.settings.axis.xlimit_u.value ? this.settings.axis.xlimit_u.value : this.viewModel.maxDenominator;
         let yAxisMin = this.settings.axis.ylimit_l.value ? this.settings.axis.ylimit_l.value : 0;
@@ -278,7 +283,9 @@ export class Visual implements IVisual {
                        .selectAll(".dot")
                        // Matches input array to a list, returns three result sets
                        //   - HTML element for which there are no matching datapoint (if so, creates new elements to be appended)
-                       .data(this.viewModel.scatterDots.filter(d => (d.ratio > yAxisMin && d.ratio < yAxisMax && d.denominator > xAxisMin && d.denominator < xAxisMax)));
+                       .data(this.viewModel
+                                 .scatterDots
+                                 .filter(d => (d.ratio > yAxisMin && d.ratio < yAxisMax && d.denominator > xAxisMin && d.denominator < xAxisMax)));
 
         // Update the datapoints if data is refreshed
         const dots_merged = this.dots.enter()
@@ -296,19 +303,19 @@ export class Visual implements IVisual {
         // Bind calculated control limits and target line to respective plotting objects
         let linesLL99 = this.LL99Group
             .selectAll(".line")
-            .data([this.viewModel.lowerLimit99.filter(d => (d.limit != -9999) && (d.limit > yAxisMin))]);
+            .data([this.viewModel.lowerLimit99.filter(d => (d.limit != -9999 * multiplier) && (d.limit > yAxisMin))]);
 
         let linesUL99 = this.UL99Group
             .selectAll(".line")
-            .data([this.viewModel.upperLimit99.filter(d => (d.limit != -9999) && (d.limit < yAxisMax))]);
+            .data([this.viewModel.upperLimit99.filter(d => (d.limit != -9999 * multiplier) && (d.limit < yAxisMax))]);
 
         let linesUL95 = this.UL95Group
             .selectAll(".line")
-            .data([this.viewModel.upperLimit95.filter(d => (d.limit != -9999) && (d.limit < yAxisMax))]);
+            .data([this.viewModel.upperLimit95.filter(d => (d.limit != -9999 * multiplier) && (d.limit < yAxisMax))]);
 
         let linesLL95 = this.LL95Group
             .selectAll(".line")
-            .data([this.viewModel.lowerLimit95.filter(d => (d.limit != -9999) && (d.limit > yAxisMin))]);
+            .data([this.viewModel.lowerLimit95.filter(d => (d.limit != -9999 * multiplier) && (d.limit > yAxisMin))]);
         
         const linesLL99Merged = linesLL99.enter()
                                             .append("path")
@@ -391,7 +398,8 @@ export class Visual implements IVisual {
                         objectName: propertyGroupName,
                         properties: {
                             data_type: this.settings.funnel.data_type.value,
-                            od_adjust: this.settings.funnel.od_adjust.value
+                            od_adjust: this.settings.funnel.od_adjust.value,
+                            multiplier: this.settings.funnel.multiplier.value
                         },
                         selector: null
                     });

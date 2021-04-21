@@ -103,7 +103,6 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
             }
         }
     })
-    console.log(limitsArray);
 
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.

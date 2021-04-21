@@ -63,6 +63,7 @@ function getViewModel(options, settings, host) {
 
     let data_type = settings.funnel.data_type.value;
     let od_adjust = settings.funnel.od_adjust.value;
+    let multiplier = settings.funnel.multiplier.value;
     
     // Filter zero-denominator observations from proportion data
     let valid_ids = <number[]>denominator.values.map(
@@ -98,7 +99,7 @@ function getViewModel(options, settings, host) {
             category: grp_value,
             numerator: num_value,
             denominator: den_value,
-            ratio: num_value/den_value,
+            ratio: (num_value/den_value) * multiplier,
             // Check whether objects array exists with user-specified fill colours, apply those colours if so
             //   otherwise use default palette
             colour: settings.scatter.colour.value,
@@ -123,51 +124,51 @@ function getViewModel(options, settings, host) {
             }, {
                 displayName: "Ratio",
                 value: (num_value == null ||
-                        den_value == null) ? "" : (num_value/den_value).toFixed(2)
+                        den_value == null) ? "" : ((num_value/den_value) * multiplier).toFixed(2)
             }]
         });
     }
 
     for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
         viewModel.lowerLimit99.push({
-            limit: limitsArray[i][1],
+            limit: limitsArray[i][1] * multiplier,
             denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Lower 99.8%",
-                value: limitsArray[i][1]
+                value: limitsArray[i][1] * multiplier
             }, {
                 displayName: "Denominator",
                 value: limitsArray[i][0]
             }]
         });
         viewModel.lowerLimit95.push({
-            limit: limitsArray[i][2],
+            limit: limitsArray[i][2] * multiplier,
             denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Lower 95%",
-                value: limitsArray[i][1][1]
+                value: limitsArray[i][2] * multiplier
             }, {
                 displayName: "Denominator",
                 value: limitsArray[i][0]
             }]
         });
         viewModel.upperLimit95.push({
-            limit: limitsArray[i][3],
+            limit: limitsArray[i][3] * multiplier,
             denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Upper 95%",
-                value: limitsArray[i][3]
+                value: limitsArray[i][3] * multiplier
             }, {
                 displayName: "Denominator",
                 value: limitsArray[i][0]
             }]
         });
         viewModel.upperLimit99.push({
-            limit: limitsArray[i][4],
+            limit: limitsArray[i][4] * multiplier,
             denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Upper 99.8%",
-                value: limitsArray[i][4]
+                value: limitsArray[i][4] * multiplier
             }, {
                 displayName: "Denominator",
                 value: limitsArray[i][0]
@@ -177,10 +178,9 @@ function getViewModel(options, settings, host) {
 
     let maxRatio = d3.max(numerator_in.map(
         (d,idx) => d / denominator_in[idx]
-    ));
+    )) * multiplier;
 
     let maxLimit = d3.max(viewModel.upperLimit95.map((d,idx) => Math.max(d.limit, viewModel.upperLimit99[idx].limit)));
-    console.log(maxLimit);
 
     maxRatio = maxLimit > maxRatio ? maxLimit : maxRatio;
 
@@ -189,12 +189,11 @@ function getViewModel(options, settings, host) {
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
-    viewModel.target = +limitsArray[limitsArray.length-1];
+    viewModel.target = +limitsArray[limitsArray.length-1]  * multiplier;
 
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
-    
-    console.log(viewModel);
+
     return viewModel;
 }
 
