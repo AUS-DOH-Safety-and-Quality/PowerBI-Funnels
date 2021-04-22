@@ -32,6 +32,7 @@ function getViewModel(options, settings, host) {
         maxRatio: 0,
         maxDenominator: 0,
         target: 0,
+        alt_target: null,
         highlights: false
     };
 
@@ -189,7 +190,9 @@ function getViewModel(options, settings, host) {
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
-    viewModel.target = +limitsArray[limitsArray.length-1]  * multiplier;
+    viewModel.target = +limitsArray[limitsArray.length-1] * multiplier;
+
+    viewModel.alt_target = settings.funnel.alt_target.value;
 
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;

@@ -54,6 +54,7 @@ interface ViewModel {
     maxRatio: number;
     maxDenominator: number;
     target: number;
+    alt_target: number;
     highlights: boolean;
 };
 
@@ -67,6 +68,7 @@ export class Visual implements IVisual {
     private UL95Group: d3.Selection<SVGElement, any, any, any>;
     private LL95Group: d3.Selection<SVGElement, any, any, any>;
     private targetGroup: d3.Selection<SVGElement, any, any, any>;
+    private alttargetGroup: d3.Selection<SVGElement, any, any, any>;
     private xAxisGroup: d3.Selection<SVGGElement, any, any, any>;
     private yAxisGroup: d3.Selection<SVGGElement, any, any, any>;
     private viewModel: ViewModel;
@@ -104,6 +106,10 @@ export class Visual implements IVisual {
             multiplier: {
                 default: 1,
                 value: 1
+            },
+            alt_target: {
+                default: null,
+                value: null
             }
         },
         scatter: {
@@ -137,6 +143,10 @@ export class Visual implements IVisual {
                 default: 1.5,
                 value: 1.5
             },
+            width_alt_target: {
+                default: 1.5,
+                value: 1.5
+            },
             colour_99: {
                 default: "#4682B4",
                 value: "#4682B4"
@@ -146,6 +156,10 @@ export class Visual implements IVisual {
                 value: "#4682B4"
             },
             colour_target: {
+                default: "#4682B4",
+                value: "#4682B4"
+            },
+            colour_alt_target: {
                 default: "#4682B4",
                 value: "#4682B4"
             }
@@ -190,6 +204,8 @@ export class Visual implements IVisual {
         this.LL95Group = this.svg.append("g")
                                 .classed("line-group", true);
         this.targetGroup = this.svg.append("g")
+                                .classed("line-group", true);
+        this.alttargetGroup = this.svg.append("g")
                                 .classed("line-group", true);
         this.dotGroup = this.svg.append("g")
                                 .classed("dotGroup", true);
@@ -340,9 +356,18 @@ export class Visual implements IVisual {
                              .selectAll(".line")
                              .data([this.viewModel.upperLimit99]);
 
+        let lineAltTarget = this.alttargetGroup
+                                .selectAll(".line")
+                                .data([this.viewModel.upperLimit99]);
+
         const lineTarget_merged = lineTarget.enter()
                                             .append("path")
                                             .merge(<any>lineTarget)
+                                            .classed("line", true)
+
+        const lineAltTarget_merged = lineAltTarget.enter()
+                                            .append("path")
+                                            .merge(<any>lineAltTarget)
                                             .classed("line", true)
         
         // Initial construction of lines, run when plot is first rendered.
@@ -370,6 +395,10 @@ export class Visual implements IVisual {
 
         makeLines(lineTarget_merged, this.settings,
                     xScale, yScale, "target",
+                    this.viewModel, this.host.tooltipService);
+
+        makeLines(lineAltTarget_merged, this.settings,
+                    xScale, yScale, "alt_target",
                     this.viewModel, this.host.tooltipService);
         
         this.dots.exit().remove();
@@ -399,7 +428,8 @@ export class Visual implements IVisual {
                         properties: {
                             data_type: this.settings.funnel.data_type.value,
                             od_adjust: this.settings.funnel.od_adjust.value,
-                            multiplier: this.settings.funnel.multiplier.value
+                            multiplier: this.settings.funnel.multiplier.value,
+                            alt_target: this.settings.funnel.alt_target.value
                         },
                         selector: null
                     });
@@ -423,9 +453,11 @@ export class Visual implements IVisual {
                             width_99: this.settings.lines.width_99.value,
                             width_95: this.settings.lines.width_95.value,
                             width_target: this.settings.lines.width_target.value,
+                            width_alt_target: this.settings.lines.width_alt_target.value,
                             colour_99: this.settings.lines.colour_99.value,
                             colour_95: this.settings.lines.colour_95.value,
-                            colour_target: this.settings.lines.colour_target.value
+                            colour_target: this.settings.lines.colour_target.value,
+                            colour_alt_target: this.settings.lines.colour_alt_target.value
                         },
                         selector: null
                     });

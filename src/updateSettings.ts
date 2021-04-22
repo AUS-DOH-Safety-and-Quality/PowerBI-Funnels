@@ -29,6 +29,13 @@ function updateSettings(settings, objects) {
         },
         settings.funnel.multiplier.default
     )
+    settings.funnel.alt_target.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "funnel",
+            propertyName: "alt_target"
+        },
+        settings.funnel.alt_target.default
+    )
     settings.scatter.size.value = dataViewObjects.getValue(
         objects, {
             objectName: "scatter",
@@ -78,6 +85,13 @@ function updateSettings(settings, objects) {
         },
         settings.lines.width_target.default
     )
+    settings.lines.width_alt_target.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "lines",
+            propertyName: "width_alt_target"
+        },
+        settings.lines.width_alt_target.default
+    )
     settings.lines.colour_99.value = dataViewObjects.getFillColor(
         objects, {
             objectName: "lines",
@@ -98,6 +112,13 @@ function updateSettings(settings, objects) {
             propertyName: "colour_target"
         },
         settings.lines.colour_target.default
+    )
+    settings.lines.colour_alt_target.value = dataViewObjects.getFillColor(
+        objects, {
+            objectName: "lines",
+            propertyName: "colour_alt_target"
+        },
+        settings.lines.colour_alt_target.default
     )
     settings.axis.ylimit_l.value = dataViewObjects.getValue(
         objects, {

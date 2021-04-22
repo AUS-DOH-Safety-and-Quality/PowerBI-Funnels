@@ -19,11 +19,14 @@ function makeLines(LineObject, settings, x_scale, y_scale,
     let l99_width = settings.lines.width_99.value;
     let l95_width = settings.lines.width_95.value;
     let target_width = settings.lines.width_target.value;
+    let alt_target_width = settings.lines.width_alt_target.value;
     let l99_colour = settings.lines.colour_99.value;
     let l95_colour = settings.lines.colour_95.value;
     let target_colour = settings.lines.colour_target.value;
+    let alt_target_colour = settings.lines.colour_alt_target.value;
 
-    if (linetype != "target") {
+
+    if (linetype != "target" && linetype != "alt_target") {
         LineObject.attr("d", d3.line<typeof viewModel.LimitLines>()
                                .x(d => x_scale(d.denominator))
                                .y(d => y_scale(d.limit)))
@@ -102,6 +105,14 @@ function makeLines(LineObject, settings, x_scale, y_scale,
             .attr("fill","none")
             .attr("stroke", target_colour)
             .attr("stroke-width", target_width);
+    } else if (linetype == "alt_target") {
+        LineObject.attr("d", d3.line<typeof viewModel.LimitLines>()
+                               .x(d => x_scale(d.denominator))
+                               .y(d => y_scale(viewModel.alt_target)))
+            // Apply CSS class to elements so that they can be looked up later
+            .attr("fill","none")
+            .attr("stroke", alt_target_colour)
+            .attr("stroke-width", alt_target_width);
     }
 
     LineObject.exit()

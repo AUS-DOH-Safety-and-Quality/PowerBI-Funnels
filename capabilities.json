@@ -64,6 +64,12 @@
                     "type": {
                         "numeric": true
                     }
+                },
+                "alt_target": {
+                    "displayName": "Secondary Target",
+                    "type": {
+                        "numeric": true
+                    }
                 }
             }
         },
@@ -121,6 +127,12 @@
                         "numeric": true
                     }
                 },
+                "width_alt_target": {
+                    "displayName": "Alternative Target Line Width",
+                    "type": {
+                        "numeric": true
+                    }
+                },
                 "colour_99":{
                     "displayName": "99.8% Line Colour",
                     "type": {
@@ -143,6 +155,16 @@
                 },
                 "colour_target":{
                     "displayName": "Target Line Colour",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "colour_alt_target":{
+                    "displayName": "Alternative Target Line Colour",
                     "type": {
                         "fill": {
                             "solid": {
@@ -190,7 +212,10 @@
                     "group": {
                         "max": 1
                     },
-                    "measure": {
+                    "numerator": {
+                        "max": 1
+                    },
+                    "denominator": {
                         "max": 1
                     }
                 }
