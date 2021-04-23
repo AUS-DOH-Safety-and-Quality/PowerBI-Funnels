@@ -301,7 +301,7 @@ export class Visual implements IVisual {
                        //   - HTML element for which there are no matching datapoint (if so, creates new elements to be appended)
                        .data(this.viewModel
                                  .scatterDots
-                                 .filter(d => (d.ratio > yAxisMin && d.ratio < yAxisMax && d.denominator > xAxisMin && d.denominator < xAxisMax)));
+                                 .filter(d => (d.ratio >= yAxisMin && d.ratio <= yAxisMax && d.denominator >= xAxisMin && d.denominator <= xAxisMax)));
 
         // Update the datapoints if data is refreshed
         const dots_merged = this.dots.enter()
@@ -319,19 +319,19 @@ export class Visual implements IVisual {
         // Bind calculated control limits and target line to respective plotting objects
         let linesLL99 = this.LL99Group
             .selectAll(".line")
-            .data([this.viewModel.lowerLimit99.filter(d => (d.limit != -9999 * multiplier) && (d.limit > yAxisMin))]);
+            .data([this.viewModel.lowerLimit99.filter(d => (d.limit != -9999 * multiplier) && (d.limit >= yAxisMin))]);
 
         let linesUL99 = this.UL99Group
             .selectAll(".line")
-            .data([this.viewModel.upperLimit99.filter(d => (d.limit != -9999 * multiplier) && (d.limit < yAxisMax))]);
+            .data([this.viewModel.upperLimit99.filter(d => (d.limit != -9999 * multiplier) && (d.limit <= yAxisMax))]);
 
         let linesUL95 = this.UL95Group
             .selectAll(".line")
-            .data([this.viewModel.upperLimit95.filter(d => (d.limit != -9999 * multiplier) && (d.limit < yAxisMax))]);
+            .data([this.viewModel.upperLimit95.filter(d => (d.limit != -9999 * multiplier) && (d.limit <= yAxisMax))]);
 
         let linesLL95 = this.LL95Group
             .selectAll(".line")
-            .data([this.viewModel.lowerLimit95.filter(d => (d.limit != -9999 * multiplier) && (d.limit > yAxisMin))]);
+            .data([this.viewModel.lowerLimit95.filter(d => (d.limit != -9999 * multiplier) && (d.limit >= yAxisMin))]);
         
         const linesLL99Merged = linesLL99.enter()
                                             .append("path")
