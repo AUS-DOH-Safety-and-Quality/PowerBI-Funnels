@@ -19,7 +19,8 @@
     "powerbi-visuals-utils-dataviewutils": "^2.2.1",
     "tty": "^1.0.1",
     "tty-browserify": "^0.0.1",
-    "util": "^0.12.3"
+    "util": "^0.12.3",
+    "webpack": "^4.46.0"
   },
   "devDependencies": {
     "ts-loader": "6.1.0",
