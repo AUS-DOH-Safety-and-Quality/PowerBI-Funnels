@@ -17,6 +17,7 @@
     "mathjs": "^9.3.0",
     "powerbi-visuals-api": "~2.6.0",
     "powerbi-visuals-utils-dataviewutils": "^2.2.1",
+    "tty": "^1.0.1",
     "tty-browserify": "^0.0.1",
     "util": "^0.12.3"
   },
