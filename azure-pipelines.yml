@@ -17,7 +17,7 @@ steps:
 
 - script: |
     npm install
-    npm install -g powerbi-visuals-tools
+    npm install -g powerbi-visuals-tools@3.1.15
     pbiviz package
   displayName: 'npm install and build'
 
