@@ -1,7 +1,5 @@
 import * as d3 from "d3";
-import { map } from "mathjs";
 import getLimitsArray from "../src/getLimitsArray";
-import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
 function checkValid(value, is_denom:boolean = false) {
     return value !== null && value !== undefined && is_denom ? value > 0 : true;
@@ -50,18 +48,6 @@ function getViewModel(options, settings, host) {
     // Get groups of dots to highlight
     let highlights = numerator.highlights;
 
-    // Get array containing the settings that have been bound to each datapoint
-    let objects = categories.objects;
-
-    // Get metadata view to access datapoint names (for tooltips)
-    let metadata = dv[0].metadata;
-
-    // Get name of data column being used for category
-    let categoryColumnName = metadata.columns.filter(c => c.roles["group"])[0].displayName;
-
-    // Get name of data column being used for measure/values being plotted
-    let valueColumnName = metadata.columns.filter(c => c.roles["numerator"])[0].displayName;
-
     let data_type = settings.funnel.data_type.value;
     let od_adjust = settings.funnel.od_adjust.value;
     let multiplier = settings.funnel.multiplier.value;
@@ -81,7 +67,6 @@ function getViewModel(options, settings, host) {
 
     let numerator_in = (<number[]>numerator.values).filter((d,idx) => valid_ids.indexOf(idx) != -1);
     let denominator_in = (<number[]>denominator.values).filter((d,idx) => valid_ids.indexOf(idx) != -1);
-    let group_in = (<string[]>categories.values).filter((d,idx) => valid_ids.indexOf(idx) != -1);
 
     let maxDenominator = d3.max(denominator_in);
 
