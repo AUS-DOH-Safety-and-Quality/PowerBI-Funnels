@@ -1,4 +1,3 @@
-import * as mathjs from "mathjs";
 import * as rmath from "lib-r-math.js";
 import getTarget from "../src/Funnel Calculations/getTarget";
 import getSE from "./Funnel Calculations/getSE";
@@ -8,6 +7,10 @@ import winsoriseZScore from "./Funnel Calculations/winsoriseZScore";
 import getPhi from "./Funnel Calculations/getPhi";
 import getTau2 from "./Funnel Calculations/getTau2";
 import getLimit from "./Funnel Calculations/getLimit";
+
+function checkValid(value, is_denom:boolean = false) {
+    return value !== null && value !== undefined && is_denom ? value > 0 : true;
+}
 
 /**
  * Function for generating an array of control limit arrays. Proportion and
@@ -36,19 +39,31 @@ import getLimit from "./Funnel Calculations/getLimit";
  * @returns Array of control limit arrays and unadjusted target value for plotting
  */
 function getLimitsArray(numerator: number[], denominator: number[], maxDenominator: number, data_type: string, od_adjust: string) {
-    
+    let valid_ids = denominator.map(
+        (d,idx) => {
+            var is_valid: boolean =
+                checkValid(d, true) &&
+                checkValid(numerator[idx]);
+
+            if(is_valid) {
+                return idx;
+            }
+        }
+    );
+    let numerator_in = numerator.filter((d,idx) => valid_ids.indexOf(idx) != -1);
+    let denominator_in = denominator.filter((d,idx) => valid_ids.indexOf(idx) != -1);
      // Series of steps to estimate dispersion ratio (phi) and
      //    between-hospital variance (tau2). These are are used to
      //    test and adjust for overdispersion
-    let target_od = getTarget(numerator, denominator, data_type, true);
+    let target_od = getTarget(numerator_in, denominator_in, data_type, true);
     
     var SE: number[];
     if (data_type == "RC") {
-        SE = getSE(numerator, data_type, true, 0, denominator);
+        SE = getSE(numerator_in, data_type, true, 0, denominator_in);
     } else {
-        SE = getSE(numerator, data_type, true);
+        SE = getSE(numerator_in, data_type, true);
     }
-    let y = getY(numerator, denominator, data_type);
+    let y = getY(numerator_in, denominator_in, data_type);
     let z = getZScore(y, SE, target_od);
     let z_adj = winsoriseZScore(z);
     let phi = getPhi(z_adj);
@@ -74,7 +89,7 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
     // If unadjusted limits for proportion data are requested then
     //    the unadjusted target line is needed for estimating the
     //    standard errors.
-    let target = getTarget(numerator, denominator, data_type, od_bool);
+    let target = getTarget(numerator_in, denominator_in, data_type, od_bool);
     
     
     // Estimate the associated standard error for each denominator value
@@ -106,7 +121,7 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
 
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.
-    return limitsArray.concat([getTarget(numerator, denominator, data_type, false)]);
+    return limitsArray.concat([getTarget(numerator_in, denominator_in, data_type, false)]);
 }
 
 export default getLimitsArray;
