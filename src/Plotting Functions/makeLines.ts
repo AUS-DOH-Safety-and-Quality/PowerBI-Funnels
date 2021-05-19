@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import invertTransformation from "../Funnel Calculations/invertTransformation"
 /**
  * Function for plotting the control limit and target lines, as well
  *   as managing the creation & updating of tooltips.
@@ -24,6 +25,8 @@ function makeLines(LineObject, settings, x_scale, y_scale,
     let l95_colour = settings.lines.colour_95.value;
     let target_colour = settings.lines.colour_target.value;
     let alt_target_colour = settings.lines.colour_alt_target.value;
+    let transform_type = settings.funnel.transformation.value;
+    let invert_transformation = invertTransformation(transform_type);
 
 
     if (linetype != "target" && linetype != "alt_target") {
@@ -54,7 +57,10 @@ function makeLines(LineObject, settings, x_scale, y_scale,
                                 value: linetype
                             }, {
                                 displayName: "Ratio",
-                                value: (y_scale_inv(y)).toFixed(2)
+                                value: (invert_transformation(y_scale_inv(y))).toFixed(2)
+                            }, {
+                                displayName: "Transformed Ratio",
+                                value: transform_type == "none" ? null : (y_scale_inv(y)).toFixed(2)
                             }, {
                                 displayName: "Denominator",
                                 value: (x_scale_inv(x)).toFixed(2)
@@ -80,7 +86,10 @@ function makeLines(LineObject, settings, x_scale, y_scale,
                                 value: linetype
                             }, {
                                 displayName: "Ratio",
-                                value: (y_scale_inv(y)).toFixed(2)
+                                value: (invert_transformation(y_scale_inv(y))).toFixed(2)
+                            }, {
+                                displayName: "Transformed Ratio",
+                                value: transform_type == "none" ? null : (y_scale_inv(y)).toFixed(2)
                             }, {
                                 displayName: "Denominator",
                                 value: (x_scale_inv(x)).toFixed(2)

@@ -113,10 +113,12 @@ function getViewModel(options, settings, host) {
                 displayName: "Ratio",
                 value: (num_value == null ||
                         den_value == null) ? "" : ((num_value/den_value) * multiplier).toFixed(2)
+            }, {
+                displayName: "Transformed Ratio",
+                value: (settings.funnel.transformation.value == "none") ? null : (transformation((num_value/den_value) * multiplier)).toFixed(2)
             }]
         });
     }
-    console.log(viewModel.scatterDots);
 
     for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
         viewModel.lowerLimit99.push({
