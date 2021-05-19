@@ -65,6 +65,29 @@
                         "numeric": true
                     }
                 },
+                "transformation": {
+                    "displayName": "Transformation",
+                    "type" : {
+                        "enumeration" : [
+                          {
+                            "displayName" : "None",
+                            "value" : "none"
+                          },
+                          {
+                            "displayName" : "Natural Log (y+1)",
+                            "value" : "ln"
+                          },
+                          {
+                            "displayName" : "Log10 (y+1)",
+                            "value" : "log10"
+                          },
+                          {
+                            "displayName" : "Square-Root",
+                            "value" : "sqrt"
+                          }
+                        ]
+                    }
+                },
                 "alt_target": {
                     "displayName": "Secondary Target",
                     "type": {

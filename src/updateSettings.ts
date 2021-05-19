@@ -29,6 +29,13 @@ function updateSettings(settings, objects) {
         },
         settings.funnel.multiplier.default
     )
+    settings.funnel.transformation.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "funnel",
+            propertyName: "transformation"
+        },
+        settings.funnel.multiplier.default
+    )
     settings.funnel.alt_target.value = dataViewObjects.getValue(
         objects, {
             objectName: "funnel",

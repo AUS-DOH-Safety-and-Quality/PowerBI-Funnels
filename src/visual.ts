@@ -107,6 +107,10 @@ export class Visual implements IVisual {
                 default: 1,
                 value: 1
             },
+            transformation: {
+                default: "none",
+                value: "none"
+            },
             alt_target: {
                 default: null,
                 value: null
@@ -429,6 +433,7 @@ export class Visual implements IVisual {
                             data_type: this.settings.funnel.data_type.value,
                             od_adjust: this.settings.funnel.od_adjust.value,
                             multiplier: this.settings.funnel.multiplier.value,
+                            transformation: this.settings.funnel.transformation.value,
                             alt_target: this.settings.funnel.alt_target.value
                         },
                         selector: null

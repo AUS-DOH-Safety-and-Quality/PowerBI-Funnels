@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
+import getTransformation from "./Funnel Calculations/getTransformation";
 
 function checkValid(value, is_denom:boolean = false) {
     return value !== null && value !== undefined && is_denom ? value > 0 : true;
@@ -51,6 +52,7 @@ function getViewModel(options, settings, host) {
     let data_type = settings.funnel.data_type.value;
     let od_adjust = settings.funnel.od_adjust.value;
     let multiplier = settings.funnel.multiplier.value;
+    let transformation = getTransformation(settings.funnel.transformation.value);
     
     // Filter zero-denominator observations from proportion data
     let valid_ids = <number[]>denominator.values.map(
@@ -77,7 +79,7 @@ function getViewModel(options, settings, host) {
     for (let i = 0; i < categories.values.length;  i++) {
         let num_value: number = <number>numerator.values[i];
         let den_value: number = <number>denominator.values[i];
-        let grp_value: string = <string>categories.values[i];
+        let grp_value: string = isNaN(categories.values[i]) ? <string>(categories.values[i]) : (categories.values[i]).toString();
 
         viewModel.scatterDots.push({
             // The inputs have to explicitly cast to requested types, as PowerBI
@@ -85,7 +87,7 @@ function getViewModel(options, settings, host) {
             category: grp_value,
             numerator: num_value,
             denominator: den_value,
-            ratio: (num_value/den_value) * multiplier,
+            ratio: transformation((num_value/den_value) * multiplier),
             // Check whether objects array exists with user-specified fill colours, apply those colours if so
             //   otherwise use default palette
             colour: settings.scatter.colour.value,
@@ -100,7 +102,7 @@ function getViewModel(options, settings, host) {
             // Specify content to print in tooltip
             tooltips: [{
                 displayName: "Group",
-                value: grp_value
+                value: <string>(grp_value)
             }, {
                 displayName: "Numerator",
                 value: (num_value == null) ? "" : (num_value).toFixed(2)
@@ -114,47 +116,48 @@ function getViewModel(options, settings, host) {
             }]
         });
     }
+    console.log(viewModel.scatterDots);
 
     for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
         viewModel.lowerLimit99.push({
-            limit: limitsArray[i][1] * multiplier,
+            limit: transformation(limitsArray[i][1] * multiplier),
             denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Lower 99.8%",
-                value: limitsArray[i][1] * multiplier
+                value: transformation(limitsArray[i][1] * multiplier)
             }, {
                 displayName: "Denominator",
                 value: limitsArray[i][0]
             }]
         });
         viewModel.lowerLimit95.push({
-            limit: limitsArray[i][2] * multiplier,
+            limit: transformation(limitsArray[i][2] * multiplier),
             denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Lower 95%",
-                value: limitsArray[i][2] * multiplier
+                value: transformation(limitsArray[i][2] * multiplier)
             }, {
                 displayName: "Denominator",
                 value: limitsArray[i][0]
             }]
         });
         viewModel.upperLimit95.push({
-            limit: limitsArray[i][3] * multiplier,
+            limit: transformation(limitsArray[i][3] * multiplier),
             denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Upper 95%",
-                value: limitsArray[i][3] * multiplier
+                value: transformation(limitsArray[i][3] * multiplier)
             }, {
                 displayName: "Denominator",
                 value: limitsArray[i][0]
             }]
         });
         viewModel.upperLimit99.push({
-            limit: limitsArray[i][4] * multiplier,
+            limit: transformation(limitsArray[i][4] * multiplier),
             denominator: limitsArray[i][0],
             tooltips: [{
                 displayName: "Upper 99.8%",
-                value: limitsArray[i][4] * multiplier
+                value: transformation(limitsArray[i][4] * multiplier)
             }, {
                 displayName: "Denominator",
                 value: limitsArray[i][0]
@@ -162,9 +165,9 @@ function getViewModel(options, settings, host) {
         });
     }
 
-    let maxRatio = d3.max(numerator_in.map(
+    let maxRatio = transformation(d3.max(numerator_in.map(
         (d,idx) => d / denominator_in[idx]
-    )) * multiplier;
+    )) * multiplier);
 
     let maxLimit = d3.max(viewModel.upperLimit95.map((d,idx) => Math.max(d.limit, viewModel.upperLimit99[idx].limit)));
 
@@ -175,9 +178,9 @@ function getViewModel(options, settings, host) {
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
-    viewModel.target = +limitsArray[limitsArray.length-1] * multiplier;
+    viewModel.target = transformation(+limitsArray[limitsArray.length-1] * multiplier);
 
-    viewModel.alt_target = settings.funnel.alt_target.value;
+    viewModel.alt_target = transformation(settings.funnel.alt_target.value);
 
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
