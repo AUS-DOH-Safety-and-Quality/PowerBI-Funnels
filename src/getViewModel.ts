@@ -3,7 +3,7 @@ import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
 
 function checkValid(value, is_denom:boolean = false) {
-    return value !== null && value !== undefined && is_denom ? value > 0 : true;
+    return value !== null && value !== undefined && value !== "" && is_denom ? value > 0 : true;
 }
 
 /**
@@ -34,6 +34,15 @@ function getViewModel(options, settings, host) {
         alt_target: null,
         highlights: false
     };
+    if(!dv
+        || !dv[0]
+        || !dv[0].categorical
+        || !dv[0].categorical.categories
+        || !dv[0].categorical.categories[0].source
+        || !dv[0].categorical.values
+        || !dv[0].metadata) {
+            return viewModel;
+    }
 
     // Get  categorical view of the data
     let view = dv[0].categorical;
@@ -59,7 +68,8 @@ function getViewModel(options, settings, host) {
         (d,idx) => {
             var is_valid: boolean =
                 checkValid(d, true) &&
-                checkValid(<number[]>numerator.values[idx]);
+                checkValid(<number[]>numerator.values[idx]) &&
+                checkValid(<string[]>categories.values[idx]);
 
             if(is_valid) {
                 return idx;
@@ -79,7 +89,7 @@ function getViewModel(options, settings, host) {
     for (let i = 0; i < categories.values.length;  i++) {
         let num_value: number = <number>numerator.values[i];
         let den_value: number = <number>denominator.values[i];
-        let grp_value: string = isNaN(categories.values[i]) ? <string>(categories.values[i]) : (categories.values[i]).toString();
+        let grp_value: string = (typeof categories.values[i] == 'number') ? (categories.values[i]).toString() : <string>(categories.values[i]);
 
         viewModel.scatterDots.push({
             // The inputs have to explicitly cast to requested types, as PowerBI
