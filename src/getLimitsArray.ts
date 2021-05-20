@@ -40,9 +40,9 @@ function checkValid(value, is_denom:boolean = false) {
  * @returns Array of control limit arrays and unadjusted target value for plotting
  */
 function getLimitsArray(data_array: number[][], maxDenominator: number, data_type: string, od_adjust: string) {
-    let numerator: number[] = data_array[0];
-    let denominator: number[] = data_array[1];
-    let sd: number[] = data_array[2];
+    let numerator: number[] = data_array[0].map(d => parseFloat(String(d)));
+    let denominator: number[] = data_array[1].map(d => parseFloat(String(d)));
+    let sd: number[] = data_array[2].map(d => parseFloat(String(d)));
     let valid_ids = denominator.map(
         (d,idx) => {
             var is_valid: boolean =
@@ -63,9 +63,7 @@ function getLimitsArray(data_array: number[][], maxDenominator: number, data_typ
      //    between-hospital variance (tau2). These are are used to
      //    test and adjust for overdispersion
     let target_od = getTarget(data_array_filtered, data_type, true);
-    
     var SE: number[] = getSE(data_array_filtered, data_type, true);
-
     let y = getY(data_array_filtered, data_type);
     let z = getZScore(y, SE, target_od);
     let z_adj = winsoriseZScore(z);
@@ -82,7 +80,7 @@ function getLimitsArray(data_array: number[][], maxDenominator: number, data_typ
                                   maxDenominator*0.01);
     let x_range_array = {numerator: x_range,
                          denominator: x_range,
-                         sd: [null]}
+                         sd: data_array_filtered.sd}
 
     // Converting od_adjust option to boolean. Uses the 
     //   estimate of between-unit variance (tau2) to determine whether to
@@ -102,6 +100,7 @@ function getLimitsArray(data_array: number[][], maxDenominator: number, data_typ
     var se_range: number[] = se_range = getSE(x_range_array, data_type, od_bool, target);
     let limitsArray = getLimit(qs, target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]);
 
+    console.log("limitsArray:" + limitsArray);
     // Filtering to handle weird limit behaviour
     limitsArray.map((d,idx) => {
         if(idx < limitsArray.length-1) {

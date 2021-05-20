@@ -2,6 +2,7 @@ import * as rmath from "lib-r-math.js";
 import { prop_limit } from "./limitFunctions";
 import { smr_limit } from "./limitFunctions";
 import { rc_limit } from "./limitFunctions";
+import { mn_limit } from "./limitFunctions";
 
 /**
  * Function to generate control limits, either adjusted or un-adjusted.
@@ -36,6 +37,8 @@ function getLimit(qs: number[], target: number, denominator: number[], SE: numbe
         limitFunction = smr_limit;
     } else if (data_type == "RC") {
         limitFunction = rc_limit;
+    } else if (data_type == "mean") {
+        limitFunction = mn_limit;
     }
 
     return denominator.map(
@@ -45,7 +48,6 @@ function getLimit(qs: number[], target: number, denominator: number[], SE: numbe
                     q => limitFunction(q, target, SE[idx], tau2, od_adjust, d))
                 )
         );
-
 }
 
 export default getLimit;

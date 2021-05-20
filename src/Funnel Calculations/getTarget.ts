@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { elt_multiply } from "./HelperFunctions"
 
 /**
  * Function for generating the 'target' value for funnel plots. If
@@ -34,6 +35,8 @@ function getTarget(data_array,
         } else {
             return d3.sum(numerator) / d3.sum(denominator);
         }
+    } else if (type == "mean") {
+        return d3.sum(elt_multiply(numerator,denominator)) / d3.sum(denominator)
     }
 }
 

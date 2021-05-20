@@ -1,3 +1,10 @@
+import * as d3 from "d3";
+import { elt_multiply } from "./HelperFunctions"
+import { elt_divide } from "./HelperFunctions"
+import { all_equal } from "./HelperFunctions"
+import { subtract } from "./HelperFunctions"
+import { sqrt } from "./HelperFunctions"
+import { pow } from "./HelperFunctions"
 
 /**
  * Function to generate standard errors needed for constructing
@@ -49,6 +56,17 @@ function getSE(data_array, data_type: string,
                 d/Math.pow(d+0.5,2) + data_array.numerator[idx]/Math.pow(data_array.numerator[idx]+0.5,2)
                 )
         )
+    } else if (data_type = "mean") {
+        let sd = data_array.sd;
+        let n = data_array.denominator;
+        let m = data_array.numerator;
+        // If calculating SE for limits, use pooled SD
+        if(all_equal(n,m)) {
+          let pooled_sd: number = d3.sum(elt_multiply(subtract(n,1),pow(sd,2))) / (d3.sum(n) - n.length())
+          return elt_divide(pooled_sd, sqrt(n));
+        }
+    
+        return elt_divide(sd, sqrt(n));
     }
 }
 

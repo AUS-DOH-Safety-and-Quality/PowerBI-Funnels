@@ -26,6 +26,8 @@ function getY(data_array, data_type: string): number[] {
         return numerator.map(
             (d,idx) => Math.log(d+0.5) - Math.log(denominator[idx]+0.5)
         )
+    } else if (data_type == "mean") {
+        return data_array.numerator;
     }
 }
 

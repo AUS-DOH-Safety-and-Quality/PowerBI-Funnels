@@ -52,6 +52,22 @@ function rc_limit(q, target, SE, tau2, od_adjust, denominator) {
     }
 }
 
+function mn_limit(q, target, SE, tau2, od_adjust, denominator) {
+    var limit: number;
+    if (od_adjust) {
+        limit = target + q * Math.sqrt(Math.pow(SE,2) + tau2);
+    } else {
+        limit = target + q * SE;
+    }
+
+    if (limit < 0.0) {
+        return 0.0;
+    } else {
+        return limit;
+    }
+}
+
 export { prop_limit }
 export { smr_limit }
 export { rc_limit }
+export { mn_limit }
