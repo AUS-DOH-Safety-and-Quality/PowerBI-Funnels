@@ -2,10 +2,6 @@ import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
 
-function checkValid(value, is_denom:boolean = false) {
-    return value !== null && value !== undefined && value !== "" && is_denom ? value > 0 : true;
-}
-
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
  * user-specified data, calculates the funnel control limits to plot, and
@@ -54,6 +50,8 @@ function getViewModel(options, settings, host) {
     let numerator = view.values[0];
     // Get numerator
     let denominator = view.values[1];
+    // Get numerator
+    let sd = view.values[2];
 
     // Get groups of dots to highlight
     let highlights = numerator.highlights;
@@ -62,28 +60,14 @@ function getViewModel(options, settings, host) {
     let od_adjust = settings.funnel.od_adjust.value;
     let multiplier = settings.funnel.multiplier.value;
     let transformation = getTransformation(settings.funnel.transformation.value);
-    
-    // Filter zero-denominator observations from proportion data
-    let valid_ids = <number[]>denominator.values.map(
-        (d,idx) => {
-            var is_valid: boolean =
-                checkValid(d, true) &&
-                checkValid(<number[]>numerator.values[idx]) &&
-                checkValid(<string[]>categories.values[idx]);
 
-            if(is_valid) {
-                return idx;
-            }
-        }
-    );
-
-    let numerator_in = (<number[]>numerator.values).filter((d,idx) => valid_ids.indexOf(idx) != -1);
-    let denominator_in = (<number[]>denominator.values).filter((d,idx) => valid_ids.indexOf(idx) != -1);
+    let data_in: number[][] = [(<number[]>numerator.values),
+                               (<number[]>denominator.values),
+                               sd ? (<number[]>sd.values) : [null]]
 
     let maxDenominator = d3.max(<number[]>denominator.values);
 
-    let limitsArray = getLimitsArray(<number[]>numerator.values, <number[]>denominator.values, maxDenominator,
-                                        data_type, od_adjust);
+    let limitsArray = getLimitsArray(data_in, maxDenominator, data_type, od_adjust);
 
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
     for (let i = 0; i < categories.values.length;  i++) {
@@ -177,9 +161,7 @@ function getViewModel(options, settings, host) {
         });
     }
 
-    let maxRatio = transformation(d3.max(numerator_in.map(
-        (d,idx) => d / denominator_in[idx]
-    )) * multiplier);
+    let maxRatio = transformation(+limitsArray[limitsArray.length-1] * multiplier);
 
     let maxLimit = d3.max(viewModel.upperLimit95.map((d,idx) => Math.max(d.limit, viewModel.upperLimit99[idx].limit)));
 
@@ -190,7 +172,7 @@ function getViewModel(options, settings, host) {
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
-    viewModel.target = transformation(+limitsArray[limitsArray.length-1] * multiplier);
+    viewModel.target = transformation(+limitsArray[limitsArray.length-2] * multiplier);
 
     viewModel.alt_target = transformation(settings.funnel.alt_target.value);
 

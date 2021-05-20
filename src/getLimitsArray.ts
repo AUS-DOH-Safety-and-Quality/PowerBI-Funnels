@@ -1,4 +1,5 @@
 import * as rmath from "lib-r-math.js";
+import * as d3 from "d3";
 import getTarget from "../src/Funnel Calculations/getTarget";
 import getSE from "./Funnel Calculations/getSE";
 import getY from "./Funnel Calculations/getY";
@@ -38,32 +39,34 @@ function checkValid(value, is_denom:boolean = false) {
  * @param od_adjust        - Whether to adjust for overdispersion ("auto", "yes", "no")
  * @returns Array of control limit arrays and unadjusted target value for plotting
  */
-function getLimitsArray(numerator: number[], denominator: number[], maxDenominator: number, data_type: string, od_adjust: string) {
+function getLimitsArray(data_array: number[][], maxDenominator: number, data_type: string, od_adjust: string) {
+    let numerator: number[] = data_array[0];
+    let denominator: number[] = data_array[1];
+    let sd: number[] = data_array[2];
     let valid_ids = denominator.map(
         (d,idx) => {
             var is_valid: boolean =
                 checkValid(d, true) &&
                 checkValid(numerator[idx]);
+            is_valid = data_type == "mean" ? is_valid && checkValid(sd[idx], true) : is_valid;
 
             if(is_valid) {
                 return idx;
             }
         }
     );
-    let numerator_in = numerator.filter((d,idx) => valid_ids.indexOf(idx) != -1);
-    let denominator_in = denominator.filter((d,idx) => valid_ids.indexOf(idx) != -1);
+    let data_array_filtered = {numerator: numerator.filter((d,idx) => valid_ids.indexOf(idx) != -1),
+                               denominator: denominator.filter((d,idx) => valid_ids.indexOf(idx) != -1),
+                               sd: data_type == "mean" ? sd.filter((d,idx) => valid_ids.indexOf(idx) != -1) : [null]}
+
      // Series of steps to estimate dispersion ratio (phi) and
      //    between-hospital variance (tau2). These are are used to
      //    test and adjust for overdispersion
-    let target_od = getTarget(numerator_in, denominator_in, data_type, true);
+    let target_od = getTarget(data_array_filtered, data_type, true);
     
-    var SE: number[];
-    if (data_type == "RC") {
-        SE = getSE(numerator_in, data_type, true, 0, denominator_in);
-    } else {
-        SE = getSE(numerator_in, data_type, true);
-    }
-    let y = getY(numerator_in, denominator_in, data_type);
+    var SE: number[] = getSE(data_array_filtered, data_type, true);
+
+    let y = getY(data_array_filtered, data_type);
     let z = getZScore(y, SE, target_od);
     let z_adj = winsoriseZScore(z);
     let phi = getPhi(z_adj);
@@ -77,6 +80,9 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
     let x_range = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 
                                   maxDenominator*0.01);
+    let x_range_array = {numerator: x_range,
+                         denominator: x_range,
+                         sd: [null]}
 
     // Converting od_adjust option to boolean. Uses the 
     //   estimate of between-unit variance (tau2) to determine whether to
@@ -89,16 +95,11 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
     // If unadjusted limits for proportion data are requested then
     //    the unadjusted target line is needed for estimating the
     //    standard errors.
-    let target = getTarget(numerator_in, denominator_in, data_type, od_bool);
+    let target = getTarget(data_array_filtered, data_type, od_bool);
     
     
     // Estimate the associated standard error for each denominator value
-    var se_range: number[];
-    if (data_type == "RC") {
-        se_range = getSE(x_range, data_type, od_bool, 0, x_range);
-    } else {
-        se_range = getSE(x_range, data_type, od_bool, target);
-    }
+    var se_range: number[] = se_range = getSE(x_range_array, data_type, od_bool, target);
     let limitsArray = getLimit(qs, target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]);
 
     // Filtering to handle weird limit behaviour
@@ -119,9 +120,13 @@ function getLimitsArray(numerator: number[], denominator: number[], maxDenominat
         }
     })
 
+    let maxRatio: number = data_type == "mean" ? d3.max(data_array_filtered.numerator) : d3.max(data_array_filtered.numerator.map(
+        (d,idx) => d / data_array_filtered.denominator[idx]
+    ))
+
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.
-    return limitsArray.concat([getTarget(numerator_in, denominator_in, data_type, false)]);
+    return limitsArray.concat([getTarget(data_array_filtered, data_type, false),maxRatio]);
 }
 
 export default getLimitsArray;

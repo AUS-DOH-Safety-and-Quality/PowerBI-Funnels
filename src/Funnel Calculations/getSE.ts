@@ -28,26 +28,25 @@
  *                          the target value is needed
  * @returns 
  */
-function getSE(denominator: number[], data_type: string,
-              adjusted: boolean, target?: number,
-              numerator?: number[]): number[] {
+function getSE(data_array, data_type: string,
+              adjusted: boolean, target?: number): number[] {
     if (data_type == "PR") {
         if (adjusted) {
-            return denominator.map(d => 1.0 / (2.0 * Math.sqrt(d)));
+            return data_array.denominator.map(d => 1.0 / (2.0 * Math.sqrt(d)));
         } else {
             let se_num = target*(1-(target));
-            return denominator.map(d => Math.sqrt(se_num / d));
+            return data_array.denominator.map(d => Math.sqrt(se_num / d));
         }
     } else if (data_type == "SR") {
         if (adjusted) {
-            return denominator.map(d => 1.0 / (2.0 * Math.sqrt(d)));
+            return data_array.denominator.map(d => 1.0 / (2.0 * Math.sqrt(d)));
         } else {
             return [];
         }
     } else if (data_type = "RC") {
-        return denominator.map(
+        return data_array.denominator.map(
             (d,idx) => Math.sqrt(
-                d/Math.pow(d+0.5,2) + numerator[idx]/Math.pow(numerator[idx]+0.5,2)
+                d/Math.pow(d+0.5,2) + data_array.numerator[idx]/Math.pow(data_array.numerator[idx]+0.5,2)
                 )
         )
     }

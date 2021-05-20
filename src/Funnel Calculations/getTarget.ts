@@ -15,8 +15,10 @@ import * as d3 from "d3";
  * @param transformed   - Whether a transformed target is needed
  * @returns             - Target value
  */
-function getTarget(numerator: number[], denominator: number[],
+function getTarget(data_array,
                    type: string, transformed: boolean): number {
+    let numerator: number[] = data_array.numerator;
+    let denominator: number[] = data_array.denominator;
     if (type == "SR") {
         return 1.0;
     } else if (type == "PR") {

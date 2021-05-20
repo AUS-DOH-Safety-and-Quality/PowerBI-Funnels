@@ -12,8 +12,13 @@
             "kind": "Measure"
         },
         {
-            "displayName": "Denominator",
+            "displayName": "Denominator/Sample-Size",
             "name": "denominator",
+            "kind": "Measure"
+        },
+        {
+            "displayName": "SD (for Means)",
+            "name": "sd",
             "kind": "Measure"
         }
     ],
@@ -36,6 +41,10 @@
                           {
                             "displayName" : "Rate",
                             "value" : "RC"
+                          },
+                          {
+                            "displayName" : "Mean",
+                            "value" : "mean"
                           }
                         ]
                     }
@@ -240,6 +249,9 @@
                     },
                     "denominator": {
                         "max": 1
+                    },
+                    "sd": {
+                        "max": 1
                     }
                 }
             ],
@@ -262,6 +274,11 @@
                         {
                             "for": {
                                 "in": "denominator"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "sd"
                             }
                         }
                     ]
