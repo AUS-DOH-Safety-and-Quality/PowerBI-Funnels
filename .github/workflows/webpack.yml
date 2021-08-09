@@ -28,9 +28,9 @@ jobs:
         npm install -g powerbi-visuals-tools@3.1.15
         pbiviz package
         
-    - name: Archive production artifacts
-      uses: actions/upload-artifact@v2
+    - name: Update release
+      uses: johnwbyrd/update-release@v1
       with:
-        name: Built visual
-        path: |
-            dist/**/*.pbiviz
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: ./dist/**/*.pbiviz
+
