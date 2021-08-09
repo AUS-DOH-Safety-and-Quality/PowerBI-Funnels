@@ -1,9 +1,7 @@
-name: Build PowerBI visual
+name: Push to Release
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
     branches: [ main ]
 
 jobs:
@@ -29,8 +27,10 @@ jobs:
         pbiviz package
         
     - name: Update release
+      on:
+        push:
+          branches: [ main ]
       uses: johnwbyrd/update-release@v1.0.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         files: ./dist/PBIFUN.1.0.0.pbiviz
-
