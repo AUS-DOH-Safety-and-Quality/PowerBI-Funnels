@@ -29,9 +29,6 @@ jobs:
         pbiviz package
         
     - name: Update release
-      on:
-        push:
-          branches: [ main ]
       uses: johnwbyrd/update-release@v1.0.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
