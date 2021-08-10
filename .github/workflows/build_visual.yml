@@ -1,4 +1,4 @@
-name: Build PowerBI visual
+name: Test Build PowerBI visual
 
 on:
   pull_request:
