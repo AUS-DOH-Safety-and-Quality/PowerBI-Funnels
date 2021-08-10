@@ -31,6 +31,6 @@ jobs:
     - name: Update release
       uses: johnwbyrd/update-release@v1.0.0
       with:
+        release: "Continuous"
         token: ${{ secrets.GITHUB_TOKEN }}
         files: dist/PBIFUN.1.0.0.pbiviz
-        release: "Latest Build"
