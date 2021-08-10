@@ -33,4 +33,4 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         files: dist/PBIFUN.1.0.0.pbiviz
-        release: Latest Build
+        release: "Latest Build"
