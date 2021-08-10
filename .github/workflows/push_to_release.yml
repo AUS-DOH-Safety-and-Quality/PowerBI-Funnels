@@ -3,6 +3,8 @@ name: Push to Release
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -27,10 +29,11 @@ jobs:
         pbiviz package
         
     - name: Update release
-      uses: johnwbyrd/update-release@v1.0.0
+      uses: ncipollo/release-action@v1
       with:
-        release: "Continuous"
-        message: "This release contains the latest build of the visual, and is rebuilt when any change is pushed.\nDownload using [this link](https://github.com/andrjohns/PowerBI-Funnels/releases/download/Continuous/PBIFUN.1.0.0.pbiviz) or from the 'Assets' section below."
+        name: "Continuous"
+        tag: "Continuous"
+        allowUpdates: true
         body: "This release contains the latest build of the visual, and is rebuilt when any change is pushed.\nDownload using [this link](https://github.com/andrjohns/PowerBI-Funnels/releases/download/Continuous/PBIFUN.1.0.0.pbiviz) or from the 'Assets' section below."
         token: ${{ secrets.GITHUB_TOKEN }}
-        files: dist/PBIFUN.1.0.0.pbiviz
+        artifacts: dist/*.pbiviz
