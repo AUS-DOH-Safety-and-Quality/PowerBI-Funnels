@@ -33,5 +33,6 @@ jobs:
       with:
         release: "Continuous"
         body: "Continuous build of visual"
+        message: "Continuous build of visual"
         token: ${{ secrets.GITHUB_TOKEN }}
         files: dist/PBIFUN.1.0.0.pbiviz
