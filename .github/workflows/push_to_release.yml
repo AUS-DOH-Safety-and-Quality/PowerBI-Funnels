@@ -32,7 +32,7 @@ jobs:
       uses: johnwbyrd/update-release@v1.0.0
       with:
         release: "Continuous"
-        body: "This release contains the latest build of the visual, and is rebuilt when any change is pushed"
+        message: "This release contains the latest build of the visual, and is rebuilt when any change is pushed.\nDownload using [this link](https://github.com/andrjohns/PowerBI-Funnels/releases/download/Continuous/PBIFUN.1.0.0.pbiviz) or from the 'Assets' section below."
         message: "This release contains the latest build of the visual, and is rebuilt when any change is pushed.\nDownload using [this link](https://github.com/andrjohns/PowerBI-Funnels/releases/download/Continuous/PBIFUN.1.0.0.pbiviz) or from the 'Assets' section below."
         token: ${{ secrets.GITHUB_TOKEN }}
         files: dist/PBIFUN.1.0.0.pbiviz
