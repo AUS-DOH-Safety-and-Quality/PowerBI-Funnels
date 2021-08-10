@@ -299,18 +299,16 @@ export class Visual implements IVisual {
 
         // Bind input data to dotGroup reference
         this.dots = this.dotGroup
-                       // List all child elements of dotGroup that have CSS class '.dot'
-                       .selectAll(".dot")
-                       // Matches input array to a list, returns three result sets
-                       //   - HTML element for which there are no matching datapoint (if so, creates new elements to be appended)
-                       .data(this.viewModel
-                                 .scatterDots
-                                 .filter(d => (d.ratio >= yAxisMin && d.ratio <= yAxisMax && d.denominator >= xAxisMin && d.denominator <= xAxisMax)));
+                        // List all child elements of dotGroup that have CSS class '.dot'
+                        .selectAll(".dot")
+                        .data(this.viewModel
+                                  .scatterDots
+                                  .filter(d => (d.ratio >= yAxisMin && d.ratio <= yAxisMax && d.denominator >= xAxisMin && d.denominator <= xAxisMax)));
 
         // Update the datapoints if data is refreshed
         const dots_merged = this.dots.enter()
-            .append("circle")
-            .merge(<any>this.dots);
+                                .append("circle")
+                                .merge(<any>this.dots);
 
         dots_merged.classed("dot", true);
 
@@ -410,8 +408,8 @@ export class Visual implements IVisual {
         this.svg.on('click', (d) => {
             this.selectionManager.clear();
             
-            highlightIfSelected(dots_merged, [],
-            this.settings.scatter.opacity.value, this.settings.scatter.opacity_unselected.value);
+            highlightIfSelected(dots_merged, [], this.settings.scatter.opacity.value,
+                                this.settings.scatter.opacity_unselected.value);
         });
     }
 

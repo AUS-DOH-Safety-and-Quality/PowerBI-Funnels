@@ -3,27 +3,27 @@ import * as rmath from "lib-r-math.js";
 
 
 const elt_multiply = rmath.R.multiplex(
-    function (x: number, y:number): number {
+    function (x: number, y: number): number {
         return x * y;
     }
 );
 
 const subtract = rmath.R.multiplex(
-    function (x: number, y:number): number {
+    function (x: number, y: number): number {
         return x - y;
     }
 );
 
 
 const elt_divide = rmath.R.multiplex(
-    function (x: number, y:number): number {
+    function (x: number, y: number): number {
         return x / y;
     }
 );
 
 
 const all_equal = rmath.R.multiplex(
-    function (x: number, y:number): boolean {
+    function (x: number, y: number): boolean {
         return x == y;
     }
 );

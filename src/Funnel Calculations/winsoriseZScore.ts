@@ -10,8 +10,8 @@ import * as mathjs from "mathjs";
  */
 function winsoriseZScore(z: number[]): number[] {
     // Need unary operator (+) to force cast to number
-    let lower_z = +mathjs.quantileSeq(z, 0.1);
-    let upper_z = +mathjs.quantileSeq(z, 0.9);
+    let lower_z: number = +mathjs.quantileSeq(z, 0.1);
+    let upper_z: number = +mathjs.quantileSeq(z, 0.9);
     return z.map(d => {
         if (d < lower_z) {
             return lower_z;

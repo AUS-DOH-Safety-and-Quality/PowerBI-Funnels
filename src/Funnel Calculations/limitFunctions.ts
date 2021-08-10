@@ -1,9 +1,10 @@
 import * as rmath from "lib-r-math.js";
 
-function prop_limit(q, target, SE, tau2, od_adjust, denominator) {
+function prop_limit(q: number, target: number, SE: number, tau2: number,
+                    od_adjust: boolean, denominator: number): number {
     var limit: number;
     if (od_adjust) {
-        limit = Math.pow(Math.sin(target + q * Math.sqrt(Math.pow(SE,2) + tau2)), 2)
+        limit = Math.pow(Math.sin(target + q * Math.sqrt(Math.pow(SE, 2) + tau2)), 2)
     } else {
         limit = target + q * SE;
     }
@@ -17,14 +18,15 @@ function prop_limit(q, target, SE, tau2, od_adjust, denominator) {
     }
 }
 
-function smr_limit(q, target, SE, tau2, od_adjust, denominator) {
+function smr_limit(q: number, target: number, SE: number, tau2: number,
+                   od_adjust: boolean, denominator: number): number {
     var limit: number;
     if (od_adjust) {
         limit = target + q * Math.sqrt(Math.pow(SE,2) + tau2);
     } else {
-        let p = rmath.Normal().pnorm(q);
-        let is_upper = p > 0.5;
-        let offset = is_upper ? 1 : 0;
+        let p: number = rmath.Normal().pnorm(q);
+        let is_upper: boolean = p > 0.5;
+        let offset: number = is_upper ? 1 : 0;
 
         limit = (rmath.ChiSquared().qchisq(p, 2 * (denominator + offset)) / 2.0)
                 / denominator;
@@ -37,7 +39,8 @@ function smr_limit(q, target, SE, tau2, od_adjust, denominator) {
     }
 }
 
-function rc_limit(q, target, SE, tau2, od_adjust, denominator) {
+function rc_limit(q: number, target: number, SE: number, tau2: number,
+                  od_adjust: boolean, denominator: number): number {
     var limit: number;
     if (od_adjust) {
         limit = Math.exp(target + q * Math.sqrt(Math.pow(SE,2) + tau2));
@@ -52,7 +55,8 @@ function rc_limit(q, target, SE, tau2, od_adjust, denominator) {
     }
 }
 
-function mn_limit(q, target, SE, tau2, od_adjust, denominator) {
+function mn_limit(q: number, target: number, SE: number, tau2: number,
+                  od_adjust: boolean, denominator: number): number {
     var limit: number;
     if (od_adjust) {
         limit = target + q * Math.sqrt(Math.pow(SE,2) + tau2);
