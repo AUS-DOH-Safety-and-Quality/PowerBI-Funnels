@@ -31,8 +31,8 @@ jobs:
     - name: Update release
       uses: johnwbyrd/update-release@v1.0.0
       with:
-        release: "Continuous"
+        release: "Continuous Building"
         body: "Continuous build of visual"
-        message: "Continuous build of visual"
+        message: "This release contains the latest build of the visual. It is rebuilt as each change is pushed"
         token: ${{ secrets.GITHUB_TOKEN }}
         files: dist/PBIFUN.1.0.0.pbiviz
