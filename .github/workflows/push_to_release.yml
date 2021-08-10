@@ -32,5 +32,6 @@ jobs:
       uses: johnwbyrd/update-release@v1.0.0
       with:
         release: "Continuous"
+        body: "Continuous build of visual"
         token: ${{ secrets.GITHUB_TOKEN }}
         files: dist/PBIFUN.1.0.0.pbiviz
