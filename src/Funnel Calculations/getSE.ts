@@ -35,8 +35,8 @@ import { pow } from "./HelperFunctions"
  *                          the target value is needed
  * @returns 
  */
-function getSE(data_array, data_type: string,
-              adjusted: boolean, target?: number): number[] {
+function getSE(data_array: { numerator: number[]; denominator: number[]; sd: number[]; }, 
+               data_type: string, adjusted: boolean, target?: number): number[] {
     if (data_type == "PR") {
         if (adjusted) {
             return data_array.denominator.map(d => 1.0 / (2.0 * Math.sqrt(d)));
@@ -57,13 +57,13 @@ function getSE(data_array, data_type: string,
                 )
         )
     } else if (data_type = "mean") {
-        let sd = data_array.sd;
-        let n = data_array.denominator;
-        let m = data_array.numerator;
-        // If calculating SE for limits, use pooled SD
-        if(all_equal(n,m)) {
-          let pooled_sd: number = d3.sum(elt_multiply(subtract(n,1),pow(sd,2))) / (d3.sum(n) - n.length())
-          return elt_divide(pooled_sd, sqrt(n));
+        let sd: number[] = data_array.sd;
+        let n: number[] = data_array.denominator;
+        let m: number[] = data_array.numerator;
+        // If calculating SE for limits, use average SD
+        if(all_equal(n, m)) {
+          let average_sd: number = d3.sum(sd) / d3.sum(n);
+          return elt_divide(average_sd, sqrt(n));
         }
     
         return elt_divide(sd, sqrt(n));

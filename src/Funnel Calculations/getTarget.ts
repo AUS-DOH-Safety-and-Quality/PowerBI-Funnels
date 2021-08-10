@@ -16,7 +16,7 @@ import { elt_multiply } from "./HelperFunctions"
  * @param transformed   - Whether a transformed target is needed
  * @returns             - Target value
  */
-function getTarget(data_array,
+function getTarget(data_array: { numerator: number[]; denominator: number[]; sd: number[]; }, 
                    type: string, transformed: boolean): number {
     let numerator: number[] = data_array.numerator;
     let denominator: number[] = data_array.denominator;
@@ -36,7 +36,7 @@ function getTarget(data_array,
             return d3.sum(numerator) / d3.sum(denominator);
         }
     } else if (type == "mean") {
-        return d3.sum(elt_multiply(numerator,denominator)) / d3.sum(denominator)
+        return d3.sum(elt_multiply(numerator, denominator)) / d3.sum(denominator)
     }
 }
 

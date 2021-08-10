@@ -11,7 +11,8 @@
  * @param data_type 
  * @returns 
  */
-function getY(data_array, data_type: string): number[] {
+function getY(data_array: { numerator: number[]; denominator: number[]; sd: number[]; },
+              data_type: string): number[] {
     let numerator: number[] = data_array.numerator;
     let denominator: number[] = data_array.denominator;
     if (data_type == "PR") {
