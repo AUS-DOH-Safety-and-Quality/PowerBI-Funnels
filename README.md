@@ -45,7 +45,7 @@ Aesthetic options for the lines, scatter dots, and chart axes are also available
 To build the PowerBI visual (.pbiviz file), you will need a working Node.js installation and internet access. Navigate to the project source directory and run:
 ```
 npm install
-npm install -g powerbi-visuals-tools@3.1.15
+npm install -g powerbi-visuals-tools
 pbiviz package
 ```
 
