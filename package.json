@@ -8,7 +8,7 @@
     "test": "mocha -r ts-node/register 'src/Unit Tests/Testing.ts'"
   },
   "dependencies": {
-    "@babel/runtime": "7.6.0",
+    "@babel/runtime": "^7.6.0",
     "@babel/runtime-corejs2": "7.6.0",
     "@types/d3": "5.7.2",
     "core-js": "3.2.1",
@@ -16,7 +16,8 @@
     "lib-r-math.js": ">=1.0.89",
     "mathjs": ">=9.3.0",
     "powerbi-visuals-api": "~3.8.0",
-    "powerbi-visuals-utils-dataviewutils": "^2.2.1"
+    "powerbi-visuals-utils-dataviewutils": "^2.2.1",
+    "regenerator-runtime": "^0.13.9"
   },
   "devDependencies": {
     "@types/chai": "^4.2.17",
