@@ -66,7 +66,7 @@ function getViewModel(options, settings, host) {
                                sd ? (<number[]>sd.values) : [null]]
 
     let maxDenominator = d3.max(<number[]>denominator.values);
-
+    
     let limitsArray = getLimitsArray(data_in, maxDenominator, data_type, od_adjust);
 
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
