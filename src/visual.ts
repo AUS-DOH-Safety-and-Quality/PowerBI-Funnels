@@ -13,7 +13,6 @@ import VisualObjectInstance = powerbi.VisualObjectInstance;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import ISelectionId = powerbi.visuals.ISelectionId;
-import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import makeDots from "./Plotting Functions/makeDots";
 import makeLines from "./Plotting Functions/makeLines";
 import updateSettings from "./Plot Settings/updateSettings";
@@ -21,44 +20,11 @@ import getViewModel from "../src/getViewModel";
 import initSettings from "./Plot Settings/initSettings";
 import * as d3 from "d3";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
-
-// Used to represent the different datapoints on the chart
-interface ScatterDots {
-    category: string;
-    numerator: number;
-    denominator: number;
-    ratio: number;
-    colour: string;
-    // ISelectionId allows the visual to report the selection choice to PowerBI
-    identity: powerbi.visuals.ISelectionId;
-    // Flag for whether dot should be highlighted by selections in other charts
-    highlighted: boolean;
-    // Tooltip data to print
-    tooltips: VisualTooltipDataItem[];
-};
-
-interface LimitLines {
-    limit: number;
-    denominator: number;
-};
+import { LimitLines } from "../src/Interfaces.ts"
+import { ViewModel } from "../src/Interfaces.ts"
 
 type LineType = d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>;
 type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;
-
-// Separator between code that gets data from PBI, and code that renders
-//   the data in the visual
-interface ViewModel {
-    scatterDots: ScatterDots[];
-    lowerLimit99: LimitLines[];
-    lowerLimit95: LimitLines[];
-    upperLimit95: LimitLines[];
-    upperLimit99: LimitLines[];
-    maxRatio: number;
-    maxDenominator: number;
-    target: number;
-    alt_target: number;
-    highlights: boolean;
-};
 
 export class Visual implements IVisual {
     private host: IVisualHost;
@@ -196,7 +162,6 @@ export class Visual implements IVisual {
             .style("text-anchor", "end")
             // Scale font
             .style("font-size","x-small");
-
 
         // Bind input data to dotGroup reference
         this.dots = this.dotGroup
