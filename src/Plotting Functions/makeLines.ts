@@ -2,6 +2,9 @@ import powerbi from "powerbi-visuals-api";
 import ITooltipService = powerbi.extensibility.ITooltipService;
 import * as d3 from "d3";
 import invertTransformation from "../Funnel Calculations/invertTransformation"
+import { ViewModel } from "../../src/Interfaces.ts"
+import { LimitLines } from "../../src/Interfaces.ts"
+
 /**
  * Function for plotting the control limit and target lines, as well
  *   as managing the creation & updating of tooltips.
@@ -20,7 +23,7 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
                    settings: any,
                    x_scale: d3.ScaleLinear<number, number, never>,
                    y_scale: d3.ScaleLinear<number, number, never>,
-                   linetype: string, viewModel: any,
+                   linetype: string, viewModel: ViewModel,
                    tooltipService: ITooltipService,
                    x_scale_inv?: d3.ScaleLinear<number, number, never>,
                    y_scale_inv?: d3.ScaleLinear<number, number, never>): void {
@@ -37,7 +40,7 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
 
 
     if (linetype != "target" && linetype != "alt_target") {
-        LineObject.attr("d", d3.line<typeof viewModel.LimitLines>()
+        LineObject.attr("d", d3.line<LimitLines>()
                                .x(d => x_scale(d.denominator))
                                .y(d => y_scale(d.limit)))
             .attr("fill","none")
@@ -114,7 +117,7 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
                         })
                     });
     } else if (linetype == "target") {
-        LineObject.attr("d", d3.line<typeof viewModel.LimitLines>()
+        LineObject.attr("d", d3.line<LimitLines>()
                                .x(d => x_scale(d.denominator))
                                .y(d => y_scale(viewModel.target)))
             // Apply CSS class to elements so that they can be looked up later
@@ -122,7 +125,7 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
             .attr("stroke", target_colour)
             .attr("stroke-width", target_width);
     } else if (linetype == "alt_target") {
-        LineObject.attr("d", d3.line<typeof viewModel.LimitLines>()
+        LineObject.attr("d", d3.line<LimitLines>()
                                .x(d => x_scale(d.denominator))
                                .y(d => y_scale(viewModel.alt_target)))
             // Apply CSS class to elements so that they can be looked up later
@@ -132,7 +135,7 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
     }
 
     LineObject.exit()
-            .remove();
+              .remove();
 }
 
 export default makeLines;

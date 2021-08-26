@@ -4,6 +4,7 @@ import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
+import { ViewModel } from "../src/Interfaces.ts"
 
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
@@ -22,7 +23,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
                       host: IVisualHost) {
     let dv: powerbi.DataView[] = options.dataViews;
 
-    let viewModel = {
+    let viewModel: ViewModel = {
         scatterDots: [],
         lowerLimit99: [],
         lowerLimit95: [],
@@ -122,47 +123,19 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
         viewModel.lowerLimit99.push({
             limit: transformation(limitsArray[i][1] * multiplier),
-            denominator: limitsArray[i][0],
-            tooltips: [{
-                displayName: "Lower 99.8%",
-                value: transformation(limitsArray[i][1] * multiplier)
-            }, {
-                displayName: "Denominator",
-                value: limitsArray[i][0]
-            }]
+            denominator: limitsArray[i][0]
         });
         viewModel.lowerLimit95.push({
             limit: transformation(limitsArray[i][2] * multiplier),
-            denominator: limitsArray[i][0],
-            tooltips: [{
-                displayName: "Lower 95%",
-                value: transformation(limitsArray[i][2] * multiplier)
-            }, {
-                displayName: "Denominator",
-                value: limitsArray[i][0]
-            }]
+            denominator: limitsArray[i][0]
         });
         viewModel.upperLimit95.push({
             limit: transformation(limitsArray[i][3] * multiplier),
-            denominator: limitsArray[i][0],
-            tooltips: [{
-                displayName: "Upper 95%",
-                value: transformation(limitsArray[i][3] * multiplier)
-            }, {
-                displayName: "Denominator",
-                value: limitsArray[i][0]
-            }]
+            denominator: limitsArray[i][0]
         });
         viewModel.upperLimit99.push({
             limit: transformation(limitsArray[i][4] * multiplier),
-            denominator: limitsArray[i][0],
-            tooltips: [{
-                displayName: "Upper 99.8%",
-                value: transformation(limitsArray[i][4] * multiplier)
-            }, {
-                displayName: "Denominator",
-                value: limitsArray[i][0]
-            }]
+            denominator: limitsArray[i][0]
         });
     }
 
