@@ -9,7 +9,7 @@ import getPhi from "./Funnel Calculations/getPhi";
 import getTau2 from "./Funnel Calculations/getTau2";
 import getLimit from "./Funnel Calculations/getLimit";
 
-function checkValid(value, is_denom:boolean = false) {
+function checkValid(value: number, is_denom: boolean = false) {
     return value !== null && value !== undefined && is_denom ? value > 0 : true;
 }
 
@@ -39,13 +39,14 @@ function checkValid(value, is_denom:boolean = false) {
  * @param od_adjust        - Whether to adjust for overdispersion ("auto", "yes", "no")
  * @returns Array of control limit arrays and unadjusted target value for plotting
  */
-function getLimitsArray(data_array: number[][], maxDenominator: number, data_type: string, od_adjust: string) {
+function getLimitsArray(data_array: number[][], maxDenominator: number,
+                        data_type: string, od_adjust: string): number[][] {
     let numerator: number[] = data_array[0].map(d => parseFloat(String(d)));
     let denominator: number[] = data_array[1].map(d => parseFloat(String(d)));
     let sd: number[] = data_array[2].map(d => parseFloat(String(d)));
-    let valid_ids = denominator.map(
+    let valid_ids: number[] = denominator.map(
         (d,idx) => {
-            var is_valid: boolean =
+            let is_valid: boolean =
                 checkValid(d, true) &&
                 checkValid(numerator[idx]);
             is_valid = data_type == "mean" ? is_valid && checkValid(sd[idx], true) : is_valid;
@@ -62,21 +63,21 @@ function getLimitsArray(data_array: number[][], maxDenominator: number, data_typ
      // Series of steps to estimate dispersion ratio (phi) and
      //    between-hospital variance (tau2). These are are used to
      //    test and adjust for overdispersion
-    let target_od = getTarget(data_array_filtered, data_type, true);
+    let target_od: number = getTarget(data_array_filtered, data_type, true);
     var SE: number[] = getSE(data_array_filtered, data_type, true);
-    let y = getY(data_array_filtered, data_type);
-    let z = getZScore(y, SE, target_od);
-    let z_adj = winsoriseZScore(z);
-    let phi = getPhi(z_adj);
-    let tau2 = getTau2(phi, SE);
+    let y: number[] = getY(data_array_filtered, data_type);
+    let z: number[] = getZScore(y, SE, target_od);
+    let z_adj: number[] = winsoriseZScore(z);
+    let phi: number = getPhi(z_adj);
+    let tau2: number = getTau2(phi, SE);
 
     // Specify the intervals for the limits: 95% and 99.8%
     // TODO(Andrew): Allow user to specify
-    let qs = rmath.Normal().qnorm([0.001, 0.025, 0.975, 0.999]);
+    let qs: number[] = rmath.Normal().qnorm([0.001, 0.025, 0.975, 0.999]);
 
     // Generate sequence of values to calculate limits for, specifying that the
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
-    let x_range = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 
+    let x_range: number[] = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 
                                   maxDenominator*0.01);
     let x_range_array = {numerator: x_range,
                          denominator: x_range,
@@ -93,15 +94,14 @@ function getLimitsArray(data_array: number[][], maxDenominator: number, data_typ
     // If unadjusted limits for proportion data are requested then
     //    the unadjusted target line is needed for estimating the
     //    standard errors.
-    let target = getTarget(data_array_filtered, data_type, od_bool);
+    let target: number = getTarget(data_array_filtered, data_type, od_bool);
     
     
     // Estimate the associated standard error for each denominator value
     var se_range: number[] = se_range = getSE(x_range_array, data_type, od_bool, target);
-    let limitsArray = getLimit(qs, target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]);
+    let limitsArray: number[][] = getLimit(qs, target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]);
 
-    console.log("limitsArray:" + limitsArray);
-    // Filtering to handle weird limit behaviour
+    // Filtering to handle non-monotonic limits
     limitsArray.map((d,idx) => {
         if(idx < limitsArray.length-1) {
             if(d[1] > limitsArray[idx+1][1]) {

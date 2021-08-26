@@ -1,3 +1,6 @@
+import powerbi from "powerbi-visuals-api";
+import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
+import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
@@ -15,8 +18,9 @@ import getTransformation from "./Funnel Calculations/getTransformation";
  * @returns ViewModel object containing calculated limits and all
  *            data needed for plotting
 */
-function getViewModel(options, settings, host) {
-    let dv = options.dataViews;
+function getViewModel(options: VisualUpdateOptions, settings: any,
+                      host: IVisualHost) {
+    let dv: powerbi.DataView[] = options.dataViews;
 
     let viewModel = {
         scatterDots: [],
@@ -41,33 +45,34 @@ function getViewModel(options, settings, host) {
     }
 
     // Get  categorical view of the data
-    let view = dv[0].categorical;
+    let view: powerbi.DataViewCategorical = dv[0].categorical;
 
     // Get array of category values
-    let categories = view.categories[0];
+    let categories: powerbi.DataViewCategoryColumn = view.categories[0];
 
     // Get numerator
-    let numerator = view.values[0];
+    let numerator: powerbi.DataViewValueColumn = view.values[0];
     // Get numerator
-    let denominator = view.values[1];
+    let denominator: powerbi.DataViewValueColumn = view.values[1];
     // Get numerator
-    let sd = view.values[2];
+    let sd: powerbi.DataViewValueColumn = view.values[2];
 
     // Get groups of dots to highlight
-    let highlights = numerator.highlights;
+    let highlights: powerbi.PrimitiveValue[] = numerator.highlights;
 
-    let data_type = settings.funnel.data_type.value;
-    let od_adjust = settings.funnel.od_adjust.value;
-    let multiplier = settings.funnel.multiplier.value;
-    let transformation = getTransformation(settings.funnel.transformation.value);
+    let data_type: string = settings.funnel.data_type.value;
+    let od_adjust: string = settings.funnel.od_adjust.value;
+    let multiplier: number = settings.funnel.multiplier.value;
+    let transformation: (x: number) => number
+        = getTransformation(settings.funnel.transformation.value);
 
     let data_in: number[][] = [(<number[]>numerator.values),
                                (<number[]>denominator.values),
                                sd ? (<number[]>sd.values) : [null]]
 
-    let maxDenominator = d3.max(<number[]>denominator.values);
+    let maxDenominator: number = d3.max(<number[]>denominator.values);
 
-    let limitsArray = getLimitsArray(data_in, maxDenominator, data_type, od_adjust);
+    let limitsArray: number[][] = getLimitsArray(data_in, maxDenominator, data_type, od_adjust);
 
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
     for (let i = 0; i < categories.values.length;  i++) {
@@ -161,9 +166,9 @@ function getViewModel(options, settings, host) {
         });
     }
 
-    let maxRatio = transformation(+limitsArray[limitsArray.length-1] * multiplier);
+    let maxRatio: number = transformation(+limitsArray[limitsArray.length-1] * multiplier);
 
-    let maxLimit = d3.max(viewModel.upperLimit95.map((d,idx) => Math.max(d.limit, viewModel.upperLimit99[idx].limit)));
+    let maxLimit: number = d3.max(viewModel.upperLimit95.map((d,idx) => Math.max(d.limit, viewModel.upperLimit99[idx].limit)));
 
     maxRatio = maxLimit > maxRatio ? maxLimit : maxRatio;
 

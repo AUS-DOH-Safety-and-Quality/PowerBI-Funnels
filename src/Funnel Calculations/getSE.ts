@@ -41,7 +41,7 @@ function getSE(data_array: { numerator: number[]; denominator: number[]; sd: num
         if (adjusted) {
             return data_array.denominator.map(d => 1.0 / (2.0 * Math.sqrt(d)));
         } else {
-            let se_num = target*(1-(target));
+            let se_num: number = target*(1-(target));
             return data_array.denominator.map(d => Math.sqrt(se_num / d));
         }
     } else if (data_type == "SR") {

@@ -1,5 +1,7 @@
 import checkIDSelected from "./checkIDSelected";
 import * as d3 from "d3";
+import powerbi from "powerbi-visuals-api";
+import ISelectionId = powerbi.visuals.ISelectionId;
 
 /**
  * Function to update opacity of dots if selected in other plots,
@@ -9,7 +11,10 @@ import * as d3 from "d3";
  * @param selectionIds  - List of current selection ids returned for getSelectionIds
  * @returns 
  */
-function highlightIfSelected(DotObject, selectionIds, opacitySelected, opacityUnselected) {
+function highlightIfSelected(DotObject: d3.Selection<any, any, any, any>,
+                             selectionIds: ISelectionId[],
+                             opacitySelected: number,
+                             opacityUnselected: number) {
     if (!DotObject || !selectionIds) {
         return;
     }
@@ -20,7 +25,8 @@ function highlightIfSelected(DotObject, selectionIds, opacitySelected, opacityUn
     }
 
     DotObject.each(d => {
-        const opacity = checkIDSelected(selectionIds, d.identity) ? opacitySelected : opacityUnselected;
+        const opacity: number
+            = checkIDSelected(selectionIds, d.identity) ? opacitySelected : opacityUnselected;
 
         (<any>d3).select(DotObject)
                  .style("fill-opacity", opacity);
