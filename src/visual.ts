@@ -12,16 +12,14 @@ import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration
 import VisualObjectInstance = powerbi.VisualObjectInstance;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
-import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
-import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import ISelectionId = powerbi.visuals.ISelectionId;
+import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import makeDots from "./Plotting Functions/makeDots";
 import makeLines from "./Plotting Functions/makeLines";
-import updateSettings from "../src/updateSettings";
+import updateSettings from "./Plot Settings/updateSettings";
 import getViewModel from "../src/getViewModel";
+import initSettings from "./Plot Settings/initSettings";
 import * as d3 from "d3";
-import * as mathjs from "mathjs";
-import * as rmath from "lib-r-math.js";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
 
 // Used to represent the different datapoints on the chart
@@ -43,6 +41,9 @@ interface LimitLines {
     limit: number;
     denominator: number;
 };
+
+type LineType = d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>;
+type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;
 
 // Separator between code that gets data from PBI, and code that renders
 //   the data in the visual
@@ -78,116 +79,8 @@ export class Visual implements IVisual {
     //   rest of the report
     private selectionManager: ISelectionManager;
 
-
     // Settings for plot aesthetics
-    private settings = {
-        axispad: {
-            x: {
-                padding: {
-                    default: 50,
-                    value: 50
-                }
-            },
-            y: {
-                padding: {
-                    default: 50,
-                    value: 50
-                }
-            }
-        },
-        funnel: {
-            data_type: {
-                default: "PR",
-                value: "PR"
-            },
-            od_adjust: {
-                default: "auto",
-                value: "auto"
-            },
-            multiplier: {
-                default: 1,
-                value: 1
-            },
-            transformation: {
-                default: "none",
-                value: "none"
-            },
-            alt_target: {
-                default: null,
-                value: null
-            }
-        },
-        scatter: {
-            size: {
-                default: 4,
-                value: 4
-            },
-            colour: {
-                default: "#000000",
-                value: "#000000"
-            },
-            opacity: {
-                default: 1,
-                value: 1
-            },
-            opacity_unselected: {
-                default: 0.2,
-                value: 0.2
-            }
-        },
-        lines: {
-            width_99: {
-                default: 3,
-                value: 3
-            },
-            width_95: {
-                default: 3,
-                value: 3
-            },
-            width_target: {
-                default: 1.5,
-                value: 1.5
-            },
-            width_alt_target: {
-                default: 1.5,
-                value: 1.5
-            },
-            colour_99: {
-                default: "#4682B4",
-                value: "#4682B4"
-            },
-            colour_95: {
-                default: "#4682B4",
-                value: "#4682B4"
-            },
-            colour_target: {
-                default: "#4682B4",
-                value: "#4682B4"
-            },
-            colour_alt_target: {
-                default: "#4682B4",
-                value: "#4682B4"
-            }
-        },
-        axis: {
-            ylimit_l: {
-                default: null,
-                value: null
-            },
-            ylimit_u: {
-                default: null,
-                value: null
-            },
-            xlimit_l: {
-                default: null,
-                value: null
-            },
-            xlimit_u: {
-                default: null,
-                value: null
-            }
-        }
-    }
+    private settings = initSettings();
 
     constructor(options: VisualConstructorOptions) {
         // Add reference to host object, for accessing environment (e.g. colour)
@@ -201,17 +94,17 @@ export class Visual implements IVisual {
                      .classed("funnelchart", true);
 
         this.UL99Group = this.svg.append("g")
-                                .classed("line-group", true);
+                                 .classed("line-group", true);
         this.LL99Group = this.svg.append("g")
-                                .classed("line-group", true);
+                                 .classed("line-group", true);
         this.UL95Group = this.svg.append("g")
-                                .classed("line-group", true);
+                                 .classed("line-group", true);
         this.LL95Group = this.svg.append("g")
-                                .classed("line-group", true);
+                                 .classed("line-group", true);
         this.targetGroup = this.svg.append("g")
-                                .classed("line-group", true);
+                                   .classed("line-group", true);
         this.alttargetGroup = this.svg.append("g")
-                                .classed("line-group", true);
+                                      .classed("line-group", true);
         this.dotGroup = this.svg.append("g")
                                 .classed("dotGroup", true);
 
@@ -225,8 +118,11 @@ export class Visual implements IVisual {
 
         // Request a new selectionManager tied to the visual
         this.selectionManager = this.host.createSelectionManager();
+
+        // Update dot highlighting on initialisation
         this.selectionManager.registerOnSelectCallback(() => {
-            highlightIfSelected(this.dots, this.selectionManager.getSelectionIds(),
+            highlightIfSelected(this.dots,
+                                this.selectionManager.getSelectionIds() as ISelectionId[],
                                 this.settings.scatter.opacity.value,
                                 this.settings.scatter.opacity_unselected.value);
         })
@@ -242,17 +138,17 @@ export class Visual implements IVisual {
         this.viewModel = getViewModel(options, this.settings, this.host);
 
         // Get the width and height of plotting space
-        let width = options.viewport.width;
-        let height = options.viewport.height;
+        let width: number = options.viewport.width;
+        let height: number = options.viewport.height;
 
         // Add appropriate padding so that plotted data doesn't overlay axis
-        let xAxisPadding = this.settings.axispad.x.padding.value;
-        let yAxisPadding = this.settings.axispad.y.padding.value;
-        let multiplier = this.settings.funnel.multiplier.value;
-        let xAxisMin = this.settings.axis.xlimit_l.value ? this.settings.axis.xlimit_l.value : 0;
-        let xAxisMax = this.settings.axis.xlimit_u.value ? this.settings.axis.xlimit_u.value : this.viewModel.maxDenominator;
-        let yAxisMin = this.settings.axis.ylimit_l.value ? this.settings.axis.ylimit_l.value : 0;
-        let yAxisMax = this.settings.axis.ylimit_u.value ? this.settings.axis.ylimit_u.value : this.viewModel.maxRatio;
+        let xAxisPadding: number = this.settings.axispad.x.padding.value;
+        let yAxisPadding: number = this.settings.axispad.y.padding.value;
+        let multiplier: number = this.settings.funnel.multiplier.value;
+        let xAxisMin: number = this.settings.axis.xlimit_l.value ? this.settings.axis.xlimit_l.value : 0;
+        let xAxisMax: number = this.settings.axis.xlimit_u.value ? this.settings.axis.xlimit_u.value : this.viewModel.maxDenominator;
+        let yAxisMin: number = this.settings.axis.ylimit_l.value ? this.settings.axis.ylimit_l.value : 0;
+        let yAxisMax: number = this.settings.axis.ylimit_u.value ? this.settings.axis.ylimit_u.value : this.viewModel.maxRatio;
 
         // Dynamically scale chart to use all available space
         this.svg.attr("width", width)
@@ -261,24 +157,28 @@ export class Visual implements IVisual {
         // Define axes for chart.
         //   Takes a given plot axis value and returns the appropriate screen height
         //     to plot at.
-        let yScale = d3.scaleLinear()
-                       .domain([yAxisMin, yAxisMax])
-                       .range([height - xAxisPadding, 0]);
-        let xScale = d3.scaleLinear()
-                        .domain([xAxisMin, xAxisMax])
-                        .range([yAxisPadding, width]);
+        let yScale: d3.ScaleLinear<number, number, never>
+            = d3.scaleLinear()
+                .domain([yAxisMin, yAxisMax])
+                .range([height - xAxisPadding, 0]);
+        let xScale: d3.ScaleLinear<number, number, never>
+            = d3.scaleLinear()
+                .domain([xAxisMin, xAxisMax])
+                .range([yAxisPadding, width]);
 
         // Specify inverse scaling that will return a plot axis value given an input
         //   screen height. Used to display line chart tooltips.
-        let yScale_inv = d3.scaleLinear()
-                       .domain([height - xAxisPadding, 0])
-                       .range([yAxisMin, yAxisMax]);
-        let xScale_inv = d3.scaleLinear()
-                            .domain([yAxisPadding, width])
-                            .range([xAxisMin, xAxisMax]);
+        let yScale_inv: d3.ScaleLinear<number, number, never>
+            = d3.scaleLinear()
+                .domain([height - xAxisPadding, 0])
+                .range([yAxisMin, yAxisMax]);
+        let xScale_inv: d3.ScaleLinear<number, number, never>
+            = d3.scaleLinear()
+                .domain([yAxisPadding, width])
+                .range([xAxisMin, xAxisMax]);
 
-        let yAxis = d3.axisLeft(yScale);
-        let xAxis = d3.axisBottom(xScale);
+        let yAxis: d3.Axis<d3.NumberValue> = d3.axisLeft(yScale);
+        let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
         // Draw axes on plot
         this.yAxisGroup
@@ -304,12 +204,16 @@ export class Visual implements IVisual {
                         .selectAll(".dot")
                         .data(this.viewModel
                                   .scatterDots
-                                  .filter(d => (d.ratio >= yAxisMin && d.ratio <= yAxisMax && d.denominator >= xAxisMin && d.denominator <= xAxisMax)));
+                                  .filter(d => (d.ratio >= yAxisMin
+                                                && d.ratio <= yAxisMax
+                                                && d.denominator >= xAxisMin
+                                                && d.denominator <= xAxisMax)));
 
         // Update the datapoints if data is refreshed
-        const dots_merged = this.dots.enter()
-                                .append("circle")
-                                .merge(<any>this.dots);
+        const dots_merged: d3.Selection<SVGCircleElement, any, any, any>
+            = this.dots.enter()
+                  .append("circle")
+                  .merge(<any>this.dots);
 
         dots_merged.classed("dot", true);
 
@@ -317,61 +221,84 @@ export class Visual implements IVisual {
         makeDots(dots_merged, this.settings,
                  this.viewModel.highlights, this.selectionManager,
                  this.host.tooltipService, xScale, yScale);
-    
 
         // Bind calculated control limits and target line to respective plotting objects
-        let linesLL99 = this.LL99Group
-            .selectAll(".line")
-            .data([this.viewModel.lowerLimit99.filter(d => (d.limit != -9999 * multiplier) && (d.limit >= yAxisMin))]);
+        let linesLL99: LineType
+            = this.LL99Group
+                  .selectAll(".line")
+                  .data([this.viewModel
+                             .lowerLimit99
+                             .filter(d => (d.limit != -9999 * multiplier)
+                                          && (d.limit >= yAxisMin))]);
 
-        let linesUL99 = this.UL99Group
-            .selectAll(".line")
-            .data([this.viewModel.upperLimit99.filter(d => (d.limit != -9999 * multiplier) && (d.limit <= yAxisMax))]);
+        let linesUL99: LineType
+            = this.UL99Group
+                  .selectAll(".line")
+                  .data([this.viewModel
+                             .upperLimit99
+                             .filter(d => (d.limit != -9999 * multiplier)
+                                          && (d.limit <= yAxisMax))]);
 
-        let linesUL95 = this.UL95Group
-            .selectAll(".line")
-            .data([this.viewModel.upperLimit95.filter(d => (d.limit != -9999 * multiplier) && (d.limit <= yAxisMax))]);
+        let linesUL95: LineType
+            = this.UL95Group
+                  .selectAll(".line")
+                  .data([this.viewModel
+                             .upperLimit95
+                             .filter(d => (d.limit != -9999 * multiplier)
+                                          && (d.limit <= yAxisMax))]);
 
-        let linesLL95 = this.LL95Group
-            .selectAll(".line")
-            .data([this.viewModel.lowerLimit95.filter(d => (d.limit != -9999 * multiplier) && (d.limit >= yAxisMin))]);
+        let linesLL95: LineType
+            = this.LL95Group
+                  .selectAll(".line")
+                  .data([this.viewModel
+                             .lowerLimit95
+                             .filter(d => (d.limit != -9999 * multiplier)
+                                          && (d.limit >= yAxisMin))]);
         
-        const linesLL99Merged = linesLL99.enter()
-                                            .append("path")
-                                            .merge(<any>linesLL99)
-                                            .classed("line", true)
+        const linesLL99Merged: MergedLineType
+            = linesLL99.enter()
+                       .append("path")
+                       .merge(<any>linesLL99)
+                       .classed("line", true)
         
-        const linesLL95_merged = linesLL95.enter()
-                                            .append("path")
-                                            .merge(<any>linesLL95)
-                                            .classed("line", true)
-        const linesUL95_merged = linesUL95.enter()
-                                          .append("path")
-                                          .merge(<any>linesUL95)
-                                          .classed("line", true)
+        const linesLL95_merged: MergedLineType
+            = linesLL95.enter()
+                       .append("path")
+                       .merge(<any>linesLL95)
+                       .classed("line", true)
+        const linesUL95_merged: MergedLineType
+            = linesUL95.enter()
+                       .append("path")
+                       .merge(<any>linesUL95)
+                       .classed("line", true)
         
-        const linesUL99_merged = linesUL99.enter()
-                                          .append("path")
-                                          .merge(<any>linesUL99)
-                                          .classed("line", true)
+        const linesUL99_merged: MergedLineType
+            = linesUL99.enter()
+                       .append("path")
+                       .merge(<any>linesUL99)
+                       .classed("line", true)
 
-        let lineTarget = this.targetGroup
-                             .selectAll(".line")
-                             .data([this.viewModel.upperLimit99]);
+        let lineTarget: LineType
+            = this.targetGroup
+                  .selectAll(".line")
+                  .data([this.viewModel.upperLimit99]);
 
-        let lineAltTarget = this.alttargetGroup
-                                .selectAll(".line")
-                                .data([this.viewModel.upperLimit99]);
+        let lineAltTarget: LineType
+            = this.alttargetGroup
+                  .selectAll(".line")
+                  .data([this.viewModel.upperLimit99]);
 
-        const lineTarget_merged = lineTarget.enter()
-                                            .append("path")
-                                            .merge(<any>lineTarget)
-                                            .classed("line", true)
+        const lineTarget_merged: MergedLineType
+            = lineTarget.enter()
+                        .append("path")
+                        .merge(<any>lineTarget)
+                        .classed("line", true)
 
-        const lineAltTarget_merged = lineAltTarget.enter()
-                                            .append("path")
-                                            .merge(<any>lineAltTarget)
-                                            .classed("line", true)
+        const lineAltTarget_merged: MergedLineType
+            = lineAltTarget.enter()
+                           .append("path")
+                           .merge(<any>lineAltTarget)
+                           .classed("line", true)
         
         // Initial construction of lines, run when plot is first rendered.
         //   Text argument specifies which type of line is required (controls aesthetics),
@@ -417,7 +344,7 @@ export class Visual implements IVisual {
     // Function to render the properties specified in capabilities.json to the properties pane
     public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): 
         VisualObjectInstanceEnumeration {
-            let propertyGroupName = options.objectName;
+            let propertyGroupName: string = options.objectName;
             // Object that holds the specified settings/options to be rendered
             let properties: VisualObjectInstance[] = [];
 

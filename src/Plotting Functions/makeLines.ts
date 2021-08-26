@@ -1,3 +1,5 @@
+import powerbi from "powerbi-visuals-api";
+import ITooltipService = powerbi.extensibility.ITooltipService;
 import * as d3 from "d3";
 import invertTransformation from "../Funnel Calculations/invertTransformation"
 /**
@@ -14,19 +16,24 @@ import invertTransformation from "../Funnel Calculations/invertTransformation"
  * @param x_scale_inv      - d3 scale function for translating screen coordinates to axis coordinates
  * @param y_scale_inv      - d3 scale function for translating screen coordinates to axis coordinates
  */
-function makeLines(LineObject, settings, x_scale, y_scale,
-                   linetype, viewModel, tooltipService,
-                   x_scale_inv?, y_scale_inv?) {
-    let l99_width = settings.lines.width_99.value;
-    let l95_width = settings.lines.width_95.value;
-    let target_width = settings.lines.width_target.value;
-    let alt_target_width = settings.lines.width_alt_target.value;
-    let l99_colour = settings.lines.colour_99.value;
-    let l95_colour = settings.lines.colour_95.value;
-    let target_colour = settings.lines.colour_target.value;
-    let alt_target_colour = settings.lines.colour_alt_target.value;
-    let transform_type = settings.funnel.transformation.value;
-    let invert_transformation = invertTransformation(transform_type);
+function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
+                   settings: any,
+                   x_scale: d3.ScaleLinear<number, number, never>,
+                   y_scale: d3.ScaleLinear<number, number, never>,
+                   linetype: string, viewModel: any,
+                   tooltipService: ITooltipService,
+                   x_scale_inv?: d3.ScaleLinear<number, number, never>,
+                   y_scale_inv?: d3.ScaleLinear<number, number, never>): void {
+    let l99_width: number = settings.lines.width_99.value;
+    let l95_width: number = settings.lines.width_95.value;
+    let target_width: number = settings.lines.width_target.value;
+    let alt_target_width: number = settings.lines.width_alt_target.value;
+    let l99_colour: string = settings.lines.colour_99.value;
+    let l95_colour: string = settings.lines.colour_95.value;
+    let target_colour: string = settings.lines.colour_target.value;
+    let alt_target_colour: string = settings.lines.colour_alt_target.value;
+    let transform_type: string = settings.funnel.transformation.value;
+    let invert_transformation: (x: number) => number= invertTransformation(transform_type);
 
 
     if (linetype != "target" && linetype != "alt_target") {
@@ -48,8 +55,8 @@ function makeLines(LineObject, settings, x_scale, y_scale,
                         //   be displayed at these coordinates
                         //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
                         //      to d3 properly
-                        let x = (<any>d3).event.pageX;
-                        let y = (<any>d3).event.pageY;
+                        let x: any = (<any>d3).event.pageX;
+                        let y: any = (<any>d3).event.pageY;
                 
                         tooltipService.show({
                             dataItems: [{
@@ -76,8 +83,8 @@ function makeLines(LineObject, settings, x_scale, y_scale,
                         //   be displayed at these coordinates
                         //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
                         //      to d3 properly
-                        let x = (<any>d3).event.pageX;
-                        let y = (<any>d3).event.pageY;
+                        let x: any = (<any>d3).event.pageX;
+                        let y: any = (<any>d3).event.pageY;
                 
                         // Use the 'move' service for more responsive display
                         tooltipService.move({

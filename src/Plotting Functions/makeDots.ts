@@ -1,3 +1,7 @@
+import powerbi from "powerbi-visuals-api";
+import ISelectionManager = powerbi.extensibility.ISelectionManager;
+import ITooltipService = powerbi.extensibility.ITooltipService;
+import ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "d3";
 import highlightIfSelected from "../Selection Helpers/highlightIfSelected";
 
@@ -12,12 +16,17 @@ import highlightIfSelected from "../Selection Helpers/highlightIfSelected";
  * @param x_scale           - d3 scale function for translating axis coordinates to screen coordinates
  * @param y_scale           - d3 scale function for translating axis coordinates to screen coordinates
  */
-function makeDots(DotObject, settings, highlights, selectionManager,
-                  tooltipService, x_scale, y_scale) {
-    let dot_size = settings.scatter.size.value;
-    let dot_colour = settings.scatter.colour.value;
-    let dot_opacity = settings.scatter.opacity.value;
-    let dot_opacity_unsel = settings.scatter.opacity_unselected.value;
+function makeDots(DotObject: d3.Selection<SVGCircleElement, any, any, any>,
+                  settings: any,
+                  highlights: boolean,
+                  selectionManager: ISelectionManager,
+                  tooltipService: ITooltipService,
+                  x_scale: d3.ScaleLinear<number, number, never>,
+                  y_scale: d3.ScaleLinear<number, number, never>): void {
+    let dot_size: number = settings.scatter.size.value;
+    let dot_colour: number = settings.scatter.colour.value;
+    let dot_opacity: number = settings.scatter.opacity.value;
+    let dot_opacity_unsel: number = settings.scatter.opacity_unselected.value;
 
     DotObject.attr("cy", d => y_scale(d.ratio))
              .attr("cx", d => x_scale(d.denominator))
@@ -25,7 +34,8 @@ function makeDots(DotObject, settings, highlights, selectionManager,
             // Fill each dot with the colour in each DataPoint
              .style("fill", d => dot_colour);
 
-    highlightIfSelected(DotObject, selectionManager.getSelectionIds(),
+    highlightIfSelected(DotObject,
+                        selectionManager.getSelectionIds() as ISelectionId[],
                         dot_opacity, dot_opacity_unsel);
 
     // Change opacity (highlighting) with selections in other plots
@@ -55,8 +65,8 @@ function makeDots(DotObject, settings, highlights, selectionManager,
             //   be displayed at these coordinates
             //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
             //      to d3 properly
-            let x = (<any>d3).event.pageX;
-            let y = (<any>d3).event.pageY;
+            let x: any = (<any>d3).event.pageX;
+            let y: any = (<any>d3).event.pageY;
 
             tooltipService.show({
                 dataItems: d.tooltips,
@@ -71,8 +81,8 @@ function makeDots(DotObject, settings, highlights, selectionManager,
             //   be displayed at these coordinates
             //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
             //      to d3 properly
-            let x = (<any>d3).event.pageX;
-            let y = (<any>d3).event.pageY;
+            let x: any = (<any>d3).event.pageX;
+            let y: any = (<any>d3).event.pageY;
 
             // Use the 'move' service for more responsive display
             tooltipService.move({

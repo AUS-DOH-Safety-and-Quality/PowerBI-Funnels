@@ -23,7 +23,7 @@ function getTarget(data_array: { numerator: number[]; denominator: number[]; sd:
     if (type == "SR") {
         return 1.0;
     } else if (type == "PR") {
-        let ratio = d3.sum(numerator) / d3.sum(denominator);
+        let ratio: number = d3.sum(numerator) / d3.sum(denominator);
         if (transformed) {
             return Math.asin(Math.sqrt(ratio));
         } else {
