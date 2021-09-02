@@ -38,7 +38,9 @@ export class Visual implements IVisual {
     private targetGroup: d3.Selection<SVGElement, any, any, any>;
     private alttargetGroup: d3.Selection<SVGElement, any, any, any>;
     private xAxisGroup: d3.Selection<SVGGElement, any, any, any>;
+    private xAxisLabels: d3.Selection<SVGGElement, any, any, any>;
     private yAxisGroup: d3.Selection<SVGGElement, any, any, any>;
+    private yAxisLabels: d3.Selection<SVGGElement, any, any, any>;
     private viewModel: ViewModel;
 
     // Method for notifying PowerBI of changes in the visual to propagate to the
@@ -77,10 +79,12 @@ export class Visual implements IVisual {
         // Add a grouping ('g') element to the canvas that will later become the x-axis
         this.xAxisGroup = this.svg.append("g")
                                   .classed("x-axis", true);
+        this.xAxisLabels = this.svg.append("text");
 
         // Add a grouping ('g') element to the canvas that will later become the y-axis
         this.yAxisGroup = this.svg.append("g")
                                   .classed("y-axis", true);
+        this.yAxisLabels = this.svg.append("text");
 
         // Request a new selectionManager tied to the visual
         this.selectionManager = this.host.createSelectionManager();
@@ -162,6 +166,17 @@ export class Visual implements IVisual {
             .style("text-anchor", "end")
             // Scale font
             .style("font-size","x-small");
+
+        this.xAxisLabels.attr("x",width/2)
+            .attr("y",height - xAxisPadding/10)
+            .style("text-anchor", "middle")
+            .text(this.settings.axis.xlimit_label.value);
+        this.yAxisLabels
+            .attr("x",yAxisPadding)
+            .attr("y",height/2)
+            .attr("transform","rotate(-90," + yAxisPadding/3 +"," + height/2 +")")
+            .text(this.settings.axis.ylimit_label.value)
+            .style("text-anchor", "end");
 
         // Bind input data to dotGroup reference
         this.dots = this.dotGroup
@@ -362,6 +377,8 @@ export class Visual implements IVisual {
                     properties.push({
                         objectName: propertyGroupName,
                         properties: {
+                            xlimit_label: this.settings.axis.xlimit_label.value,
+                            ylimit_label: this.settings.axis.ylimit_label.value,
                             ylimit_l: this.settings.axis.ylimit_l.value,
                             ylimit_u: this.settings.axis.ylimit_u.value,
                             xlimit_l: this.settings.axis.xlimit_l.value,
