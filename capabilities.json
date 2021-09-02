@@ -210,6 +210,18 @@
         "axis": {
             "displayName": "Axis Settings",
             "properties": {
+                "xlimit_label": {
+                    "displayName": "X-Axis Label",
+                    "type": {
+                        "text": true
+                    }
+                },
+                "ylimit_label": {
+                    "displayName": "Y-Axis Label",
+                    "type": {
+                        "text": true
+                    }
+                },
                 "ylimit_l": {
                     "displayName": "Y-Axis Lower Limit",
                     "type": {

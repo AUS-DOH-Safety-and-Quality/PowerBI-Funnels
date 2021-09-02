@@ -128,6 +128,20 @@ function updateSettings(settings: any, objects: powerbi.DataViewObjects) {
         },
         settings.lines.colour_alt_target.default
     )
+    settings.axis.xlimit_label.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "axis",
+            propertyName: "xlimit_label"
+        },
+        settings.axis.xlimit_label.default
+    )
+    settings.axis.ylimit_label.value = dataViewObjects.getValue(
+        objects, {
+            objectName: "axis",
+            propertyName: "ylimit_label"
+        },
+        settings.axis.ylimit_label.default
+    )
     settings.axis.ylimit_l.value = dataViewObjects.getValue(
         objects, {
             objectName: "axis",

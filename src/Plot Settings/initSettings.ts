@@ -89,6 +89,14 @@ function initSettings() {
             }
         },
         axis: {
+            xlimit_label: {
+                default: null,
+                value: null
+            },
+            ylimit_label: {
+                default: null,
+                value: null
+            },
             ylimit_l: {
                 default: null,
                 value: null
