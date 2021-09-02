@@ -114,6 +114,7 @@ export class Visual implements IVisual {
         // Add appropriate padding so that plotted data doesn't overlay axis
         let xAxisPadding: number = this.settings.axispad.x.padding.value;
         let yAxisPadding: number = this.settings.axispad.y.padding.value;
+        let data_type: string = this.settings.funnel.data_type.value;
         let multiplier: number = this.settings.funnel.multiplier.value;
         let xAxisMin: number = this.settings.axis.xlimit_l.value ? this.settings.axis.xlimit_l.value : 0;
         let xAxisMax: number = this.settings.axis.xlimit_u.value ? this.settings.axis.xlimit_u.value : this.viewModel.maxDenominator;
@@ -147,7 +148,11 @@ export class Visual implements IVisual {
                 .domain([yAxisPadding, width])
                 .range([xAxisMin, xAxisMax]);
 
-        let yAxis: d3.Axis<d3.NumberValue> = d3.axisLeft(yScale);
+        let yAxis: d3.Axis<d3.NumberValue>
+            = d3.axisLeft(yScale)
+                .tickFormat(
+                    d => data_type == "PR" && multiplier == 1 ? (<number>d * 100) + "%" : <string><unknown>d
+                );
         let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
         // Draw axes on plot
