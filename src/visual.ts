@@ -318,6 +318,47 @@ export class Visual implements IVisual {
         
         this.dots.exit().remove();
 
+        const xAxisLine = this.svg.append("g")
+                                .append("rect")
+                                .attr("class", "dotted")
+                                .attr("stroke-width", "1px")
+                                .attr("width", ".5px")
+                                .attr("height", height);
+
+        const listeningRect = this.svg.append("rect")
+                                      .attr("class", "listening-rect")
+                                      .style("fill","transparent")
+                                      .attr("width", width)
+                                      .attr("height", height)
+                                      .on("mousemove", d => {
+                                        let xval: number = xScale.invert((<any>d3).event.pageX);
+                                        let yval: number = xScale.invert((<any>d3).event.pageY);
+                                        
+                                        let x_dist: number[] = this.viewModel.scatterDots.map(d => d.denominator).map(d => {
+                                            return Math.abs(d - xval)
+                                        })
+                                        let minInd: number = d3.scan(x_dist,(a,b) => a-b);
+
+                                        let scaled_x: number = xScale(this.viewModel.scatterDots[minInd].denominator)
+                                        let scaled_y: number = yScale(this.viewModel.scatterDots[minInd].ratio)
+
+                                        this.host.tooltipService.show({
+                                            dataItems: this.viewModel.scatterDots[minInd].tooltips,
+                                            identities: [],
+                                            coordinates: [scaled_x, scaled_y],
+                                            isTouchEvent: false
+                                        });
+                                        xAxisLine.style("fill-opacity", 1)
+                                                 .attr("transform", "translate(" + scaled_x + ",0)");
+                                      })
+                                      .on("mouseleave", d => {
+                                        this.host.tooltipService.hide({
+                                            immediately: true,
+                                            isTouchEvent: false
+                                        });
+                                        xAxisLine.style("fill-opacity", 0);
+                                      });
+
         this.svg.on('click', (d) => {
             this.selectionManager.clear();
             
