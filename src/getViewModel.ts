@@ -4,6 +4,7 @@ import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
+import invertTransformation from "./Funnel Calculations/invertTransformation";
 import { ViewModel } from "../src/Interfaces.ts"
 
 /**
@@ -75,10 +76,32 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
 
     let limitsArray: number[][] = getLimitsArray(data_in, maxDenominator, data_type, od_adjust);
 
+    for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
+        viewModel.lowerLimit99.push({
+            limit: transformation(limitsArray[i][1] * multiplier),
+            denominator: limitsArray[i][0]
+        });
+        viewModel.lowerLimit95.push({
+            limit: transformation(limitsArray[i][2] * multiplier),
+            denominator: limitsArray[i][0]
+        });
+        viewModel.upperLimit95.push({
+            limit: transformation(limitsArray[i][3] * multiplier),
+            denominator: limitsArray[i][0]
+        });
+        viewModel.upperLimit99.push({
+            limit: transformation(limitsArray[i][4] * multiplier),
+            denominator: limitsArray[i][0]
+        });
+    }
+    let inverse_transform: (x: number) => number = invertTransformation(settings.funnel.transformation.value);
+
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
     for (let i = 0; i < categories.values.length;  i++) {
         let num_value: number = <number>numerator.values[i];
         let den_value: number = <number>denominator.values[i];
+        let ll_index: number = viewModel.lowerLimit99.map(d => d.denominator).findIndex(d => d == den_value);
+        let ul_index: number = viewModel.upperLimit99.map(d => d.denominator).findIndex(d => d == den_value);
         let grp_value: string = (typeof categories.values[i] == 'number') ? (categories.values[i]).toString() : <string>(categories.values[i]);
 
         viewModel.scatterDots.push({
@@ -112,32 +135,23 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
             }, {
                 displayName: "Ratio",
                 value: (num_value == null ||
-                        den_value == null) ? "" : ((num_value/den_value) * multiplier).toFixed(2)
+                        den_value == null) ? "" : ((num_value/den_value) * multiplier).toFixed(4)
             }, {
-                displayName: "Transformed Ratio",
-                value: (settings.funnel.transformation.value == "none") ? null : (transformation((num_value/den_value) * multiplier)).toFixed(2)
+                displayName: "Upper 99% Limit",
+                value: inverse_transform(viewModel.upperLimit99[ul_index].limit).toFixed(4)
+            }, {
+                displayName: "Lower 99% Limit",
+                value: inverse_transform(viewModel.lowerLimit99[ll_index].limit).toFixed(4)
+            }, {
+                displayName: "Plot Scaling",
+                value: settings.funnel.transformation.value
             }]
         });
     }
 
-    for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
-        viewModel.lowerLimit99.push({
-            limit: transformation(limitsArray[i][1] * multiplier),
-            denominator: limitsArray[i][0]
-        });
-        viewModel.lowerLimit95.push({
-            limit: transformation(limitsArray[i][2] * multiplier),
-            denominator: limitsArray[i][0]
-        });
-        viewModel.upperLimit95.push({
-            limit: transformation(limitsArray[i][3] * multiplier),
-            denominator: limitsArray[i][0]
-        });
-        viewModel.upperLimit99.push({
-            limit: transformation(limitsArray[i][4] * multiplier),
-            denominator: limitsArray[i][0]
-        });
-    }
+
+
+    
 
     let maxRatio: number = transformation(+limitsArray[limitsArray.length-1] * multiplier);
 

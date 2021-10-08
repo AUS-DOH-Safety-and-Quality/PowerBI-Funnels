@@ -78,7 +78,7 @@ function getLimitsArray(data_array: number[][], maxDenominator: number,
     // Generate sequence of values to calculate limits for, specifying that the
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
     let x_range: number[] = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 
-                                  maxDenominator*0.01);
+                                  maxDenominator*0.01).concat(denominator);
     let x_range_array = {numerator: x_range,
                          denominator: x_range,
                          sd: data_array_filtered.sd}
