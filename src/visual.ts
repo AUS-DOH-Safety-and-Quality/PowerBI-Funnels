@@ -18,6 +18,7 @@ import makeLines from "./Plotting Functions/makeLines";
 import updateSettings from "./Plot Settings/updateSettings";
 import getViewModel from "../src/getViewModel";
 import initSettings from "./Plot Settings/initSettings";
+import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import * as d3 from "d3";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
 import { LimitLines } from "../src/Interfaces.ts"
@@ -32,6 +33,7 @@ export class Visual implements IVisual {
     private dotGroup: d3.Selection<SVGElement, any, any, any>;
     private dots: d3.Selection<any, any, any, any>;
     private UL99Group: d3.Selection<SVGElement, any, any, any>;
+    private listeningRect: d3.Selection<SVGElement, any, any, any>;
     private LL99Group: d3.Selection<SVGElement, any, any, any>;
     private UL95Group: d3.Selection<SVGElement, any, any, any>;
     private LL95Group: d3.Selection<SVGElement, any, any, any>;
@@ -60,7 +62,8 @@ export class Visual implements IVisual {
                     // Create new svg element inside container
                      .append("svg")
                      .classed("funnelchart", true);
-
+        this.listeningRect = this.svg.append("g")
+                                .classed("listen-group", true);
         this.UL99Group = this.svg.append("g")
                                  .classed("line-group", true);
         this.LL99Group = this.svg.append("g")
@@ -137,6 +140,8 @@ export class Visual implements IVisual {
                 .domain([xAxisMin, xAxisMax])
                 .range([yAxisPadding, width]);
 
+        initTooltipTracking(this.svg, this.listeningRect, width, height - xAxisPadding, xScale, yScale, this.host.tooltipService, this.viewModel);
+        
         // Specify inverse scaling that will return a plot axis value given an input
         //   screen height. Used to display line chart tooltips.
         let yScale_inv: d3.ScaleLinear<number, number, never>
@@ -318,53 +323,14 @@ export class Visual implements IVisual {
         
         this.dots.exit().remove();
 
-        const xAxisLine = this.svg.append("g")
-                                .append("rect")
-                                .attr("class", "dotted")
-                                .attr("stroke-width", "1px")
-                                .attr("width", ".5px")
-                                .attr("height", height);
-
-        const listeningRect = this.svg.append("rect")
-                                      .attr("class", "listening-rect")
-                                      .style("fill","transparent")
-                                      .attr("width", width)
-                                      .attr("height", height)
-                                      .on("mousemove", d => {
-                                        let xval: number = xScale.invert((<any>d3).event.pageX);
-                                        let yval: number = xScale.invert((<any>d3).event.pageY);
-                                        
-                                        let x_dist: number[] = this.viewModel.scatterDots.map(d => d.denominator).map(d => {
-                                            return Math.abs(d - xval)
-                                        })
-                                        let minInd: number = d3.scan(x_dist,(a,b) => a-b);
-
-                                        let scaled_x: number = xScale(this.viewModel.scatterDots[minInd].denominator)
-                                        let scaled_y: number = yScale(this.viewModel.scatterDots[minInd].ratio)
-
-                                        this.host.tooltipService.show({
-                                            dataItems: this.viewModel.scatterDots[minInd].tooltips,
-                                            identities: [],
-                                            coordinates: [scaled_x, scaled_y],
-                                            isTouchEvent: false
-                                        });
-                                        xAxisLine.style("fill-opacity", 1)
-                                                 .attr("transform", "translate(" + scaled_x + ",0)");
-                                      })
-                                      .on("mouseleave", d => {
-                                        this.host.tooltipService.hide({
-                                            immediately: true,
-                                            isTouchEvent: false
-                                        });
-                                        xAxisLine.style("fill-opacity", 0);
-                                      });
-
         this.svg.on('click', (d) => {
             this.selectionManager.clear();
             
             highlightIfSelected(dots_merged, [], this.settings.scatter.opacity.value,
                                 this.settings.scatter.opacity_unselected.value);
         });
+
+
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
