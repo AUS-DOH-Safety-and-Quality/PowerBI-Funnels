@@ -9,7 +9,7 @@ import highlightIfSelected from "../Selection Helpers/highlightIfSelected";
  * Function for rendering scatter dots on the chart, adding tooltips,
  * and managing interactivity
  * 
- * @param DotObject         - Base object to render scatter points to
+ * @param MergedDotObject         - Base object to render scatter points to
  * @param highlights        - Boolean indicating whether point should be highlighted
  * @param selectionManager  - PowerBI interface for managing cross-plot interactivity
  * @param tooltipService    - Object for management of tooltip rendering
@@ -22,25 +22,34 @@ function makeDots(DotObject: d3.Selection<SVGCircleElement, any, any, any>,
                   selectionManager: ISelectionManager,
                   tooltipService: ITooltipService,
                   x_scale: d3.ScaleLinear<number, number, never>,
-                  y_scale: d3.ScaleLinear<number, number, never>): void {
+                  y_scale: d3.ScaleLinear<number, number, never>,
+                  svg: d3.Selection<SVGElement, any, any, any>): void {
     let dot_size: number = settings.scatter.size.value;
     let dot_colour: number = settings.scatter.colour.value;
     let dot_opacity: number = settings.scatter.opacity.value;
     let dot_opacity_unsel: number = settings.scatter.opacity_unselected.value;
 
-    DotObject.attr("cy", d => y_scale(d.ratio))
+    // Update the datapoints if data is refreshed
+    const MergedDotObject: d3.Selection<SVGCircleElement, any, any, any>
+        = DotObject.enter()
+                .append("circle")
+                .merge(<any>DotObject);
+
+    MergedDotObject.classed("dot", true);
+
+    MergedDotObject.attr("cy", d => y_scale(d.ratio))
              .attr("cx", d => x_scale(d.denominator))
              .attr("r", dot_size)
             // Fill each dot with the colour in each DataPoint
              .style("fill", d => dot_colour);
 
-    highlightIfSelected(DotObject,
+    highlightIfSelected(MergedDotObject,
                         selectionManager.getSelectionIds() as ISelectionId[],
                         dot_opacity, dot_opacity_unsel);
 
     // Change opacity (highlighting) with selections in other plots
     // Specify actions to take when clicking on dots
-    DotObject
+    MergedDotObject
         .style("fill-opacity", d => highlights ? (d.highlighted ? dot_opacity : dot_opacity_unsel) : dot_opacity)
         .on("click", d => {
             // Pass identities of selected data back to PowerBI
@@ -50,7 +59,7 @@ function makeDots(DotObject: d3.Selection<SVGCircleElement, any, any, any>,
                 .select(d.identity, (<any>d3).event.ctrlKey)
                 // Change opacity of non-selected dots
                 .then(ids => {
-                    DotObject.style(
+                    MergedDotObject.style(
                         "fill-opacity", d => 
                         ids.length > 0 ? 
                         (ids.indexOf(d.identity) >= 0 ? dot_opacity : dot_opacity_unsel) 
@@ -100,7 +109,17 @@ function makeDots(DotObject: d3.Selection<SVGCircleElement, any, any, any>,
             })
         });
 
+
+    MergedDotObject.exit().remove();
+
     DotObject.exit().remove();
+
+    svg.on('click', (d) => {
+        selectionManager.clear();
+        
+        highlightIfSelected(MergedDotObject, [], settings.scatter.opacity.value,
+                            settings.scatter.opacity_unselected.value);
+    });
 }
 
 export default makeDots;

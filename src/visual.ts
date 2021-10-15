@@ -198,19 +198,11 @@ export class Visual implements IVisual {
                                                 && d.ratio <= yAxisMax
                                                 && d.denominator >= xAxisMin
                                                 && d.denominator <= xAxisMax)));
-
-        // Update the datapoints if data is refreshed
-        const dots_merged: d3.Selection<SVGCircleElement, any, any, any>
-            = this.dots.enter()
-                  .append("circle")
-                  .merge(<any>this.dots);
-
-        dots_merged.classed("dot", true);
-
         // Plotting of scatter points
-        makeDots(dots_merged, this.settings,
+        makeDots(this.dots, this.settings,
                  this.viewModel.highlights, this.selectionManager,
-                 this.host.tooltipService, xScale, yScale);
+                 this.host.tooltipService, xScale, yScale,
+                 this.svg);
 
         // Bind calculated control limits and target line to respective plotting objects
         let linesLL99: LineType
@@ -220,7 +212,6 @@ export class Visual implements IVisual {
                              .lowerLimit99
                              .filter(d => (d.limit != -9999 * multiplier)
                                           && (d.limit >= yAxisMin))]);
-
         let linesUL99: LineType
             = this.UL99Group
                   .selectAll(".line")
@@ -228,7 +219,6 @@ export class Visual implements IVisual {
                              .upperLimit99
                              .filter(d => (d.limit != -9999 * multiplier)
                                           && (d.limit <= yAxisMax))]);
-
         let linesUL95: LineType
             = this.UL95Group
                   .selectAll(".line")
@@ -236,7 +226,6 @@ export class Visual implements IVisual {
                              .upperLimit95
                              .filter(d => (d.limit != -9999 * multiplier)
                                           && (d.limit <= yAxisMax))]);
-
         let linesLL95: LineType
             = this.LL95Group
                   .selectAll(".line")
@@ -244,91 +233,45 @@ export class Visual implements IVisual {
                              .lowerLimit95
                              .filter(d => (d.limit != -9999 * multiplier)
                                           && (d.limit >= yAxisMin))]);
-        
-        const linesLL99Merged: MergedLineType
-            = linesLL99.enter()
-                       .append("path")
-                       .merge(<any>linesLL99)
-                       .classed("line", true)
-        
-        const linesLL95_merged: MergedLineType
-            = linesLL95.enter()
-                       .append("path")
-                       .merge(<any>linesLL95)
-                       .classed("line", true)
-        const linesUL95_merged: MergedLineType
-            = linesUL95.enter()
-                       .append("path")
-                       .merge(<any>linesUL95)
-                       .classed("line", true)
-        
-        const linesUL99_merged: MergedLineType
-            = linesUL99.enter()
-                       .append("path")
-                       .merge(<any>linesUL99)
-                       .classed("line", true)
-
         let lineTarget: LineType
             = this.targetGroup
                   .selectAll(".line")
                   .data([this.viewModel.upperLimit99]);
-
         let lineAltTarget: LineType
             = this.alttargetGroup
                   .selectAll(".line")
                   .data([this.viewModel.upperLimit99]);
-
-        const lineTarget_merged: MergedLineType
-            = lineTarget.enter()
-                        .append("path")
-                        .merge(<any>lineTarget)
-                        .classed("line", true)
-
-        const lineAltTarget_merged: MergedLineType
-            = lineAltTarget.enter()
-                           .append("path")
-                           .merge(<any>lineAltTarget)
-                           .classed("line", true)
         
         // Initial construction of lines, run when plot is first rendered.
         //   Text argument specifies which type of line is required (controls aesthetics),
         //   inverse scale objects used to display tooltips on drawn control limits 
-        makeLines(linesLL99Merged, this.settings,
+        makeLines(linesLL99, this.settings,
                     xScale, yScale, "99.8%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
         
-        makeLines(linesLL95_merged, this.settings,
+        makeLines(linesLL95, this.settings,
                     xScale, yScale, "95%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(linesUL95_merged, this.settings,
+        makeLines(linesUL95, this.settings,
                     xScale, yScale, "95%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(linesUL99_merged, this.settings,
+        makeLines(linesUL99, this.settings,
                     xScale, yScale, "99.8%",
                     this.viewModel, this.host.tooltipService,
                     xScale_inv, yScale_inv);
 
-        makeLines(lineTarget_merged, this.settings,
+        makeLines(lineTarget, this.settings,
                     xScale, yScale, "target",
                     this.viewModel, this.host.tooltipService);
 
-        makeLines(lineAltTarget_merged, this.settings,
+        makeLines(lineAltTarget, this.settings,
                     xScale, yScale, "alt_target",
                     this.viewModel, this.host.tooltipService);
-        
-        this.dots.exit().remove();
-
-        this.svg.on('click', (d) => {
-            this.selectionManager.clear();
-            
-            highlightIfSelected(dots_merged, [], this.settings.scatter.opacity.value,
-                                this.settings.scatter.opacity_unselected.value);
-        });
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
