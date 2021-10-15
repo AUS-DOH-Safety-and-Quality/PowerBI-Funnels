@@ -6,6 +6,7 @@ import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
 import invertTransformation from "./Funnel Calculations/invertTransformation";
 import { ViewModel } from "./Interfaces"
+import { boolean } from "mathjs";
 
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
@@ -95,7 +96,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
         });
     }
     let inverse_transform: (x: number) => number = invertTransformation(settings.funnel.transformation.value);
-
+    let prop_labels: boolean = data_type == "PR" && multiplier == 1;
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
     for (let i = 0; i < categories.values.length;  i++) {
         let num_value: number = <number>numerator.values[i];
@@ -134,18 +135,24 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
                 value: (den_value == null) ? "" : (den_value).toFixed(2)
             }, {
                 displayName: "Ratio",
-                value: (num_value == null ||
-                        den_value == null) ? "" : ((num_value/den_value) * multiplier).toFixed(4)
+                value: (num_value == null || den_value == null) ? "" :
+                        (prop_labels ? ((num_value/den_value) * multiplier * 100).toFixed(2) + "%"
+                                     : ((num_value/den_value) * multiplier).toFixed(4))        
             }, {
                 displayName: "Upper 99% Limit",
-                value: inverse_transform(viewModel.upperLimit99[ul_index].limit).toFixed(4)
+                value: prop_labels ? (inverse_transform(viewModel.upperLimit99[ul_index].limit) * 100).toFixed(2) + "%"
+                : inverse_transform(viewModel.upperLimit99[ul_index].limit).toFixed(4)
             }, {
                 displayName: "Lower 99% Limit",
-                value: inverse_transform(viewModel.lowerLimit99[ll_index].limit).toFixed(4)
-            }, {
+                value: prop_labels ? (inverse_transform(viewModel.lowerLimit99[ll_index].limit) * 100).toFixed(2) + "%"
+                : inverse_transform(viewModel.lowerLimit99[ll_index].limit).toFixed(4)
+            }, settings.funnel.transformation.value == "none" ?
+                {displayName:"",value:""} :
+                {
                 displayName: "Plot Scaling",
                 value: settings.funnel.transformation.value
-            }]
+                }
+            ]
         });
     }
 
