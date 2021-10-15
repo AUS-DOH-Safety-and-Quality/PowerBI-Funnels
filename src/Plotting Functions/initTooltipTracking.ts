@@ -1,3 +1,5 @@
+import powerbi from "powerbi-visuals-api";
+import ITooltipService = powerbi.extensibility.ITooltipService;
 import * as d3 from "d3";
 import { ViewModel } from "../Interfaces"
 
@@ -6,7 +8,7 @@ function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                              width: number, height: number,
                              xScale: d3.ScaleLinear<number, number, never>,
                              yScale: d3.ScaleLinear<number, number, never>,
-                             tooltipService,
+                             tooltipService: ITooltipService,
                              viewModel: ViewModel) {
     const xAxisLine = svg.append("g")
                             .append("rect")
