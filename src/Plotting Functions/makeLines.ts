@@ -9,7 +9,7 @@ import { LimitLines } from "../Interfaces"
  * Function for plotting the control limit and target lines, as well
  *   as managing the creation & updating of tooltips.
  * 
- * @param LineObject       - Base object to render line to
+ * @param MergedLineObject       - Base object to render line to
  * @param x_scale          - d3 scale function for translating axis coordinates to screen coordinates
  * @param y_scale          - d3 scale function for translating axis coordinates to screen coordinates
  * @param linetype         - Whether a control limit (either 95% or 99.8%) or a target line is requested
@@ -19,7 +19,7 @@ import { LimitLines } from "../Interfaces"
  * @param x_scale_inv      - d3 scale function for translating screen coordinates to axis coordinates
  * @param y_scale_inv      - d3 scale function for translating screen coordinates to axis coordinates
  */
-function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
+function makeLines(LineObject: d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>,
                    settings: any,
                    x_scale: d3.ScaleLinear<number, number, never>,
                    y_scale: d3.ScaleLinear<number, number, never>,
@@ -37,23 +37,29 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
     let alt_target_colour: string = settings.lines.colour_alt_target.value;
     let transform_type: string = settings.funnel.transformation.value;
     let invert_transformation: (x: number) => number= invertTransformation(transform_type);
+    type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;
 
+    const MergedLineObject: MergedLineType
+            = LineObject.enter()
+                       .append("path")
+                       .merge(<any>LineObject)
+                       .classed("line", true)
 
     if (linetype != "target" && linetype != "alt_target") {
-        LineObject.attr("d", d3.line<LimitLines>()
+        MergedLineObject.attr("d", d3.line<LimitLines>()
                                .x(d => x_scale(d.denominator))
                                .y(d => y_scale(d.limit)))
             .attr("fill","none")
         if (linetype == "95%") {
-            LineObject.style("stroke-dasharray",("3,3"))
+            MergedLineObject.style("stroke-dasharray",("3,3"))
                       .attr("stroke", l95_colour)
                       .attr("stroke-width", l95_width);
         } else if(linetype == "99.8%") {
-            LineObject.style("stroke-dasharray",("6,3"))
+            MergedLineObject.style("stroke-dasharray",("6,3"))
                       .attr("stroke", l99_colour)
                       .attr("stroke-width", l99_width);
         }
-        LineObject.on("mouseover", d => {
+        MergedLineObject.on("mouseover", d => {
                         // Get screen coordinates of mouse pointer, tooltip will
                         //   be displayed at these coordinates
                         //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
@@ -117,7 +123,7 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
                         })
                     });
     } else if (linetype == "target") {
-        LineObject.attr("d", d3.line<LimitLines>()
+        MergedLineObject.attr("d", d3.line<LimitLines>()
                                .x(d => x_scale(d.denominator))
                                .y(d => y_scale(viewModel.target)))
             // Apply CSS class to elements so that they can be looked up later
@@ -125,7 +131,7 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
             .attr("stroke", target_colour)
             .attr("stroke-width", target_width);
     } else if (linetype == "alt_target") {
-        LineObject.attr("d", d3.line<LimitLines>()
+        MergedLineObject.attr("d", d3.line<LimitLines>()
                                .x(d => x_scale(d.denominator))
                                .y(d => y_scale(viewModel.alt_target)))
             // Apply CSS class to elements so that they can be looked up later
@@ -134,7 +140,7 @@ function makeLines(LineObject: d3.Selection<SVGPathElement, any, any, any>,
             .attr("stroke-width", alt_target_width);
     }
 
-    LineObject.exit()
+    MergedLineObject.exit()
               .remove();
 }
 
