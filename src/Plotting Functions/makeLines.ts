@@ -51,12 +51,10 @@ function makeLines(LineObject: d3.Selection<d3.BaseType, LimitLines[], SVGElemen
                                .y(d => y_scale(d.limit)))
             .attr("fill","none")
         if (linetype == "95%") {
-            MergedLineObject.style("stroke-dasharray",("3,3"))
-                      .attr("stroke", l95_colour)
+            MergedLineObject.attr("stroke", l95_colour)
                       .attr("stroke-width", l95_width);
         } else if(linetype == "99.8%") {
-            MergedLineObject.style("stroke-dasharray",("6,3"))
-                      .attr("stroke", l99_colour)
+            MergedLineObject.attr("stroke", l99_colour)
                       .attr("stroke-width", l99_width);
         }
         MergedLineObject.on("mouseover", d => {

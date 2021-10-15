@@ -38,12 +38,12 @@ function initSettings() {
         },
         scatter: {
             size: {
-                default: 4,
-                value: 4
+                default: 3,
+                value: 3
             },
             colour: {
-                default: "#000000",
-                value: "#000000"
+                default: "#FF7F50",
+                value: "#FF7F50"
             },
             opacity: {
                 default: 1,
@@ -56,12 +56,12 @@ function initSettings() {
         },
         lines: {
             width_99: {
-                default: 3,
-                value: 3
+                default: 2,
+                value: 2
             },
             width_95: {
-                default: 3,
-                value: 3
+                default: 2,
+                value: 2
             },
             width_target: {
                 default: 1.5,
@@ -72,20 +72,20 @@ function initSettings() {
                 value: 1.5
             },
             colour_99: {
-                default: "#4682B4",
-                value: "#4682B4"
+                default: "#6495ED",
+                value: "#6495ED"
             },
             colour_95: {
-                default: "#4682B4",
-                value: "#4682B4"
+                default: "#6495ED",
+                value: "#6495ED"
             },
             colour_target: {
-                default: "#4682B4",
-                value: "#4682B4"
+                default: "#6495ED",
+                value: "#6495ED"
             },
             colour_alt_target: {
-                default: "#4682B4",
-                value: "#4682B4"
+                default: "#6495ED",
+                value: "#6495ED"
             }
         },
         axis: {
