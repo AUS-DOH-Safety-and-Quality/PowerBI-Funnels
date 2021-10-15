@@ -2,8 +2,8 @@ import powerbi from "powerbi-visuals-api";
 import ITooltipService = powerbi.extensibility.ITooltipService;
 import * as d3 from "d3";
 import invertTransformation from "../Funnel Calculations/invertTransformation"
-import { ViewModel } from "../../src/Interfaces.ts"
-import { LimitLines } from "../../src/Interfaces.ts"
+import { ViewModel } from "../Interfaces"
+import { LimitLines } from "../Interfaces"
 
 /**
  * Function for plotting the control limit and target lines, as well

@@ -21,8 +21,8 @@ import initSettings from "./Plot Settings/initSettings";
 import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import * as d3 from "d3";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
-import { LimitLines } from "../src/Interfaces.ts"
-import { ViewModel } from "../src/Interfaces.ts"
+import { LimitLines } from "./Interfaces"
+import { ViewModel } from "./Interfaces"
 
 type LineType = d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>;
 type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;
@@ -156,7 +156,7 @@ export class Visual implements IVisual {
         let yAxis: d3.Axis<d3.NumberValue>
             = d3.axisLeft(yScale)
                 .tickFormat(
-                    d => data_type == "PR" && multiplier == 1 ? (<number>d * 100) + "%" : <string><unknown>d
+                    d => data_type == "PR" && multiplier == 1 ? ((<number>d) * 100).toFixed(2) + "%" : <string><unknown>d
                 );
         let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
@@ -329,8 +329,6 @@ export class Visual implements IVisual {
             highlightIfSelected(dots_merged, [], this.settings.scatter.opacity.value,
                                 this.settings.scatter.opacity_unselected.value);
         });
-
-
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane

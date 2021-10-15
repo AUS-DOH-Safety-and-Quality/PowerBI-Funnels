@@ -5,7 +5,7 @@ import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
 import invertTransformation from "./Funnel Calculations/invertTransformation";
-import { ViewModel } from "../src/Interfaces.ts"
+import { ViewModel } from "./Interfaces"
 
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
