@@ -21,8 +21,8 @@ import initSettings from "./Plot Settings/initSettings";
 import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import * as d3 from "d3";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
-import { LimitLines } from "../src/Interfaces.ts"
-import { ViewModel } from "../src/Interfaces.ts"
+import { LimitLines } from "./Interfaces"
+import { ViewModel } from "./Interfaces"
 
 type LineType = d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>;
 type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;

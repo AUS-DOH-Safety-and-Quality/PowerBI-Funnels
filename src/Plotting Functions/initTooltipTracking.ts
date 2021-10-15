@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { ViewModel } from "../Interfaces.ts"
+import { ViewModel } from "../Interfaces"
 
 function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                              listeningRect: d3.Selection<SVGElement, any, any, any>,
