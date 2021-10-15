@@ -156,7 +156,7 @@ export class Visual implements IVisual {
         let yAxis: d3.Axis<d3.NumberValue>
             = d3.axisLeft(yScale)
                 .tickFormat(
-                    d => data_type == "PR" && multiplier == 1 ? (<number>d * 100) + "%" : <string><unknown>d
+                    d => data_type == "PR" && multiplier == 1 ? ((<number>d) * 100).toFixed(2) + "%" : <string><unknown>d
                 );
         let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
@@ -329,8 +329,6 @@ export class Visual implements IVisual {
             highlightIfSelected(dots_merged, [], this.settings.scatter.opacity.value,
                                 this.settings.scatter.opacity_unselected.value);
         });
-
-
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
