@@ -9,7 +9,7 @@ function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                              xScale: d3.ScaleLinear<number, number, never>,
                              yScale: d3.ScaleLinear<number, number, never>,
                              tooltipService: ITooltipService,
-                             viewModel: ViewModel) {
+                             viewModel: ViewModel): void {
     const xAxisLine = svg.append("g")
                             .append("rect")
                             .attr("class", "dotted")
