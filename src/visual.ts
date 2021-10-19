@@ -140,7 +140,8 @@ export class Visual implements IVisual {
                 .domain([xAxisMin, xAxisMax])
                 .range([yAxisPadding, width]);
 
-        initTooltipTracking(this.svg, this.listeningRect, width, height - xAxisPadding, xScale, yScale, this.host.tooltipService, this.viewModel);
+        initTooltipTracking(this.svg, this.listeningRect, width, height - xAxisPadding,
+                            xScale, yScale, this.host.tooltipService, this.viewModel);
         
         // Specify inverse scaling that will return a plot axis value given an input
         //   screen height. Used to display line chart tooltips.
@@ -156,7 +157,8 @@ export class Visual implements IVisual {
         let yAxis: d3.Axis<d3.NumberValue>
             = d3.axisLeft(yScale)
                 .tickFormat(
-                    d => data_type == "PR" && multiplier == 1 ? ((<number>d) * 100).toFixed(2) + "%" : <string><unknown>d
+                    d => data_type == "PR" && multiplier == 1 ?
+                            ((<number>d) * 100).toFixed(2) + "%" : <string><unknown>d
                 );
         let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
@@ -241,37 +243,18 @@ export class Visual implements IVisual {
             = this.alttargetGroup
                   .selectAll(".line")
                   .data([this.viewModel.upperLimit99]);
-        
+
         // Initial construction of lines, run when plot is first rendered.
         //   Text argument specifies which type of line is required (controls aesthetics),
         //   inverse scale objects used to display tooltips on drawn control limits 
-        makeLines(linesLL99, this.settings,
-                    xScale, yScale, "99.8%",
-                    this.viewModel, this.host.tooltipService,
-                    xScale_inv, yScale_inv);
-        
-        makeLines(linesLL95, this.settings,
-                    xScale, yScale, "95%",
-                    this.viewModel, this.host.tooltipService,
-                    xScale_inv, yScale_inv);
-
-        makeLines(linesUL95, this.settings,
-                    xScale, yScale, "95%",
-                    this.viewModel, this.host.tooltipService,
-                    xScale_inv, yScale_inv);
-
-        makeLines(linesUL99, this.settings,
-                    xScale, yScale, "99.8%",
-                    this.viewModel, this.host.tooltipService,
-                    xScale_inv, yScale_inv);
-
-        makeLines(lineTarget, this.settings,
-                    xScale, yScale, "target",
-                    this.viewModel, this.host.tooltipService);
-
-        makeLines(lineAltTarget, this.settings,
-                    xScale, yScale, "alt_target",
-                    this.viewModel, this.host.tooltipService);
+        [
+         [linesLL99, "99.8%"], [linesLL95, "95%"],
+         [linesUL95, "95%"], [linesUL99, "99.8%"],
+         [lineTarget, "target"], [lineAltTarget, "alt_target"]
+        ].map(d => makeLines(<LineType>d[0], this.settings,
+                             xScale, yScale, <string>d[1],
+                             this.viewModel, this.host.tooltipService,
+                             xScale_inv, yScale_inv));
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
