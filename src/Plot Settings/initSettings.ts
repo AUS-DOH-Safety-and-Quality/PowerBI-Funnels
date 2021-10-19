@@ -42,8 +42,8 @@ function initSettings() {
                 value: 3
             },
             colour: {
-                default: "#FF7F50",
-                value: "#FF7F50"
+                default: "#000000",
+                value: "#000000"
             },
             opacity: {
                 default: 1,
