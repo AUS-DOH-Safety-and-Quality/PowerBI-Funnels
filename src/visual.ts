@@ -159,8 +159,11 @@ export class Visual implements IVisual {
         let yAxis: d3.Axis<d3.NumberValue>
             = d3.axisLeft(yScale)
                 .tickFormat(
-                    d => data_type == "PR" && multiplier == 1 ?
-                            ((<number>d) * 100).toFixed(2) + "%" : <string><unknown>d
+                    d => {
+                      // If axis displayed on % scale, then disable axis values > 100%
+                      let prop_limits: boolean = data_type == "PR" && multiplier == 1;
+                      return prop_limits ? (d <= 1 ? (<number>d * 100).toFixed(2) + "%" : "" ) : <string><unknown>d;
+                    } 
                 );
         let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
