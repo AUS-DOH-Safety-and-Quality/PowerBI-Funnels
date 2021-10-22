@@ -117,6 +117,8 @@ export class Visual implements IVisual {
         // Add appropriate padding so that plotted data doesn't overlay axis
         let xAxisPadding: number = this.settings.axispad.x.padding.value;
         let yAxisPadding: number = this.settings.axispad.y.padding.value;
+        let xAxisEndPadding: number = this.settings.axispad.x.end_padding.value;
+        let yAxisEndPadding: number = this.settings.axispad.y.end_padding.value;
         let data_type: string = this.settings.funnel.data_type.value;
         let multiplier: number = this.settings.funnel.multiplier.value;
         let xAxisMin: number = this.settings.axis.xlimit_l.value ? this.settings.axis.xlimit_l.value : 0;
@@ -134,11 +136,11 @@ export class Visual implements IVisual {
         let yScale: d3.ScaleLinear<number, number, never>
             = d3.scaleLinear()
                 .domain([yAxisMin, yAxisMax])
-                .range([height - xAxisPadding, 0]);
+                .range([height - xAxisPadding, xAxisEndPadding]);
         let xScale: d3.ScaleLinear<number, number, never>
             = d3.scaleLinear()
                 .domain([xAxisMin, xAxisMax])
-                .range([yAxisPadding, width]);
+                .range([yAxisPadding, width - yAxisEndPadding]);
 
         initTooltipTracking(this.svg, this.listeningRect, width, height - xAxisPadding,
                             xScale, yScale, this.host.tooltipService, this.viewModel);
