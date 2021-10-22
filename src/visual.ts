@@ -23,6 +23,7 @@ import * as d3 from "d3";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
 import { LimitLines } from "./Interfaces"
 import { ViewModel } from "./Interfaces"
+import { ScatterDots } from "./Interfaces"
 
 type LineType = d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>;
 type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;
@@ -257,6 +258,16 @@ export class Visual implements IVisual {
                              xScale, yScale, <string>d[1],
                              this.viewModel, this.host.tooltipService,
                              xScale_inv, yScale_inv));
+
+        this.svg.on('contextmenu', () => {
+        const eventTarget: EventTarget = (<any>d3).event.target;
+        let dataPoint: ScatterDots = <ScatterDots>(d3.select(<d3.BaseType>eventTarget).datum());
+        this.selectionManager.showContextMenu(dataPoint ? dataPoint.identity : {}, {
+            x: (<any>d3).event.clientX,
+            y: (<any>d3).event.clientY
+        });
+        (<any>d3).event.preventDefault();
+        });
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
