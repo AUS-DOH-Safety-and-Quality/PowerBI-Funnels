@@ -1,7 +1,7 @@
 {
     "visual":{
         "name":"PBIFunnels",
-        "displayName":"PBI Funnels",
+        "displayName":"Funnel Plots",
         "guid":"PBIFUN",
         "visualClassName":"Visual",
         "version":"1.0.0",
