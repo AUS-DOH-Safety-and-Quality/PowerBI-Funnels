@@ -6,8 +6,8 @@
         "visualClassName":"Visual",
         "version":"1.0.0",
         "description":"A PowerBI custom visual for funnel plots",
-        "supportUrl":"https://github.com/andrjohns/PowerBI-Funnels",
-        "gitHubUrl":"https://github.com/andrjohns/PowerBI-Funnels"
+        "supportUrl":"https://github.com/AUS-DOH-Safety-and-Quality/PowerBI-Funnels",
+        "gitHubUrl":"https://github.com/AUS-DOH-Safety-and-Quality/PowerBI-Funnels"
         },
     "apiVersion":"4.0.0",
     "author":{
