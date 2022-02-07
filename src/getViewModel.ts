@@ -6,7 +6,6 @@ import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
 import invertTransformation from "./Funnel Calculations/invertTransformation";
 import { ViewModel } from "./Interfaces"
-import { boolean } from "mathjs";
 
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in

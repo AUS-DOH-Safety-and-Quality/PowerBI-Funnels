@@ -1,4 +1,4 @@
-import * as rmath from "lib-r-math.js";
+import * as stats from '@stdlib/stats/base/dists';
 
 function prop_limit(q: number, target: number, SE: number, tau2: number,
                     od_adjust: boolean, denominator: number): number {
@@ -24,11 +24,11 @@ function smr_limit(q: number, target: number, SE: number, tau2: number,
     if (od_adjust) {
         limit = target + q * Math.sqrt(Math.pow(SE,2) + tau2);
     } else {
-        let p: number = rmath.Normal().pnorm(q);
+        let p: number = stats.normal.cdf(q, 0, 1);
         let is_upper: boolean = p > 0.5;
         let offset: number = is_upper ? 1 : 0;
 
-        limit = (rmath.ChiSquared().qchisq(p, 2 * (denominator + offset)) / 2.0)
+        limit = (stats.chisquare.quantile(p, 2 * (denominator + offset)) / 2.0)
                 / denominator;
     }
 

@@ -1,4 +1,5 @@
-import * as mathjs from "mathjs";
+import * as d3 from "d3";
+import { square } from "./HelperFunctions"
 
 /**
  * Estimate the dispersion ratio of the observed responses using
@@ -8,7 +9,7 @@ import * as mathjs from "mathjs";
  * @returns 
  */
 function getPhi(z_adj: number[]): number {
-    return mathjs.sum(mathjs.square(z_adj)) / z_adj.length;
+    return d3.sum(square(z_adj)) / z_adj.length;
 }
 
 export default getPhi;

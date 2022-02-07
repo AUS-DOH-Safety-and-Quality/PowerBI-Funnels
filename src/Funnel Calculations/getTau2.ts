@@ -1,4 +1,4 @@
-import * as rmath from "lib-r-math.js";
+import * as d3 from "d3";
 
 /**
  * Estimate the between-unit variance to adjust control limits
@@ -18,8 +18,8 @@ function getTau2(phi: number, SE: number[]): number {
     // Construct sample weights (inverse variances)
     let w: number[] = SE.map(d => d*d).map(d => 1.0 / d);
     let w_sq: number[] = w.map(d => d*d);
-    let w_sum: number  = rmath.R.sum(w);
-    let w_sq_sum: number = rmath.R.sum(w_sq);
+    let w_sum: number  = d3.sum(w);
+    let w_sq_sum: number = d3.sum(w_sq);
 
     // Estimate variance
     let tau_num: number = (N * phi) - (N - 1.0);
