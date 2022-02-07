@@ -5,7 +5,7 @@ import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
 import invertTransformation from "./Funnel Calculations/invertTransformation";
-import { ViewModel } from "./Interfaces"
+import { ViewModel, measureIndex  } from "./Interfaces"
 
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
@@ -34,8 +34,19 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
         maxDenominator: 0,
         target: 0,
         alt_target: null,
-        highlights: false
+        highlights: false,
+        data_type: "",
+        multiplier: 1
     };
+
+    let indices: measureIndex = {
+        numerator: undefined,
+        denominator: undefined,
+        sd: undefined,
+        chart_multiplier: undefined,
+        chart_type: undefined
+    }
+
     if(!dv
         || !dv[0]
         || !dv[0].categorical
@@ -49,22 +60,36 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     // Get  categorical view of the data
     let view: powerbi.DataViewCategorical = dv[0].categorical;
 
+    for (let i = 0; i < view.values.length; i++) {
+        if (view.values[i].source.roles.numerator) {
+            indices.numerator = i
+        } else if (view.values[i].source.roles.denominator) {
+            indices.denominator = i
+        } else if (view.values[i].source.roles.sd) {
+            indices.sd = i
+        } else if (view.values[i].source.roles.chart_multiplier) {
+            indices.chart_multiplier = i
+        } else if (view.values[i].source.roles.chart_type) {
+            indices.chart_type = i
+        }
+    }
+
     // Get array of category values
     let categories: powerbi.DataViewCategoryColumn = view.categories[0];
 
     // Get numerator
-    let numerator: powerbi.DataViewValueColumn = view.values[0];
+    let numerator: powerbi.DataViewValueColumn = view.values[indices.numerator];
     // Get numerator
-    let denominator: powerbi.DataViewValueColumn = view.values[1];
+    let denominator: powerbi.DataViewValueColumn = view.values[indices.denominator];
     // Get numerator
-    let sd: powerbi.DataViewValueColumn = view.values[2];
+    let sd: powerbi.DataViewValueColumn = view.values[indices.sd];
 
     // Get groups of dots to highlight
     let highlights: powerbi.PrimitiveValue[] = numerator.highlights;
 
-    let data_type: string = settings.funnel.data_type.value;
+    let data_type: string = indices.chart_type ? view.values[indices.chart_type].values[0] : settings.funnel.data_type.value;
     let od_adjust: string = settings.funnel.od_adjust.value;
-    let multiplier: number = settings.funnel.multiplier.value;
+    let multiplier: number = indices.chart_multiplier ? view.values[indices.chart_multiplier].values[0] : settings.funnel.multiplier.value;
     let transformation: (x: number) => number
         = getTransformation(settings.funnel.transformation.value);
 
@@ -176,6 +201,8 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
 
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
+    viewModel.data_type = data_type;
+    viewModel.multiplier = multiplier;
 
     return viewModel;
 }
