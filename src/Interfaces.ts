@@ -2,6 +2,14 @@ import powerbi from "powerbi-visuals-api";
 import ISelectionId = powerbi.visuals.ISelectionId;
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
+interface measureIndex {
+    numerator: number,
+    denominator: number,
+    sd: number,
+    chart_type: number,
+    chart_multiplier: number
+}
+
 // Used to represent the different datapoints on the chart
 interface ScatterDots {
     category: string;
@@ -30,6 +38,8 @@ interface ViewModel {
     target: number;
     alt_target: number;
     highlights: boolean;
+    data_type: string;
+    multiplier: number;
 };
 
 interface LimitLines {
@@ -40,3 +50,4 @@ interface LimitLines {
 export { ScatterDots }
 export { LimitLines }
 export { ViewModel }
+export { measureIndex }
