@@ -1,10 +1,7 @@
 import * as d3 from "d3";
-import { elt_multiply } from "./HelperFunctions"
-import { elt_divide } from "./HelperFunctions"
+import { divide } from "./HelperFunctions"
 import { all_equal } from "./HelperFunctions"
-import { subtract } from "./HelperFunctions"
 import { sqrt } from "./HelperFunctions"
-import { pow } from "./HelperFunctions"
 
 /**
  * Function to generate standard errors needed for constructing
@@ -63,10 +60,10 @@ function getSE(data_array: { numerator: number[]; denominator: number[]; sd: num
         // If calculating SE for limits, use average SD
         if(all_equal(n, m)) {
           let average_sd: number = d3.sum(sd) / d3.sum(n);
-          return elt_divide(average_sd, sqrt(n));
+          return divide(average_sd, sqrt(n));
         }
     
-        return elt_divide(sd, sqrt(n));
+        return divide(sd, sqrt(n));
     }
 }
 

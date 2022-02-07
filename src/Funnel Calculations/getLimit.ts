@@ -1,4 +1,3 @@
-import * as rmath from "lib-r-math.js";
 import { prop_limit } from "./limitFunctions";
 import { smr_limit } from "./limitFunctions";
 import { rc_limit } from "./limitFunctions";

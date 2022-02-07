@@ -1,4 +1,4 @@
-import * as rmath from "lib-r-math.js";
+import * as stats from '@stdlib/stats/base/dists';
 import * as d3 from "d3";
 import getTarget from "../src/Funnel Calculations/getTarget";
 import getSE from "./Funnel Calculations/getSE";
@@ -8,6 +8,7 @@ import winsoriseZScore from "./Funnel Calculations/winsoriseZScore";
 import getPhi from "./Funnel Calculations/getPhi";
 import getTau2 from "./Funnel Calculations/getTau2";
 import getLimit from "./Funnel Calculations/getLimit";
+import { seq } from "./Funnel Calculations/HelperFunctions"
 
 function checkValid(value: number, is_denom: boolean = false) {
     return value !== null && value !== undefined && is_denom ? value > 0 : true;
@@ -73,11 +74,11 @@ function getLimitsArray(data_array: number[][], maxDenominator: number,
 
     // Specify the intervals for the limits: 95% and 99.8%
     // TODO(Andrew): Allow user to specify
-    let qs: number[] = rmath.Normal().qnorm([0.001, 0.025, 0.975, 0.999]);
+    let qs: number[] = [0.001, 0.025, 0.975, 0.999].map(p => stats.normal.quantile(p, 0, 1));
 
     // Generate sequence of values to calculate limits for, specifying that the
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
-    let x_range: number[] = rmath.R.seq()()(1, maxDenominator + maxDenominator*0.1, 
+    let x_range: number[] = seq(1, maxDenominator + maxDenominator*0.1, 
                                   maxDenominator*0.01).concat(denominator);
     let x_range_array = {numerator: x_range,
                          denominator: x_range,
