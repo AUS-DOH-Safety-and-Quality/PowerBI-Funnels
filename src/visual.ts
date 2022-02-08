@@ -21,9 +21,7 @@ import initSettings from "./Plot Settings/initSettings";
 import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import * as d3 from "d3";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
-import { LimitLines } from "./Interfaces"
-import { ViewModel } from "./Interfaces"
-import { ScatterDots } from "./Interfaces"
+import { LimitLines, ViewModel, ScatterDots, groupedData, nestArray } from "./Interfaces"
 
 type LineType = d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>;
 type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;
@@ -32,14 +30,11 @@ export class Visual implements IVisual {
     private host: IVisualHost;
     private svg: d3.Selection<SVGElement, any, any, any>;
     private dotGroup: d3.Selection<SVGElement, any, any, any>;
-    private dots: d3.Selection<any, any, any, any>;
-    private UL99Group: d3.Selection<SVGElement, any, any, any>;
+    private dotSelection: d3.Selection<any, any, any, any>;
+    private lineGroup: d3.Selection<SVGElement, any, any, any>;
+    private lineSelection: d3.Selection<any, any, any, any>;
     private listeningRect: d3.Selection<SVGElement, any, any, any>;
-    private LL99Group: d3.Selection<SVGElement, any, any, any>;
-    private UL95Group: d3.Selection<SVGElement, any, any, any>;
-    private LL95Group: d3.Selection<SVGElement, any, any, any>;
-    private targetGroup: d3.Selection<SVGElement, any, any, any>;
-    private alttargetGroup: d3.Selection<SVGElement, any, any, any>;
+    private listeningRectSelection: d3.Selection<any, any, any, any>;
     private xAxisGroup: d3.Selection<SVGGElement, any, any, any>;
     private xAxisLabels: d3.Selection<SVGGElement, any, any, any>;
     private yAxisGroup: d3.Selection<SVGGElement, any, any, any>;
@@ -65,18 +60,8 @@ export class Visual implements IVisual {
                      .classed("funnelchart", true);
         this.listeningRect = this.svg.append("g")
                                 .classed("listen-group", true);
-        this.UL99Group = this.svg.append("g")
+        this.lineGroup = this.svg.append("g")
                                  .classed("line-group", true);
-        this.LL99Group = this.svg.append("g")
-                                 .classed("line-group", true);
-        this.UL95Group = this.svg.append("g")
-                                 .classed("line-group", true);
-        this.LL95Group = this.svg.append("g")
-                                 .classed("line-group", true);
-        this.targetGroup = this.svg.append("g")
-                                   .classed("line-group", true);
-        this.alttargetGroup = this.svg.append("g")
-                                      .classed("line-group", true);
         this.dotGroup = this.svg.append("g")
                                 .classed("dotGroup", true);
 
@@ -95,7 +80,7 @@ export class Visual implements IVisual {
 
         // Update dot highlighting on initialisation
         this.selectionManager.registerOnSelectCallback(() => {
-            highlightIfSelected(this.dots,
+            highlightIfSelected(this.dotSelection,
                                 this.selectionManager.getSelectionIds() as ISelectionId[],
                                 this.settings.scatter.opacity.value,
                                 this.settings.scatter.opacity_unselected.value);
@@ -110,7 +95,6 @@ export class Visual implements IVisual {
         //   This function contains the construction of the funnel
         //   control limits
         this.viewModel = getViewModel(options, this.settings, this.host);
-
         this.settings.funnel.data_type.value = this.viewModel.data_type;
         this.settings.funnel.multiplier.value = this.viewModel.multiplier;
 
@@ -129,6 +113,7 @@ export class Visual implements IVisual {
         let xAxisMax: number = this.settings.axis.xlimit_u.value ? this.settings.axis.xlimit_u.value : this.viewModel.maxDenominator;
         let yAxisMin: number = this.settings.axis.ylimit_l.value ? this.settings.axis.ylimit_l.value : 0;
         let yAxisMax: number = this.settings.axis.ylimit_u.value ? this.settings.axis.ylimit_u.value : this.viewModel.maxRatio;
+        let displayPlot: boolean = this.viewModel.scatterDots.length > 1;
 
         // Dynamically scale chart to use all available space
         this.svg.attr("width", width)
@@ -146,19 +131,13 @@ export class Visual implements IVisual {
                 .domain([xAxisMin, xAxisMax])
                 .range([yAxisPadding, width - yAxisEndPadding]);
 
-        initTooltipTracking(this.svg, this.listeningRect, width, height - xAxisPadding,
-                            xScale, yScale, this.host.tooltipService, this.viewModel);
-        
-        // Specify inverse scaling that will return a plot axis value given an input
-        //   screen height. Used to display line chart tooltips.
-        let yScale_inv: d3.ScaleLinear<number, number, never>
-            = d3.scaleLinear()
-                .domain([height - xAxisPadding, 0])
-                .range([yAxisMin, yAxisMax]);
-        let xScale_inv: d3.ScaleLinear<number, number, never>
-            = d3.scaleLinear()
-                .domain([yAxisPadding, width])
-                .range([xAxisMin, xAxisMax]);
+        this.listeningRectSelection = this.listeningRect
+                                          .selectAll(".obs-sel")
+                                          .data(this.viewModel.scatterDots);
+        if (displayPlot) {
+            initTooltipTracking(this.svg, this.listeningRectSelection, width, height - xAxisPadding,
+                                xScale, yScale, this.host.tooltipService, this.viewModel);
+        }
 
         let yAxis: d3.Axis<d3.NumberValue>
             = d3.axisLeft(yScale)
@@ -174,10 +153,12 @@ export class Visual implements IVisual {
         // Draw axes on plot
         this.yAxisGroup
             .call(yAxis)
+            .attr("color", displayPlot ? "#000000" : "#FFFFFF")
             .attr("transform", "translate(" +  yAxisPadding + ",0)");
 
         this.xAxisGroup
             .call(xAxis)
+            .attr("color", displayPlot ? "#000000" : "#FFFFFF")
             // Plots the axis at the correct height
             .attr("transform", "translate(0, " + (height - xAxisPadding) + ")")
             .selectAll("text")
@@ -200,7 +181,7 @@ export class Visual implements IVisual {
             .style("text-anchor", "end");
 
         // Bind input data to dotGroup reference
-        this.dots = this.dotGroup
+        this.dotSelection = this.dotGroup
                         // List all child elements of dotGroup that have CSS class '.dot'
                         .selectAll(".dot")
                         .data(this.viewModel
@@ -209,61 +190,22 @@ export class Visual implements IVisual {
                                                 && d.ratio <= yAxisMax
                                                 && d.denominator >= xAxisMin
                                                 && d.denominator <= xAxisMax)));
+
         // Plotting of scatter points
-        makeDots(this.dots, this.settings,
+        makeDots(this.dotSelection, this.settings,
                  this.viewModel.highlights, this.selectionManager,
                  this.host.tooltipService, xScale, yScale,
                  this.svg);
 
-        // Bind calculated control limits and target line to respective plotting objects
-        let linesLL99: LineType
-            = this.LL99Group
-                  .selectAll(".line")
-                  .data([this.viewModel
-                             .lowerLimit99
-                             .filter(d => (d.limit != -9999 * multiplier)
-                                          && (d.limit >= yAxisMin))]);
-        let linesUL99: LineType
-            = this.UL99Group
-                  .selectAll(".line")
-                  .data([this.viewModel
-                             .upperLimit99
-                             .filter(d => (d.limit != -9999 * multiplier)
-                                          && (d.limit <= yAxisMax))]);
-        let linesUL95: LineType
-            = this.UL95Group
-                  .selectAll(".line")
-                  .data([this.viewModel
-                             .upperLimit95
-                             .filter(d => (d.limit != -9999 * multiplier)
-                                          && (d.limit <= yAxisMax))]);
-        let linesLL95: LineType
-            = this.LL95Group
-                  .selectAll(".line")
-                  .data([this.viewModel
-                             .lowerLimit95
-                             .filter(d => (d.limit != -9999 * multiplier)
-                                          && (d.limit >= yAxisMin))]);
-        let lineTarget: LineType
-            = this.targetGroup
-                  .selectAll(".line")
-                  .data([this.viewModel.upperLimit99]);
-        let lineAltTarget: LineType
-            = this.alttargetGroup
-                  .selectAll(".line")
-                  .data([this.viewModel.upperLimit99]);
-
-        // Initial construction of lines, run when plot is first rendered.
-        //   Text argument specifies which type of line is required (controls aesthetics),
-        //   inverse scale objects used to display tooltips on drawn control limits 
-        [
-         [linesLL99, "99.8%"], [linesLL95, "95%"],
-         [linesUL95, "95%"], [linesUL99, "99.8%"],
-         [lineTarget, "target"], [lineAltTarget, "alt_target"]
-        ].map(d => makeLines(<LineType>d[0], this.settings,
-                             xScale, yScale, <string>d[1],
-                             this.viewModel, this.host.tooltipService,
-                             xScale_inv, yScale_inv));
+        this.lineSelection = this.lineGroup
+                                 .selectAll(".line")
+                                 .data(this.viewModel.groupedLines);
+        
+                                 console.log("d")
+        makeLines(this.lineSelection, this.settings,
+                  xScale, yScale, this.viewModel,
+                  this.viewModel.highlights);
+        this.lineSelection.exit().remove()
 
         this.svg.on('contextmenu', () => {
         const eventTarget: EventTarget = (<any>d3).event.target;
@@ -274,6 +216,7 @@ export class Visual implements IVisual {
         });
         (<any>d3).event.preventDefault();
         });
+        this.listeningRectSelection.exit().remove()
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane

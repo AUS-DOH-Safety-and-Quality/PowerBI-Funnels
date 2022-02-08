@@ -3,7 +3,7 @@ import ITooltipService = powerbi.extensibility.ITooltipService;
 import * as d3 from "d3";
 import invertTransformation from "../Funnel Calculations/invertTransformation"
 import { ViewModel } from "../Interfaces"
-import { LimitLines } from "../Interfaces"
+import { groupedData } from "../Interfaces"
 
 /**
  * Function for plotting the control limit and target lines, as well
@@ -19,14 +19,12 @@ import { LimitLines } from "../Interfaces"
  * @param x_scale_inv      - d3 scale function for translating screen coordinates to axis coordinates
  * @param y_scale_inv      - d3 scale function for translating screen coordinates to axis coordinates
  */
-function makeLines(LineObject: d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>,
+function makeLines(LineObject: any,
                    settings: any,
                    x_scale: d3.ScaleLinear<number, number, never>,
                    y_scale: d3.ScaleLinear<number, number, never>,
-                   linetype: string, viewModel: ViewModel,
-                   tooltipService: ITooltipService,
-                   x_scale_inv?: d3.ScaleLinear<number, number, never>,
-                   y_scale_inv?: d3.ScaleLinear<number, number, never>): void {
+                   viewModel: ViewModel,
+                   highlights: boolean): void {
     let l99_width: number = settings.lines.width_99.value;
     let l95_width: number = settings.lines.width_95.value;
     let target_width: number = settings.lines.width_target.value;
@@ -35,111 +33,33 @@ function makeLines(LineObject: d3.Selection<d3.BaseType, LimitLines[], SVGElemen
     let l95_colour: string = settings.lines.colour_95.value;
     let target_colour: string = settings.lines.colour_target.value;
     let alt_target_colour: string = settings.lines.colour_alt_target.value;
-    let transform_type: string = settings.funnel.transformation.value;
-    let invert_transformation: (x: number) => number= invertTransformation(transform_type);
-    type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;
 
-    const MergedLineObject: MergedLineType
-            = LineObject.enter()
-                       .append("path")
-                       .merge(<any>LineObject)
-                       .classed("line", true)
+    let GroupedLines = viewModel.groupedLines;
+    let group_keys: string[] = GroupedLines.map(d => d.key)
 
-    if (linetype != "target" && linetype != "alt_target") {
-        MergedLineObject.attr("d", d3.line<LimitLines>()
-                               .x(d => x_scale(d.denominator))
-                               .y(d => y_scale(d.limit)))
-            .attr("fill","none")
-        if (linetype == "95%") {
-            MergedLineObject.attr("stroke", l95_colour)
-                      .attr("stroke-width", l95_width);
-        } else if(linetype == "99.8%") {
-            MergedLineObject.attr("stroke", l99_colour)
-                      .attr("stroke-width", l99_width);
-        }
-        MergedLineObject.on("mouseover", d => {
-                        // Get screen coordinates of mouse pointer, tooltip will
-                        //   be displayed at these coordinates
-                        //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
-                        //      to d3 properly
-                        let x: any = (<any>d3).event.pageX;
-                        let y: any = (<any>d3).event.pageY;
-                
-                        tooltipService.show({
-                            dataItems: [{
-                                displayName: "Type",
-                                value: linetype
-                            }, {
-                                displayName: "Ratio",
-                                value: (invert_transformation(y_scale_inv(y))).toFixed(2)
-                            }, {
-                                displayName: "Transformed Ratio",
-                                value: transform_type == "none" ? null : (y_scale_inv(y)).toFixed(2)
-                            }, {
-                                displayName: "Denominator",
-                                value: (x_scale_inv(x)).toFixed(2)
-                            }],
-                            identities: [0],
-                            coordinates: [x, y],
-                            isTouchEvent: false
-                        });
-                    })
-                    // Specify that tooltips should move with the mouse
-                    .on("mousemove", d => {
-                        // Get screen coordinates of mouse pointer, tooltip will
-                        //   be displayed at these coordinates
-                        //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
-                        //      to d3 properly
-                        let x: any = (<any>d3).event.pageX;
-                        let y: any = (<any>d3).event.pageY;
-                
-                        // Use the 'move' service for more responsive display
-                        tooltipService.move({
-                            dataItems: [{
-                                displayName: "Type",
-                                value: linetype
-                            }, {
-                                displayName: "Ratio",
-                                value: (invert_transformation(y_scale_inv(y))).toFixed(2)
-                            }, {
-                                displayName: "Transformed Ratio",
-                                value: transform_type == "none" ? null : (y_scale_inv(y)).toFixed(2)
-                            }, {
-                                displayName: "Denominator",
-                                value: (x_scale_inv(x)).toFixed(2)
-                            }],
-                            identities: [0],
-                            coordinates: [x, y],
-                            isTouchEvent: false
-                        });
-                    })
-                    // Hide tooltip when mouse moves out of dot
-                    .on("mouseout", d => {
-                        tooltipService.hide({
-                            immediately: true,
-                            isTouchEvent: false
-                        })
-                    });
-    } else if (linetype == "target") {
-        MergedLineObject.attr("d", d3.line<LimitLines>()
-                               .x(d => x_scale(d.denominator))
-                               .y(d => y_scale(viewModel.target)))
-            // Apply CSS class to elements so that they can be looked up later
-            .attr("fill","none")
-            .attr("stroke", target_colour)
-            .attr("stroke-width", target_width);
-    } else if (linetype == "alt_target") {
-        MergedLineObject.attr("d", d3.line<LimitLines>()
-                               .x(d => x_scale(d.denominator))
-                               .y(d => y_scale(viewModel.alt_target)))
-            // Apply CSS class to elements so that they can be looked up later
-            .attr("fill","none")
-            .attr("stroke", alt_target_colour)
-            .attr("stroke-width", alt_target_width);
-    }
+    let line_color = d3.scaleOrdinal()
+                       .domain(group_keys)
+                       .range([l99_colour, l95_colour, l95_colour, l99_colour, target_colour, alt_target_colour]);
 
-    MergedLineObject.exit()
-              .remove();
+    let line_width = d3.scaleOrdinal()
+                       .domain(group_keys)
+                       .range([l99_width, l95_width, l95_width, l99_width, target_width, alt_target_width]);
+
+    let lineMerged = LineObject.enter()
+                               .append("path")
+                               .merge(<any>LineObject);
+    lineMerged.classed('line', true);                              
+    lineMerged.attr("d", d => {
+              return d3.line<groupedData>()
+                  .x(d => x_scale(d.x))
+                  .y(d => y_scale(d.value))
+                  .defined(function(d) {return d.value !== null})
+                  (d.values)
+          })
+    lineMerged.attr("fill", "none")
+          .attr("stroke", d => <string>line_color(d.key))
+          .attr("stroke-width", d => <number>line_width(d.key));
+    lineMerged.exit().remove()
 }
 
 export default makeLines;
