@@ -49,10 +49,10 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
         || !dv[0].categorical.categories
         || !dv[0].categorical.categories[0].source
         || !dv[0].categorical.values
-        || !dv[0].metadata) {
+        || !dv[0].metadata
+        || dv[0].categorical.values.length < 2) {
             return viewModel;
     }
-
     // Get  categorical view of the data
     let view: powerbi.DataViewCategorical = dv[0].categorical;
 
@@ -152,9 +152,8 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
             width: alt_target_width
         });
     }
+
     viewModel.lineData.map(d => d.value = (d.value !== null) ? <number>transformation(d.value * multiplier) : null)
-    console.log(viewModel.lineData)
-    console.log(viewModel.lineData.filter(d => d.x == 0 && d.group == "ul99")[0].value)
 
     let inverse_transform: (x: number) => number = invertTransformation(settings.funnel.transformation.value);
     let prop_labels: boolean = data_type == "PR" && multiplier == 1;
@@ -231,7 +230,6 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     viewModel.groupedLines = (d3.nest()
                                 .key(function(d: groupedData) { return d.group; })
                                 .entries(viewModel.lineData));
-
     return viewModel;
 }
 
