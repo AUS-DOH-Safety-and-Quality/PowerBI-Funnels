@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import { ViewModel } from "../Interfaces"
 
 function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
-                             listeningRect: d3.Selection<SVGElement, any, any, any>,
+                             listeningRect: d3.Selection<any, any, any, any>,
                              width: number, height: number,
                              xScale: d3.ScaleLinear<number, number, never>,
                              yScale: d3.ScaleLinear<number, number, never>,
@@ -18,8 +18,12 @@ function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                             .attr("height", height)
                             .style("fill-opacity", 0);
 
-    listeningRect
-            .append("rect")
+    let listenMerged = listeningRect.enter()
+                                    .append("rect")
+                                    .merge(<any>listeningRect)
+    listenMerged.classed("obs-sel", true);
+
+    listenMerged
             .style("fill","transparent")
             .attr("width", width)
             .attr("height", height)
@@ -50,6 +54,7 @@ function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                 });
                 xAxisLine.style("fill-opacity", 0);
             });
+    listenMerged.exit().remove()
 }
 
 export default initTooltipTracking

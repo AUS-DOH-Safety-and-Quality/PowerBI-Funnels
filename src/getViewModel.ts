@@ -5,7 +5,7 @@ import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
 import invertTransformation from "./Funnel Calculations/invertTransformation";
-import { ViewModel, measureIndex  } from "./Interfaces"
+import { ViewModel, measureIndex, groupedData, nestArray  } from "./Interfaces"
 
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
@@ -26,14 +26,10 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
 
     let viewModel: ViewModel = {
         scatterDots: [],
-        lowerLimit99: [],
-        lowerLimit95: [],
-        upperLimit95: [],
-        upperLimit99: [],
+        lineData: [],
+        groupedLines: [{ key: "null", values: 0, value: 0}],
         maxRatio: 0,
         maxDenominator: 0,
-        target: 0,
-        alt_target: null,
         highlights: false,
         data_type: "",
         multiplier: 1
@@ -90,6 +86,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     let data_type: string = indices.chart_type ? view.values[indices.chart_type].values[0] : settings.funnel.data_type.value;
     let od_adjust: string = settings.funnel.od_adjust.value;
     let multiplier: number = indices.chart_multiplier ? view.values[indices.chart_multiplier].values[0] : settings.funnel.multiplier.value;
+
     let transformation: (x: number) => number
         = getTransformation(settings.funnel.transformation.value);
 
@@ -101,32 +98,72 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
 
     let limitsArray: number[][] = getLimitsArray(data_in, maxDenominator, data_type, od_adjust);
 
+    let l99_width: number = settings.lines.width_99.value;
+    let l95_width: number = settings.lines.width_95.value;
+    let target_width: number = settings.lines.width_target.value;
+    let alt_target_width: number = settings.lines.width_alt_target.value;
+    let l99_colour: string = settings.lines.colour_99.value;
+    let l95_colour: string = settings.lines.colour_95.value;
+    let target_colour: string = settings.lines.colour_target.value;
+    let alt_target_colour: string = settings.lines.colour_alt_target.value;
+
     for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
-        viewModel.lowerLimit99.push({
-            limit: transformation(limitsArray[i][1] * multiplier),
-            denominator: limitsArray[i][0]
+        let x: number = limitsArray[i][0];
+        viewModel.lineData.push({
+            x: x,
+            group: "ll99",
+            value: limitsArray[i][1],
+            colour: l99_colour,
+            width: l99_width
         });
-        viewModel.lowerLimit95.push({
-            limit: transformation(limitsArray[i][2] * multiplier),
-            denominator: limitsArray[i][0]
+        viewModel.lineData.push({
+            x: x,
+            group: "ll95",
+            value: limitsArray[i][2] * multiplier,
+            colour: l95_colour,
+            width: l95_width
         });
-        viewModel.upperLimit95.push({
-            limit: transformation(limitsArray[i][3] * multiplier),
-            denominator: limitsArray[i][0]
+        viewModel.lineData.push({
+            x: x,
+            group: "ul95",
+            value: limitsArray[i][3] * multiplier,
+            colour: l95_colour,
+            width: l95_width
         });
-        viewModel.upperLimit99.push({
-            limit: transformation(limitsArray[i][4] * multiplier),
-            denominator: limitsArray[i][0]
+        viewModel.lineData.push({
+            x: x,
+            group: "ul99",
+            value: limitsArray[i][4],
+            colour: l99_colour,
+            width: l99_width
+        });
+        viewModel.lineData.push({
+            x: x,
+            group: "target",
+            value: +limitsArray[limitsArray.length-2],
+            colour: target_colour,
+            width: target_width
+        });
+        viewModel.lineData.push({
+            x: x,
+            group: "alt_target",
+            value: settings.funnel.alt_target.value,
+            colour: alt_target_colour,
+            width: alt_target_width
         });
     }
+    viewModel.lineData.map(d => d.value = (d.value !== null) ? <number>transformation(d.value * multiplier) : null)
+    console.log(viewModel.lineData)
+    console.log(viewModel.lineData.filter(d => d.x == 0 && d.group == "ul99")[0].value)
+
     let inverse_transform: (x: number) => number = invertTransformation(settings.funnel.transformation.value);
     let prop_labels: boolean = data_type == "PR" && multiplier == 1;
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
     for (let i = 0; i < categories.values.length;  i++) {
         let num_value: number = <number>numerator.values[i];
         let den_value: number = <number>denominator.values[i];
-        let ll_index: number = viewModel.lowerLimit99.map(d => d.denominator).findIndex(d => d == den_value);
-        let ul_index: number = viewModel.upperLimit99.map(d => d.denominator).findIndex(d => d == den_value);
+        let ul_value: number = viewModel.lineData.filter(d => d.x == den_value && d.group == "ul99")[0].value;
+        let ll_value: number = viewModel.lineData.filter(d => d.x == den_value && d.group == "ll99")[0].value;
         let grp_value: string = (typeof categories.values[i] == 'number') ? (categories.values[i]).toString() : <string>(categories.values[i]);
 
         viewModel.scatterDots.push({
@@ -164,12 +201,12 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
                                      : ((num_value/den_value) * multiplier).toFixed(4))        
             }, {
                 displayName: "Upper 99% Limit",
-                value: prop_labels ? (inverse_transform(viewModel.upperLimit99[ul_index].limit) * 100).toFixed(2) + "%"
-                : inverse_transform(viewModel.upperLimit99[ul_index].limit).toFixed(4)
+                value: prop_labels ? (inverse_transform(ul_value) * 100).toFixed(2) + "%"
+                : inverse_transform(ul_value).toFixed(4)
             }, {
                 displayName: "Lower 99% Limit",
-                value: prop_labels ? (inverse_transform(viewModel.lowerLimit99[ll_index].limit) * 100).toFixed(2) + "%"
-                : inverse_transform(viewModel.lowerLimit99[ll_index].limit).toFixed(4)
+                value: prop_labels ? (inverse_transform(ll_value) * 100).toFixed(2) + "%"
+                : inverse_transform(ll_value).toFixed(4)
             }, settings.funnel.transformation.value == "none" ?
                 {displayName:"",value:""} :
                 {
@@ -180,29 +217,20 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
         });
     }
 
-
-
-    
-
-    let maxRatio: number = transformation(+limitsArray[limitsArray.length-1] * multiplier);
-
-    let maxLimit: number = d3.max(viewModel.upperLimit95.map((d,idx) => Math.max(d.limit, viewModel.upperLimit99[idx].limit)));
-
-    maxRatio = maxLimit > maxRatio ? maxLimit : maxRatio;
+    let maxRatio: number = d3.max(viewModel.lineData.map(d => d.value));
 
     // Extract maximum value of input data and add to viewModel
     viewModel.maxRatio = maxRatio + maxRatio*0.1;
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
-    viewModel.target = transformation(+limitsArray[limitsArray.length-2] * multiplier);
-
-    viewModel.alt_target = transformation(settings.funnel.alt_target.value);
-
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
     viewModel.data_type = data_type;
     viewModel.multiplier = multiplier;
+    viewModel.groupedLines = (d3.nest()
+                                .key(function(d: groupedData) { return d.group; })
+                                .entries(viewModel.lineData));
 
     return viewModel;
 }

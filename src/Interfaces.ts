@@ -10,6 +10,20 @@ interface measureIndex {
     chart_multiplier: number
 }
 
+interface groupedData {
+    x: number,
+    value: number,
+    group: string,
+    colour: string,
+    width: number
+};
+
+interface nestArray {
+    key: string;
+    values: number;
+    value: number;
+}
+
 // Used to represent the different datapoints on the chart
 interface ScatterDots {
     category: string;
@@ -29,14 +43,10 @@ interface ScatterDots {
 //   the data in the visual
 interface ViewModel {
     scatterDots: ScatterDots[];
-    lowerLimit99: LimitLines[];
-    lowerLimit95: LimitLines[];
-    upperLimit95: LimitLines[];
-    upperLimit99: LimitLines[];
+    lineData: groupedData[];
+    groupedLines: nestArray[];
     maxRatio: number;
     maxDenominator: number;
-    target: number;
-    alt_target: number;
     highlights: boolean;
     data_type: string;
     multiplier: number;
@@ -51,3 +61,5 @@ export { ScatterDots }
 export { LimitLines }
 export { ViewModel }
 export { measureIndex }
+export { groupedData }
+export { nestArray }
