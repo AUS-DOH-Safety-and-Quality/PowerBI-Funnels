@@ -50,9 +50,12 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
         || !dv[0].categorical.categories[0].source
         || !dv[0].categorical.values
         || !dv[0].metadata
-        || dv[0].categorical.values.length < 2) {
+        || dv[0].categorical.values.length < 2
+        || dv[0].categorical.values.some(d => d.values.length < 1)
+        || dv[0].categorical.categories.some(d => d.values.length < 1)) {
             return viewModel;
     }
+
     // Get  categorical view of the data
     let view: powerbi.DataViewCategorical = dv[0].categorical;
 
