@@ -10,6 +10,13 @@ interface measureIndex {
     chart_multiplier: number
 }
 
+interface dataArray {
+    id: number[];
+    numerator: number[];
+    denominator: number[];
+    sd: number[];
+}
+
 interface groupedData {
     x: number,
     value: number,
@@ -63,3 +70,4 @@ export { ViewModel }
 export { measureIndex }
 export { groupedData }
 export { nestArray }
+export { dataArray }

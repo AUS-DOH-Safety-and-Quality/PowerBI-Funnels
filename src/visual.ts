@@ -217,6 +217,7 @@ export class Visual implements IVisual {
         (<any>d3).event.preventDefault();
         });
         this.listeningRectSelection.exit().remove()
+        console.log("fin fin")
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane

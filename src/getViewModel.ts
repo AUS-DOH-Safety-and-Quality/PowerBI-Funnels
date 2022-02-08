@@ -5,7 +5,12 @@ import * as d3 from "d3";
 import getLimitsArray from "../src/getLimitsArray";
 import getTransformation from "./Funnel Calculations/getTransformation";
 import invertTransformation from "./Funnel Calculations/invertTransformation";
-import { ViewModel, measureIndex, groupedData, nestArray  } from "./Interfaces"
+import { ViewModel, measureIndex, groupedData, dataArray  } from "./Interfaces"
+import { divide } from "./Funnel Calculations/HelperFunctions"
+
+function checkValid(value: number, is_denom: boolean = false) {
+    return value !== null && value !== undefined && is_denom ? value > 0 : true;
+}
 
 /**
  * Interfacing function between PowerBI data and visual rendering. Reads in
@@ -77,29 +82,49 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     let categories: powerbi.DataViewCategoryColumn = view.categories[0];
 
     // Get numerator
-    let numerator: powerbi.DataViewValueColumn = view.values[indices.numerator];
+    let numerator_raw: powerbi.DataViewValueColumn = view.values[indices.numerator];
     // Get numerator
-    let denominator: powerbi.DataViewValueColumn = view.values[indices.denominator];
+    let denominator_raw: powerbi.DataViewValueColumn = view.values[indices.denominator];
     // Get numerator
-    let sd: powerbi.DataViewValueColumn = view.values[indices.sd];
+    let sd_raw: powerbi.DataViewValueColumn = view.values[indices.sd];
+
+    let numerator: number[] = <number[]>view.values[indices.numerator].values;
+    let denominator: number[] = <number[]>view.values[indices.denominator].values;
+    let sd: number[] = indices.sd ? <number[]>view.values[indices.sd].values : [];
+    let data_type: string = indices.chart_type ? view.values[indices.chart_type].values[0] : settings.funnel.data_type.value;
+
+    let valid_ids: number[] = denominator.map(
+        (d,idx) => {
+            let is_valid: boolean =
+                checkValid(d, true) &&
+                checkValid(numerator[idx]);
+            is_valid = data_type == "mean" ? is_valid && checkValid(sd[idx], true) : is_valid;
+
+            if(is_valid) {
+                return idx;
+            }
+        }
+    );
+    let data_array_filtered: dataArray = {id: valid_ids.filter((d,idx) => valid_ids.indexOf(idx) != -1),
+                               numerator: numerator.filter((d,idx) => valid_ids.indexOf(idx) != -1),
+                               denominator: denominator.filter((d,idx) => valid_ids.indexOf(idx) != -1),
+                               sd: data_type == "mean" ? sd.filter((d,idx) => valid_ids.indexOf(idx) != -1) : [null]
+                            }
+                            console.log(data_array_filtered)
 
     // Get groups of dots to highlight
-    let highlights: powerbi.PrimitiveValue[] = numerator.highlights;
+    let highlights: powerbi.PrimitiveValue[] = numerator_raw.highlights;
 
-    let data_type: string = indices.chart_type ? view.values[indices.chart_type].values[0] : settings.funnel.data_type.value;
     let od_adjust: string = settings.funnel.od_adjust.value;
     let multiplier: number = indices.chart_multiplier ? view.values[indices.chart_multiplier].values[0] : settings.funnel.multiplier.value;
 
     let transformation: (x: number) => number
         = getTransformation(settings.funnel.transformation.value);
 
-    let data_in: number[][] = [(<number[]>numerator.values),
-                               (<number[]>denominator.values),
-                               sd ? (<number[]>sd.values) : [null]]
+    let maxDenominator: number = d3.max(data_array_filtered.denominator);
 
-    let maxDenominator: number = d3.max(<number[]>denominator.values);
-
-    let limitsArray: number[][] = getLimitsArray(data_in, maxDenominator, data_type, od_adjust);
+    let limitsArray: number[][] = getLimitsArray(data_array_filtered, maxDenominator, data_type, od_adjust);
+    console.log(limitsArray)
 
     let l99_width: number = settings.lines.width_99.value;
     let l95_width: number = settings.lines.width_95.value;
@@ -161,9 +186,10 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     let inverse_transform: (x: number) => number = invertTransformation(settings.funnel.transformation.value);
     let prop_labels: boolean = data_type == "PR" && multiplier == 1;
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
-    for (let i = 0; i < categories.values.length;  i++) {
-        let num_value: number = <number>numerator.values[i];
-        let den_value: number = <number>denominator.values[i];
+    for (let ind = 0; ind < data_array_filtered.id.length;  ind++) {
+        let i = data_array_filtered.id[ind];
+        let num_value: number = <number>numerator[i];
+        let den_value: number = <number>denominator[i];
         let ul_value: number = viewModel.lineData.filter(d => d.x == den_value && d.group == "ul99")[0].value;
         let ll_value: number = viewModel.lineData.filter(d => d.x == den_value && d.group == "ll99")[0].value;
         let grp_value: string = (typeof categories.values[i] == 'number') ? (categories.values[i]).toString() : <string>(categories.values[i]);
@@ -219,7 +245,8 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
         });
     }
 
-    let maxRatio: number = d3.max(viewModel.lineData.map(d => d.value));
+    let maxLimit: number = d3.max(viewModel.lineData.map(d => d.value));
+    let maxRatio: number = d3.max(<number[]>divide(numerator, denominator))
 
     // Extract maximum value of input data and add to viewModel
     viewModel.maxRatio = maxRatio + maxRatio*0.1;
@@ -233,6 +260,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     viewModel.groupedLines = (d3.nest()
                                 .key(function(d: groupedData) { return d.group; })
                                 .entries(viewModel.lineData));
+    console.log(viewModel)
     return viewModel;
 }
 
