@@ -22,6 +22,7 @@ import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import * as d3 from "d3";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
 import { LimitLines, ViewModel, ScatterDots, groupedData, nestArray } from "./Interfaces"
+import getTransformation from "./Funnel Calculations/getTransformation";
 
 type LineType = d3.Selection<d3.BaseType, LimitLines[], SVGElement, any>;
 type MergedLineType = d3.Selection<SVGPathElement, LimitLines[], SVGElement, any>;
@@ -112,7 +113,15 @@ export class Visual implements IVisual {
         let xAxisMin: number = this.settings.axis.xlimit_l.value ? this.settings.axis.xlimit_l.value : 0;
         let xAxisMax: number = this.settings.axis.xlimit_u.value ? this.settings.axis.xlimit_u.value : this.viewModel.maxDenominator;
         let yAxisMin: number = this.settings.axis.ylimit_l.value ? this.settings.axis.ylimit_l.value : 0;
-        let yAxisMax: number = this.settings.axis.ylimit_u.value ? this.settings.axis.ylimit_u.value : this.viewModel.maxRatio;
+        let yAxisMax: number = this.settings.axis.ylimit_u.value ? this.settings.axis.ylimit_u.value : (this.viewModel.maxRatio);
+
+        let transformation: (x: number) => number
+        = getTransformation(this.settings.funnel.transformation.value);
+
+        xAxisMin = transformation(xAxisMin);
+        xAxisMax = transformation(xAxisMax);
+        yAxisMin = transformation(yAxisMin);
+        yAxisMax = transformation(yAxisMax);
         let displayPlot: boolean = this.viewModel.scatterDots.length > 1;
 
         // Dynamically scale chart to use all available space
@@ -217,6 +226,7 @@ export class Visual implements IVisual {
         (<any>d3).event.preventDefault();
         });
         this.listeningRectSelection.exit().remove()
+        console.log("fin fin")
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane

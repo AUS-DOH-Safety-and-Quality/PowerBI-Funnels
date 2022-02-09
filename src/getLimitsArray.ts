@@ -9,10 +9,8 @@ import getPhi from "./Funnel Calculations/getPhi";
 import getTau2 from "./Funnel Calculations/getTau2";
 import getLimit from "./Funnel Calculations/getLimit";
 import { seq } from "./Funnel Calculations/HelperFunctions"
+import { dataArray  } from "./Interfaces"
 
-function checkValid(value: number, is_denom: boolean = false) {
-    return value !== null && value !== undefined && is_denom ? value > 0 : true;
-}
 
 /**
  * Function for generating an array of control limit arrays. Proportion and
@@ -40,26 +38,9 @@ function checkValid(value: number, is_denom: boolean = false) {
  * @param od_adjust        - Whether to adjust for overdispersion ("auto", "yes", "no")
  * @returns Array of control limit arrays and unadjusted target value for plotting
  */
-function getLimitsArray(data_array: number[][], maxDenominator: number,
+function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
                         data_type: string, od_adjust: string): number[][] {
-    let numerator: number[] = data_array[0].map(d => parseFloat(String(d)));
-    let denominator: number[] = data_array[1].map(d => parseFloat(String(d)));
-    let sd: number[] = data_array[2].map(d => parseFloat(String(d)));
-    let valid_ids: number[] = denominator.map(
-        (d,idx) => {
-            let is_valid: boolean =
-                checkValid(d, true) &&
-                checkValid(numerator[idx]);
-            is_valid = data_type == "mean" ? is_valid && checkValid(sd[idx], true) : is_valid;
 
-            if(is_valid) {
-                return idx;
-            }
-        }
-    );
-    let data_array_filtered = {numerator: numerator.filter((d,idx) => valid_ids.indexOf(idx) != -1),
-                               denominator: denominator.filter((d,idx) => valid_ids.indexOf(idx) != -1),
-                               sd: data_type == "mean" ? sd.filter((d,idx) => valid_ids.indexOf(idx) != -1) : [null]}
 
      // Series of steps to estimate dispersion ratio (phi) and
      //    between-hospital variance (tau2). These are are used to
@@ -79,7 +60,7 @@ function getLimitsArray(data_array: number[][], maxDenominator: number,
     // Generate sequence of values to calculate limits for, specifying that the
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
     let x_range: number[] = seq(1, maxDenominator + maxDenominator*0.1, 
-                                  maxDenominator*0.01).concat(denominator);
+                                  maxDenominator*0.01).concat(data_array_filtered.denominator);
     let x_range_array = {numerator: x_range,
                          denominator: x_range,
                          sd: data_array_filtered.sd}
