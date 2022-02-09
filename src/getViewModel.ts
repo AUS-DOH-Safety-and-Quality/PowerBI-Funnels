@@ -246,12 +246,18 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     }
 
     let maxLimit: number = d3.max(viewModel.lineData.map(d => d.value));
-    let maxRatio: number = d3.max(<number[]>divide(numerator, denominator))
+    let maxRatio: number = (d3.max(<number[]>divide(data_array_filtered.numerator, data_array_filtered.denominator)))
 
     // Extract maximum value of input data and add to viewModel
     viewModel.maxRatio = maxRatio + maxRatio*0.1;
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
+
+
+    let xAxisMin: number = settings.axis.xlimit_l.value ? settings.axis.xlimit_l.value : 0;
+    let xAxisMax: number = settings.axis.xlimit_u.value ? settings.axis.xlimit_u.value : viewModel.maxDenominator;
+    let yAxisMin: number = settings.axis.ylimit_l.value ? settings.axis.ylimit_l.value : 0;
+    let yAxisMax: number = settings.axis.ylimit_u.value ? settings.axis.ylimit_u.value : viewModel.maxRatio;
 
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
@@ -259,7 +265,11 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     viewModel.multiplier = multiplier;
     viewModel.groupedLines = (d3.nest()
                                 .key(function(d: groupedData) { return d.group; })
-                                .entries(viewModel.lineData));
+                                .entries(viewModel.lineData
+                                                  .filter(d => (d.value >= transformation(yAxisMin)
+                                                                && d.value <= transformation(yAxisMax)
+                                                                && d.x >= transformation(xAxisMin)
+                                                                && d.x <= transformation(xAxisMax)))));
     console.log(viewModel)
     return viewModel;
 }
