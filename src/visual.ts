@@ -36,6 +36,8 @@ export class Visual implements IVisual {
     private lineSelection: d3.Selection<any, any, any, any>;
     private listeningRect: d3.Selection<SVGElement, any, any, any>;
     private listeningRectSelection: d3.Selection<any, any, any, any>;
+    private tooltipLineGroup: d3.Selection<SVGElement, any, any, any>;
+    private tooltipLineSelection: d3.Selection<any, any, any, any>;
     private xAxisGroup: d3.Selection<SVGGElement, any, any, any>;
     private xAxisLabels: d3.Selection<SVGGElement, any, any, any>;
     private yAxisGroup: d3.Selection<SVGGElement, any, any, any>;
@@ -61,6 +63,8 @@ export class Visual implements IVisual {
                      .classed("funnelchart", true);
         this.listeningRect = this.svg.append("g")
                                 .classed("listen-group", true);
+        this.tooltipLineGroup = this.svg.append("g")
+                                .classed("tooltip-group", true);
         this.lineGroup = this.svg.append("g")
                                  .classed("line-group", true);
         this.dotGroup = this.svg.append("g")
@@ -143,8 +147,12 @@ export class Visual implements IVisual {
         this.listeningRectSelection = this.listeningRect
                                           .selectAll(".obs-sel")
                                           .data(this.viewModel.scatterDots);
+
+        this.tooltipLineSelection = this.tooltipLineGroup
+                                          .selectAll(".ttip-line")
+                                          .data(this.viewModel.scatterDots);
         if (displayPlot) {
-            initTooltipTracking(this.svg, this.listeningRectSelection, width, height - xAxisPadding,
+            initTooltipTracking(this.svg, this.listeningRectSelection, this.tooltipLineSelection, width, height - xAxisPadding,
                                 xScale, yScale, this.host.tooltipService, this.viewModel);
         }
 

@@ -5,18 +5,20 @@ import { ViewModel } from "../Interfaces"
 
 function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                              listeningRect: d3.Selection<any, any, any, any>,
+                             toolTipLine: d3.Selection<any, any, any, any>,
                              width: number, height: number,
                              xScale: d3.ScaleLinear<number, number, never>,
                              yScale: d3.ScaleLinear<number, number, never>,
                              tooltipService: ITooltipService,
                              viewModel: ViewModel): void {
-    const xAxisLine = svg.append("g")
+    let xAxisLine = toolTipLine.enter()
                             .append("rect")
-                            .attr("class", "dotted")
-                            .attr("stroke-width", "1px")
-                            .attr("width", ".5px")
-                            .attr("height", height)
-                            .style("fill-opacity", 0);
+                            .merge(<any>toolTipLine);
+    xAxisLine.classed("ttip-line", true);
+    xAxisLine.attr("stroke-width", "1px")
+            .attr("width", ".5px")
+            .attr("height", height)
+            .style("fill-opacity", 0);
 
     let listenMerged = listeningRect.enter()
                                     .append("rect")
@@ -29,15 +31,15 @@ function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
             .attr("height", height)
             .on("mousemove", d => {
                 let xval: number = xScale.invert((<any>d3).event.pageX);
-                
+
                 let x_dist: number[] = viewModel.scatterDots.map(d => d.denominator).map(d => {
                     return Math.abs(d - xval)
                 })
                 let minInd: number = d3.scan(x_dist,(a,b) => a-b);
-    
+
                 let scaled_x: number = xScale(viewModel.scatterDots[minInd].denominator)
                 let scaled_y: number = yScale(viewModel.scatterDots[minInd].ratio)
-    
+
                 tooltipService.show({
                     dataItems: viewModel.scatterDots[minInd].tooltips,
                     identities: [viewModel.scatterDots[minInd].identity],
@@ -55,6 +57,7 @@ function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                 xAxisLine.style("fill-opacity", 0);
             });
     listenMerged.exit().remove()
+    xAxisLine.exit().remove()
 }
 
 export default initTooltipTracking
