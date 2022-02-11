@@ -47,6 +47,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
         chart_multiplier: undefined,
         chart_type: undefined
     }
+    console.log(dv[0].categorical.values.length)
 
     if(!dv
         || !dv[0]
@@ -64,6 +65,11 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     // Get  categorical view of the data
     let view: powerbi.DataViewCategorical = dv[0].categorical;
 
+    if (!view.values[0].source.roles.numerator ||
+        !view.values[1].source.roles.denominator) {
+     return viewModel;
+    }
+
     for (let i = 0; i < view.values.length; i++) {
         if (view.values[i].source.roles.numerator) {
             indices.numerator = i
@@ -77,6 +83,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
             indices.chart_type = i
         }
     }
+    console.log("a")
 
     // Get array of category values
     let categories: powerbi.DataViewCategoryColumn = view.categories[0];
@@ -93,6 +100,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     let sd: number[] = indices.sd ? <number[]>view.values[indices.sd].values : [];
     let data_type: string = indices.chart_type ? view.values[indices.chart_type].values[0] : settings.funnel.data_type.value;
 
+    console.log("b")
     let valid_ids: number[] = denominator.map(
         (d,idx) => {
             let is_valid: boolean =
@@ -114,7 +122,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
 
     // Get groups of dots to highlight
     let highlights: powerbi.PrimitiveValue[] = numerator_raw.highlights;
-
+    console.log("b")
     let od_adjust: string = settings.funnel.od_adjust.value;
     let multiplier: number = indices.chart_multiplier ? view.values[indices.chart_multiplier].values[0] : settings.funnel.multiplier.value;
 
@@ -134,6 +142,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     let l95_colour: string = settings.lines.colour_95.value;
     let target_colour: string = settings.lines.colour_target.value;
     let alt_target_colour: string = settings.lines.colour_alt_target.value;
+    console.log("c")
 
     for (let i = 0; i < (<number[][]>limitsArray).length-1;  i++) {
         let x: number = limitsArray[i][0];
@@ -185,6 +194,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
 
     let inverse_transform: (x: number) => number = invertTransformation(settings.funnel.transformation.value);
     let prop_labels: boolean = data_type == "PR" && multiplier == 1;
+    console.log("d")
     // Loop over all input Category/Value pairs and push into ViewModel for plotting
     for (let ind = 0; ind < data_array_filtered.id.length;  ind++) {
         let i = data_array_filtered.id[ind];
@@ -253,6 +263,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
+    console.log("e")
 
     let xAxisMin: number = settings.axis.xlimit_l.value ? settings.axis.xlimit_l.value : 0;
     let xAxisMax: number = settings.axis.xlimit_u.value ? settings.axis.xlimit_u.value : viewModel.maxDenominator;
@@ -265,6 +276,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
     viewModel.data_type = data_type;
     viewModel.multiplier = multiplier;
+    console.log("f")
     viewModel.groupedLines = (d3.nest()
                                 .key(function(d: groupedData) { return d.group; })
                                 .entries(viewModel.lineData
@@ -272,7 +284,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
                                                                 && d.value <= yAxisMax
                                                                 && d.x >= xAxisMin
                                                                 && d.x <= xAxisMax))));
-    console.log(viewModel)
+    console.log("fin viewmodel")
     return viewModel;
 }
 
