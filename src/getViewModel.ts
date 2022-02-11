@@ -21,7 +21,7 @@ function checkValid(value: number, is_denom: boolean = false) {
  * @param options  - VisualUpdateOptions object containing user data
  * @param settings - Object containing user-specified plot settings
  * @param host     - Reference to base IVisualHost object
- * 
+ *
  * @returns ViewModel object containing calculated limits and all
  *            data needed for plotting
 */
@@ -147,14 +147,14 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
         viewModel.lineData.push({
             x: x,
             group: "ll95",
-            value: limitsArray[i][2] * multiplier,
+            value: limitsArray[i][2],
             colour: l95_colour,
             width: l95_width
         });
         viewModel.lineData.push({
             x: x,
             group: "ul95",
-            value: limitsArray[i][3] * multiplier,
+            value: limitsArray[i][3],
             colour: l95_colour,
             width: l95_width
         });
@@ -226,7 +226,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
                 displayName: "Ratio",
                 value: (num_value == null || den_value == null) ? "" :
                         (prop_labels ? ((num_value/den_value) * multiplier * 100).toFixed(2) + "%"
-                                     : ((num_value/den_value) * multiplier).toFixed(4))        
+                                     : ((num_value/den_value) * multiplier).toFixed(4))
             }, {
                 displayName: "Upper 99% Limit",
                 value: prop_labels ? (inverse_transform(ul_value) * 100).toFixed(2) + "%"
@@ -249,7 +249,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     let maxRatio: number = (d3.max(<number[]>divide(data_array_filtered.numerator, data_array_filtered.denominator)))
 
     // Extract maximum value of input data and add to viewModel
-    viewModel.maxRatio = maxRatio + maxRatio*0.1;
+    viewModel.maxRatio = transformation(maxRatio + maxRatio*0.1);
     // Extract maximum value of input data and add to viewModel
     viewModel.maxDenominator = maxDenominator + maxDenominator*0.1;
 
@@ -259,6 +259,8 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     let yAxisMin: number = settings.axis.ylimit_l.value ? settings.axis.ylimit_l.value : 0;
     let yAxisMax: number = settings.axis.ylimit_u.value ? settings.axis.ylimit_u.value : viewModel.maxRatio;
 
+    yAxisMin = transformation(yAxisMin * multiplier)
+    yAxisMax = transformation(yAxisMax * multiplier)
     // Flag whether any dots need to be highlighted
     viewModel.highlights = viewModel.scatterDots.filter(d => d.highlighted).length > 0;
     viewModel.data_type = data_type;
@@ -266,10 +268,10 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
     viewModel.groupedLines = (d3.nest()
                                 .key(function(d: groupedData) { return d.group; })
                                 .entries(viewModel.lineData
-                                                  .filter(d => (d.value >= transformation(yAxisMin)
-                                                                && d.value <= transformation(yAxisMax)
-                                                                && d.x >= transformation(xAxisMin)
-                                                                && d.x <= transformation(xAxisMax)))));
+                                                  .filter(d => (d.value >= yAxisMin
+                                                                && d.value <= yAxisMax
+                                                                && d.x >= xAxisMin
+                                                                && d.x <= xAxisMax))));
     console.log(viewModel)
     return viewModel;
 }

@@ -118,10 +118,10 @@ export class Visual implements IVisual {
         let transformation: (x: number) => number
         = getTransformation(this.settings.funnel.transformation.value);
 
-        xAxisMin = transformation(xAxisMin);
-        xAxisMax = transformation(xAxisMax);
-        yAxisMin = transformation(yAxisMin);
-        yAxisMax = transformation(yAxisMax);
+        xAxisMin = xAxisMin;
+        xAxisMax = xAxisMax;
+        yAxisMin = transformation(yAxisMin * multiplier);
+        yAxisMax = transformation(yAxisMax * multiplier);
         let displayPlot: boolean = this.viewModel.scatterDots.length > 1;
 
         // Dynamically scale chart to use all available space
@@ -155,7 +155,7 @@ export class Visual implements IVisual {
                       // If axis displayed on % scale, then disable axis values > 100%
                       let prop_limits: boolean = data_type == "PR" && multiplier == 1;
                       return prop_limits ? (d <= 1 ? (<number>d * 100).toFixed(2) + "%" : "" ) : <string><unknown>d;
-                    } 
+                    }
                 );
         let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
@@ -209,7 +209,7 @@ export class Visual implements IVisual {
         this.lineSelection = this.lineGroup
                                  .selectAll(".line")
                                  .data(this.viewModel.groupedLines);
-        
+
                                  console.log("d")
         makeLines(this.lineSelection, this.settings,
                   xScale, yScale, this.viewModel,
@@ -230,7 +230,7 @@ export class Visual implements IVisual {
     }
 
     // Function to render the properties specified in capabilities.json to the properties pane
-    public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): 
+    public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions):
         VisualObjectInstanceEnumeration {
             let propertyGroupName: string = options.objectName;
             // Object that holds the specified settings/options to be rendered
@@ -252,7 +252,7 @@ export class Visual implements IVisual {
                         },
                         selector: null
                     });
-                break; 
+                break;
                 case "scatter":
                     properties.push({
                         objectName: propertyGroupName,
@@ -264,7 +264,7 @@ export class Visual implements IVisual {
                         },
                         selector: null
                     });
-                break; 
+                break;
                 case "lines":
                     properties.push({
                         objectName: propertyGroupName,
@@ -280,7 +280,7 @@ export class Visual implements IVisual {
                         },
                         selector: null
                     });
-                break; 
+                break;
                 case "axis":
                     properties.push({
                         objectName: propertyGroupName,
@@ -294,7 +294,7 @@ export class Visual implements IVisual {
                         },
                         selector: null
                     });
-                break; 
+                break;
             };
             return properties;
         }
