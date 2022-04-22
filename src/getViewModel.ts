@@ -40,7 +40,6 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
   let indices: measureIndex = {
     numerator: undefined,
     denominator: undefined,
-    sd: undefined,
     chart_multiplier: undefined,
     chart_type: undefined
   }
@@ -71,8 +70,6 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
       indices.numerator = i
     } else if (view.values[i].source.roles.denominator) {
       indices.denominator = i
-    } else if (view.values[i].source.roles.sd) {
-      indices.sd = i
     } else if (view.values[i].source.roles.chart_multiplier) {
       indices.chart_multiplier = i
     } else if (view.values[i].source.roles.chart_type) {
@@ -87,12 +84,9 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
   let numerator_raw: powerbi.DataViewValueColumn = view.values[indices.numerator];
   // Get numerator
   let denominator_raw: powerbi.DataViewValueColumn = view.values[indices.denominator];
-  // Get numerator
-  let sd_raw: powerbi.DataViewValueColumn = view.values[indices.sd];
 
   let numerator: number[] = <number[]>view.values[indices.numerator].values;
   let denominator: number[] = <number[]>view.values[indices.denominator].values;
-  let sd: number[] = indices.sd ? <number[]>view.values[indices.sd].values : [];
   let data_type: string = indices.chart_type ? view.values[indices.chart_type].values[0] : settings.funnel.data_type.value;
 
   let valid_ids: number[] = denominator.map(
@@ -100,7 +94,6 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
       let is_valid: boolean =
         checkValid(d, true) &&
         checkValid(numerator[idx]);
-      is_valid = data_type == "mean" ? is_valid && checkValid(sd[idx], true) : is_valid;
 
       if(is_valid) {
         return idx;
@@ -110,8 +103,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
   let data_array_filtered: dataArray = {
     id: valid_ids.filter((d,idx) => valid_ids.indexOf(idx) != -1),
     numerator: numerator.filter((d,idx) => valid_ids.indexOf(idx) != -1),
-    denominator: denominator.filter((d,idx) => valid_ids.indexOf(idx) != -1),
-    sd: data_type == "mean" ? sd.filter((d,idx) => valid_ids.indexOf(idx) != -1) : [null]
+    denominator: denominator.filter((d,idx) => valid_ids.indexOf(idx) != -1)
   };
 
   // Get groups of dots to highlight

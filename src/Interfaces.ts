@@ -5,7 +5,6 @@ import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 interface measureIndex {
   numerator: number,
   denominator: number,
-  sd: number,
   chart_type: number,
   chart_multiplier: number
 }
@@ -14,7 +13,6 @@ interface dataArray {
   id: number[];
   numerator: number[];
   denominator: number[];
-  sd: number[];
 }
 
 interface groupedData {

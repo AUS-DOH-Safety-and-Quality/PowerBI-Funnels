@@ -86,10 +86,10 @@ export class Visual implements IVisual {
 
     // Update dot highlighting on initialisation
     this.selectionManager.registerOnSelectCallback(() => {
-        highlightIfSelected(this.dotSelection,
-                            this.selectionManager.getSelectionIds() as ISelectionId[],
-                            this.settings.scatter.opacity.value,
-                            this.settings.scatter.opacity_unselected.value);
+      highlightIfSelected(this.dotSelection,
+                          this.selectionManager.getSelectionIds() as ISelectionId[],
+                          this.settings.scatter.opacity.value,
+                          this.settings.scatter.opacity_unselected.value);
     })
   }
 
@@ -220,20 +220,19 @@ export class Visual implements IVisual {
                               .selectAll(".line")
                               .data(this.viewModel.groupedLines);
 
-                              console.log("d")
     makeLines(this.lineSelection, this.settings,
               xScale, yScale, this.viewModel,
               this.viewModel.highlights);
     this.lineSelection.exit().remove()
 
     this.svg.on('contextmenu', () => {
-    const eventTarget: EventTarget = (<any>d3).event.target;
-    let dataPoint: ScatterDots = <ScatterDots>(d3.select(<d3.BaseType>eventTarget).datum());
-    this.selectionManager.showContextMenu(dataPoint ? dataPoint.identity : {}, {
+      const eventTarget: EventTarget = (<any>d3).event.target;
+      let dataPoint: ScatterDots = <ScatterDots>(d3.select(<d3.BaseType>eventTarget).datum());
+      this.selectionManager.showContextMenu(dataPoint ? dataPoint.identity : {}, {
         x: (<any>d3).event.clientX,
         y: (<any>d3).event.clientY
-    });
-    (<any>d3).event.preventDefault();
+      });
+      (<any>d3).event.preventDefault();
     });
     this.listeningRectSelection.exit().remove()
     console.log("fin")

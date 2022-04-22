@@ -60,10 +60,10 @@ function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
   //   limits should extend past the maximum observed denominator by 10% (for clarity)
   let x_range: number[] = seq(1, maxDenominator + maxDenominator*0.1,
                                 maxDenominator*0.01).concat(data_array_filtered.denominator);
-  let x_range_array = {
+  let x_range_array: dataArray = {
+    id: [],
     numerator: x_range,
-    denominator: x_range,
-    sd: data_array_filtered.sd
+    denominator: x_range
   }
 
   // Converting od_adjust option to boolean. Uses the
@@ -71,15 +71,12 @@ function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
   //   adjust if user wants auto-adjustment
   // tau2 is fixed to zero if the dispersion test is not met
   //    so a value greater than 0 indicates sufficient dispersion
-  var od_bool: boolean = (od_adjust == "auto") ? (tau2 > 0) : (od_adjust == "yes");
+  let od_bool: boolean = (od_adjust == "auto") ? (tau2 > 0) : (od_adjust == "yes");
 
-  // If unadjusted limits for proportion data are requested then
-  //    the unadjusted target line is needed for estimating the
-  //    standard errors.
   let target: number = getTarget(data_array_filtered, data_type, od_bool);
 
   // Estimate the associated standard error for each denominator value
-  var se_range: number[] = se_range = getSE(x_range_array, data_type, od_bool, target);
+  let se_range: number[]  = getSE(x_range_array, data_type, od_bool, target);
   let limitsArray: number[][] = getLimit(qs, target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]);
 
   // Filtering to handle non-monotonic limits
@@ -100,9 +97,8 @@ function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
     }
   })
 
-  let maxRatio: number = data_type == "mean" ?
-    d3.max(data_array_filtered.numerator) :
-    Math.max(divide(data_array_filtered.numerator, data_array_filtered.denominator))
+  let maxRatio: number = d3.max(divide(data_array_filtered.numerator,
+                                       data_array_filtered.denominator))
 
   // For each interval, generate the limit values and sort by ascending order of denominator.
   //    The unadjusted target line is also returned for later plotting.

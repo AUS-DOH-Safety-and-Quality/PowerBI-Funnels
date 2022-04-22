@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { multiply } from "../Helper Functions/BinaryBroadcasting"
+import { dataArray } from "../Interfaces"
 
 /**
  * Function for generating the 'target' value for funnel plots. If
@@ -16,8 +16,8 @@ import { multiply } from "../Helper Functions/BinaryBroadcasting"
  * @param transformed   - Whether a transformed target is needed
  * @returns             - Target value
  */
-function getTarget(data_array: { numerator: number[]; denominator: number[]; sd: number[]; },
-                   type: string, transformed: boolean): number {
+function getTarget(data_array: dataArray, type: string,
+                   transformed: boolean): number {
   let numerator: number[] = data_array.numerator;
   let denominator: number[] = data_array.denominator;
   if (type == "SR") {
@@ -35,9 +35,6 @@ function getTarget(data_array: { numerator: number[]; denominator: number[]; sd:
     } else {
       return d3.sum(numerator) / d3.sum(denominator);
     }
-  } else if (type == "mean") {
-    return d3.sum(multiply(numerator, denominator)) /
-           d3.sum(denominator)
   }
 }
 
