@@ -18,26 +18,27 @@ import { multiply } from "../Helper Functions/BinaryBroadcasting"
  */
 function getTarget(data_array: { numerator: number[]; denominator: number[]; sd: number[]; },
                    type: string, transformed: boolean): number {
-    let numerator: number[] = data_array.numerator;
-    let denominator: number[] = data_array.denominator;
-    if (type == "SR") {
-        return 1.0;
-    } else if (type == "PR") {
-        let ratio: number = d3.sum(numerator) / d3.sum(denominator);
-        if (transformed) {
-            return Math.asin(Math.sqrt(ratio));
-        } else {
-            return ratio;
-        }
-    } else if (type == "RC") {
-        if (transformed) {
-            return Math.log(d3.sum(numerator)) - Math.log(d3.sum(denominator));
-        } else {
-            return d3.sum(numerator) / d3.sum(denominator);
-        }
-    } else if (type == "mean") {
-        return d3.sum(multiply(numerator, denominator)) / d3.sum(denominator)
+  let numerator: number[] = data_array.numerator;
+  let denominator: number[] = data_array.denominator;
+  if (type == "SR") {
+    return 1.0;
+  } else if (type == "PR") {
+    let ratio: number = d3.sum(numerator) / d3.sum(denominator);
+    if (transformed) {
+      return Math.asin(Math.sqrt(ratio));
+    } else {
+      return ratio;
     }
+  } else if (type == "RC") {
+    if (transformed) {
+      return Math.log(d3.sum(numerator)) - Math.log(d3.sum(denominator));
+    } else {
+      return d3.sum(numerator) / d3.sum(denominator);
+    }
+  } else if (type == "mean") {
+    return d3.sum(multiply(numerator, denominator)) /
+           d3.sum(denominator)
+  }
 }
 
 export default getTarget;

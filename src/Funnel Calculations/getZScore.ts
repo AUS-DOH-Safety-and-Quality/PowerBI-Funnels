@@ -10,7 +10,7 @@ import { divide, subtract } from "../Helper Functions/BinaryBroadcasting";
  * @returns
  */
 function getZScore(y: number[], SE: number[], target: number): number[] {
-    return divide(subtract(y, target), SE);
+  return divide(subtract(y, target), SE);
 }
 
 export default getZScore;

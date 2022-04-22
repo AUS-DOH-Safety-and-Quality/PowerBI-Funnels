@@ -1,15 +1,15 @@
 import * as d3 from "d3";
-import { square } from "./HelperFunctions"
+import { square } from "../Helper Functions/UnaryBroadcasting"
 
 /**
  * Estimate the dispersion ratio of the observed responses using
  *    winsorised z-scores
- * 
- * @param z_adj 
- * @returns 
+ *
+ * @param z_adj
+ * @returns
  */
 function getPhi(z_adj: number[]): number {
-    return d3.sum(square(z_adj)) / z_adj.length;
+  return d3.sum(square(z_adj)) / z_adj.length;
 }
 
 export default getPhi;

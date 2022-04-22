@@ -33,39 +33,38 @@ import { divide, all_equal, multiply, add } from "../Helper Functions/BinaryBroa
  */
 function getSE(data_array: { numerator: number[]; denominator: number[]; sd: number[]; },
                data_type: string, adjusted: boolean, target?: number): number[] {
-    let denominator: number[] = data_array.denominator;
-    let numerator: number[] = data_array.numerator;
-    let t: number[] = sqrt(denominator)
-    if (data_type == "PR") {
-        if (adjusted) {
-            return inv(multiply(2.0, sqrt(denominator)));
-        } else {
-            let se_num: number = target * (1 - target);
-            return sqrt(divide(se_num, denominator));
-        }
-    } else if (data_type == "SR") {
-        if (adjusted) {
-            return inv(multiply(2.0, sqrt(denominator)));
-        } else {
-            return [];
-        }
-    } else if (data_type = "RC") {
-        return sqrt(
-          add(divide(numerator, square(add(numerator, 0.5))),
-              divide(denominator, square(add(denominator, 0.5))))
-        )
-    } else if (data_type = "mean") {
-        let sd: number[] = data_array.sd;
-        let n: number[] = data_array.denominator;
-        let m: number[] = data_array.numerator;
-        // If calculating SE for limits, use average SD
-        if(all_equal(n, m)) {
-          let average_sd: number = d3.sum(sd) / d3.sum(n);
-          return divide(average_sd, sqrt(n));
-        }
-
-        return divide(sd, sqrt(n));
+  let denominator: number[] = data_array.denominator;
+  let numerator: number[] = data_array.numerator;
+  if (data_type == "PR") {
+    if (adjusted) {
+      return inv(multiply(2.0, sqrt(denominator)));
+    } else {
+      let se_num: number = target * (1 - target);
+      return sqrt(divide(se_num, denominator));
     }
+  } else if (data_type == "SR") {
+    if (adjusted) {
+      return inv(multiply(2.0, sqrt(denominator)));
+    } else {
+      return [];
+    }
+  } else if (data_type = "RC") {
+    return sqrt(
+      add(divide(numerator, square(add(numerator, 0.5))),
+          divide(denominator, square(add(denominator, 0.5))))
+    )
+  } else if (data_type = "mean") {
+    let sd: number[] = data_array.sd;
+    let n: number[] = data_array.denominator;
+    let m: number[] = data_array.numerator;
+    // If calculating SE for limits, use average SD
+    if(all_equal(n, m)) {
+      let average_sd: number = d3.sum(sd) / d3.sum(n);
+      return divide(average_sd, sqrt(n));
+    }
+
+    return divide(sd, sqrt(n));
+  }
 }
 
 export default getSE;

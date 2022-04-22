@@ -17,9 +17,11 @@ const asin = broadcast_unary(Math.asin);
 const square = broadcast_unary((x) => math.pow(x, 2));
 const inv = broadcast_unary((x) => 1.0 / x);
 
-export { sqrt };
-export { square };
-export { exp };
-export { inv };
-export { asin };
-export { log };
+export {
+  sqrt,
+  square,
+  exp,
+  inv,
+  asin,
+  log
+};

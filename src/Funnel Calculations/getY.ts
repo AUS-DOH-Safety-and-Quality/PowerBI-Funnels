@@ -15,18 +15,18 @@ import { sqrt, asin, log } from "../Helper Functions/UnaryBroadcasting";
  */
 function getY(data_array: { numerator: number[]; denominator: number[]; sd: number[]; },
               data_type: string): number[] {
-    let numerator: number[] = data_array.numerator;
-    let denominator: number[] = data_array.denominator;
-    if (data_type == "PR") {
-        return asin(sqrt(divide(numerator, denominator)));
-    } else if (data_type == "SR") {
-        return sqrt(divide(numerator, denominator));
-    } else if (data_type == "RC") {
-        return log(divide(add(numerator, 0.5),
-                          add(denominator, 0.5)));
-    } else if (data_type == "mean") {
-        return data_array.numerator;
-    }
+  let numerator: number[] = data_array.numerator;
+  let denominator: number[] = data_array.denominator;
+  if (data_type == "PR") {
+    return asin(sqrt(divide(numerator, denominator)));
+  } else if (data_type == "SR") {
+    return sqrt(divide(numerator, denominator));
+  } else if (data_type == "RC") {
+    return log(divide(add(numerator, 0.5),
+                      add(denominator, 0.5)));
+  } else if (data_type == "mean") {
+    return data_array.numerator;
+  }
 }
 
 export default getY;
