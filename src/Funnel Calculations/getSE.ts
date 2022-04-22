@@ -1,6 +1,6 @@
-import * as d3 from "d3";
+import { dataArray } from "../Interfaces"
 import { sqrt, inv, square } from "../Helper Functions/UnaryBroadcasting"
-import { divide, all_equal, multiply, add } from "../Helper Functions/BinaryBroadcasting"
+import { divide, multiply, add } from "../Helper Functions/BinaryBroadcasting"
 
 /**
  * Function to generate standard errors needed for constructing
@@ -31,8 +31,8 @@ import { divide, all_equal, multiply, add } from "../Helper Functions/BinaryBroa
  *                          the target value is needed
  * @returns
  */
-function getSE(data_array: { numerator: number[]; denominator: number[]; sd: number[]; },
-               data_type: string, adjusted: boolean, target?: number): number[] {
+function getSE(data_array: dataArray, data_type: string,
+               adjusted: boolean, target?: number): number[] {
   let denominator: number[] = data_array.denominator;
   let numerator: number[] = data_array.numerator;
   if (data_type == "PR") {
@@ -53,17 +53,6 @@ function getSE(data_array: { numerator: number[]; denominator: number[]; sd: num
       add(divide(numerator, square(add(numerator, 0.5))),
           divide(denominator, square(add(denominator, 0.5))))
     )
-  } else if (data_type = "mean") {
-    let sd: number[] = data_array.sd;
-    let n: number[] = data_array.denominator;
-    let m: number[] = data_array.numerator;
-    // If calculating SE for limits, use average SD
-    if(all_equal(n, m)) {
-      let average_sd: number = d3.sum(sd) / d3.sum(n);
-      return divide(average_sd, sqrt(n));
-    }
-
-    return divide(sd, sqrt(n));
   }
 }
 

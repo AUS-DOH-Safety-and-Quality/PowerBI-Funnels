@@ -1,4 +1,4 @@
-import { prop_limit, smr_limit, rc_limit, mn_limit } from "./limitFunctions";
+import { prop_limit, smr_limit, rc_limit } from "./limitFunctions";
 
 /**
  * Function to generate control limits, either adjusted or un-adjusted.
@@ -33,8 +33,6 @@ function getLimit(qs: number[], target: number, denominator: number[], SE: numbe
     limitFunction = smr_limit;
   } else if (data_type == "RC") {
     limitFunction = rc_limit;
-  } else if (data_type == "mean") {
-    limitFunction = mn_limit;
   }
 
   return denominator.map(
