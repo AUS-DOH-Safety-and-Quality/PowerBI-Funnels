@@ -4,8 +4,7 @@
     "pbiviz": "pbiviz",
     "start": "pbiviz start",
     "package": "pbiviz package",
-    "lint": "tslint -c tslint.json -p tsconfig.json",
-    "test": "mocha -r ts-node/register 'src/Unit Tests/Testing.ts'"
+    "lint": "tslint -c tslint.json -p tsconfig.json"
   },
   "dependencies": {
     "@babel/runtime": "^7.6.0",
@@ -21,10 +20,6 @@
     "regenerator-runtime": "^0.13.9"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.17",
-    "@types/mocha": "^8.2.2",
-    "chai": "^4.3.4",
-    "mocha": "^8.3.2",
     "process": "^0.11.10",
     "ts-loader": "6.1.0",
     "ts-node": "^9.1.1",
