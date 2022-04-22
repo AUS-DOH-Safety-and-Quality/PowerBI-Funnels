@@ -1,14 +1,15 @@
 import * as d3 from "d3";
+import { inv, square } from "./HelperFunctions"
 
 /**
  * Estimate the between-unit variance to adjust control limits
  *     by, using the DerSimonian & Laird Method-of-Moments estimator.
  *     If the dispersion ratio is not sufficiently large enough to warrant
  *     adjustment then this is fixed to zero.
- * 
+ *
  * @param phi   - Sample dispersion ratio
  * @param SE    - Array of standard errors for each unit
- * @returns 
+ * @returns
  */
 function getTau2(phi: number, SE: number[]): number {
     let N: number = SE.length;
@@ -16,8 +17,8 @@ function getTau2(phi: number, SE: number[]): number {
     if (N * phi < N - 1) { return 0.0; }
 
     // Construct sample weights (inverse variances)
-    let w: number[] = SE.map(d => d*d).map(d => 1.0 / d);
-    let w_sq: number[] = w.map(d => d*d);
+    let w: number[] = inv(square(SE));
+    let w_sq: number[] = square(w);
     let w_sum: number  = d3.sum(w);
     let w_sq_sum: number = d3.sum(w_sq);
 

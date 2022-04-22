@@ -8,7 +8,8 @@ import winsoriseZScore from "./Funnel Calculations/winsoriseZScore";
 import getPhi from "./Funnel Calculations/getPhi";
 import getTau2 from "./Funnel Calculations/getTau2";
 import getLimit from "./Funnel Calculations/getLimit";
-import { seq } from "./Funnel Calculations/HelperFunctions"
+import { divide } from "./Helper Functions/BinaryBroadcasting"
+import { seq } from "./Helper Functions/Utilities"
 import { dataArray  } from "./Interfaces"
 
 
@@ -17,18 +18,18 @@ import { dataArray  } from "./Interfaces"
  *   indirectly standardised ratios are currently supported. Overdispersion-
  *   adjusted limits can be requested, or automatically applied if determined
  *   necessary by the methods outlined in Spiegelhalter et al. (2012).
- * 
+ *
  * If unadjusted limits are requested, then the following methods are used:
  *      - Proportion:          Normal approximation to the Binomial
  *      - Standardised Ratio:  Exact Poisson limits using the quantile function
  *                                 of the Chi-Squared distribution
- * 
+ *
  * If overdispersion-adjusted limits are requested, then the additive random effects
  *    adjustment outlined in Spiegelhalter et al. (2012) is applied.
- * 
- *  Spiegelhalter, D. J., Sherlaw-Johnson, C., Bardsley, M., Blunt, I., Wood, C., & Grigg,O. (2012). 
- *      Statistical methods for healthcare regulation: Rating, screening and surveillance. Journal 
- *      of the Royal Statistical Society: Series A (Statistics in Society) ,175, 1-47. 
+ *
+ *  Spiegelhalter, D. J., Sherlaw-Johnson, C., Bardsley, M., Blunt, I., Wood, C., & Grigg,O. (2012).
+ *      Statistical methods for healthcare regulation: Rating, screening and surveillance. Journal
+ *      of the Royal Statistical Society: Series A (Statistics in Society) ,175, 1-47.
  *      doi: 10.1111/j.1467-985X.2011.01010.x
  *
  * @param numerator        - Numerator array (e.g., observed deaths)
@@ -59,13 +60,13 @@ function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
 
     // Generate sequence of values to calculate limits for, specifying that the
     //   limits should extend past the maximum observed denominator by 10% (for clarity)
-    let x_range: number[] = seq(1, maxDenominator + maxDenominator*0.1, 
+    let x_range: number[] = seq(1, maxDenominator + maxDenominator*0.1,
                                   maxDenominator*0.01).concat(data_array_filtered.denominator);
     let x_range_array = {numerator: x_range,
                          denominator: x_range,
                          sd: data_array_filtered.sd}
 
-    // Converting od_adjust option to boolean. Uses the 
+    // Converting od_adjust option to boolean. Uses the
     //   estimate of between-unit variance (tau2) to determine whether to
     //   adjust if user wants auto-adjustment
 
@@ -77,8 +78,8 @@ function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
     //    the unadjusted target line is needed for estimating the
     //    standard errors.
     let target: number = getTarget(data_array_filtered, data_type, od_bool);
-    
-    
+
+
     // Estimate the associated standard error for each denominator value
     var se_range: number[] = se_range = getSE(x_range_array, data_type, od_bool, target);
     let limitsArray: number[][] = getLimit(qs, target, x_range, se_range, tau2, od_bool, data_type).sort((a,b) => a[0] - b[0]);
@@ -101,9 +102,8 @@ function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
         }
     })
 
-    let maxRatio: number = data_type == "mean" ? d3.max(data_array_filtered.numerator) : d3.max(data_array_filtered.numerator.map(
-        (d,idx) => d / data_array_filtered.denominator[idx]
-    ))
+    let maxRatio: number = data_type == "mean" ? d3.max(data_array_filtered.numerator) :
+      Math.max(divide(data_array_filtered.numerator, data_array_filtered.denominator))
 
     // For each interval, generate the limit values and sort by ascending order of denominator.
     //    The unadjusted target line is also returned for later plotting.

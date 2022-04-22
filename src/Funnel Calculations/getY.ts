@@ -1,3 +1,5 @@
+import { divide, add } from "../Helper Functions/BinaryBroadcasting";
+import { sqrt, asin, log } from "../Helper Functions/UnaryBroadcasting";
 
 /**
  * Function to apply variance-stabilising transform to outcome
@@ -5,28 +7,23 @@
  *    used:
  *      - Proportion: Inverse-sine
  *      - Standardised Ratio: Square-root
- * 
- * @param numerator 
- * @param denominator 
- * @param data_type 
- * @returns 
+ *
+ * @param numerator
+ * @param denominator
+ * @param data_type
+ * @returns
  */
 function getY(data_array: { numerator: number[]; denominator: number[]; sd: number[]; },
               data_type: string): number[] {
     let numerator: number[] = data_array.numerator;
     let denominator: number[] = data_array.denominator;
     if (data_type == "PR") {
-        return numerator.map(
-            (d, idx) => Math.asin(Math.sqrt(d / denominator[idx]))
-        );
+        return asin(sqrt(divide(numerator, denominator)));
     } else if (data_type == "SR") {
-        return numerator.map(
-            (d, idx) => Math.sqrt(d / denominator[idx])
-        );
+        return sqrt(divide(numerator, denominator));
     } else if (data_type == "RC") {
-        return numerator.map(
-            (d,idx) => Math.log(d+0.5) - Math.log(denominator[idx]+0.5)
-        )
+        return log(divide(add(numerator, 0.5),
+                          add(denominator, 0.5)));
     } else if (data_type == "mean") {
         return data_array.numerator;
     }
