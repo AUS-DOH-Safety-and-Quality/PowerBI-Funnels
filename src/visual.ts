@@ -103,6 +103,7 @@ export class Visual implements IVisual {
     this.viewModel = getViewModel(options, this.settings, this.host);
     this.settings.funnel.data_type.value = this.viewModel.data_type;
     this.settings.funnel.multiplier.value = this.viewModel.multiplier;
+    console.log(this.viewModel);
 
     // Get the width and height of plotting space
     let width: number = options.viewport.width;
@@ -235,6 +236,7 @@ export class Visual implements IVisual {
     (<any>d3).event.preventDefault();
     });
     this.listeningRectSelection.exit().remove()
+    console.log("fin")
   }
 
   // Function to render the properties specified in capabilities.json to the properties pane

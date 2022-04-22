@@ -29,7 +29,7 @@ function highlightIfSelected(DotObject: d3.Selection<any, any, any, any>,
         = checkIDSelected(selectionIds, d.identity) ? opacitySelected : opacityUnselected;
 
     (<any>d3).select(DotObject)
-              .style("fill-opacity", opacity);
+             .style("fill-opacity", opacity);
   });
 }
 
