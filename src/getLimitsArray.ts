@@ -45,7 +45,7 @@ function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
     //    between-hospital variance (tau2). These are are used to
     //    test and adjust for overdispersion
   let target_od: number = getTarget(data_array_filtered, data_type, true);
-  var SE: number[] = getSE(data_array_filtered, data_type, true);
+  let SE: number[] = getSE(data_array_filtered, data_type, true);
   let y: number[] = getY(data_array_filtered, data_type);
   let z: number[] = getZScore(y, SE, target_od);
   let z_adj: number[] = winsoriseZScore(z);
@@ -59,7 +59,7 @@ function getLimitsArray(data_array_filtered: dataArray, maxDenominator: number,
   // Generate sequence of values to calculate limits for, specifying that the
   //   limits should extend past the maximum observed denominator by 10% (for clarity)
   let x_range: number[] = seq(1, maxDenominator + maxDenominator*0.1,
-                                maxDenominator*0.01).concat(data_array_filtered.denominator);
+                              maxDenominator*0.01).concat(data_array_filtered.denominator);
   let x_range_array: dataArray = {
     id: [],
     numerator: x_range,

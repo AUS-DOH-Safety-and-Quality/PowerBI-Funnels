@@ -18,10 +18,10 @@ import makeDots from "./Plotting Functions/makeDots";
 import makeLines from "./Plotting Functions/makeLines";
 import updateSettings from "./Plot Settings/updateSettings";
 import getViewModel from "../src/getViewModel";
-import initSettings from "./Plot Settings/initSettings";
+import settingsObject from "./Classes/settingsObject";
 import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
-import { ViewModel, ScatterDots } from "./Interfaces"
+import { ViewModel, ScatterDots } from "./Classes/Interfaces"
 import getTransformation from "./Funnel Calculations/getTransformation";
 
 type SelectionSVG = d3.Selection<SVGElement, any, any, any>;
@@ -50,7 +50,7 @@ export class Visual implements IVisual {
   private selectionManager: ISelectionManager;
 
   // Settings for plot aesthetics
-  private settings = initSettings();
+  private settings = new settingsObject();
 
   constructor(options: VisualConstructorOptions) {
     // Add reference to host object, for accessing environment (e.g. colour)

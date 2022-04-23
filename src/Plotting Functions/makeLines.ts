@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { ViewModel, groupedData } from "../Interfaces"
+import { ViewModel, groupedData } from "../Classes/Interfaces"
 
 /**
  * Function for plotting the control limit and target lines, as well

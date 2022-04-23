@@ -242,7 +242,7 @@ function getViewModel(options: VisualUpdateOptions, settings: any,
   }
 
   let maxLimit: number = d3.max(viewModel.lineData.map(d => d.value));
-  let maxRatio: number = <number><unknown>d3.max(divide(data_array_filtered.numerator, data_array_filtered.denominator));
+  let maxRatio: number = d3.max(divide(data_array_filtered.numerator, data_array_filtered.denominator));
 
   // Extract maximum value of input data and add to viewModel
   viewModel.maxRatio = transformation(maxRatio + maxRatio*0.1);

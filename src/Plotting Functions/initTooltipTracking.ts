@@ -1,7 +1,7 @@
 import powerbi from "powerbi-visuals-api";
 import ITooltipService = powerbi.extensibility.ITooltipService;
 import * as d3 from "d3";
-import { ViewModel } from "../Interfaces"
+import { ViewModel } from "../Classes/Interfaces"
 
 function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                              listeningRect: d3.Selection<any, any, any, any>,
