@@ -40,11 +40,7 @@ let rcLimit = function(args: limitArguments): number {
   let limit_transformed: number = target + q * sqrt(square(SE) + tau2);
   let limit: number = exp(Math.sin(limit_transformed));
 
-  if (limit < 0.0) {
-    return 0.0;
-  } else {
-    return limit;
-  }
+  return limit < 0.0 ? 0.0 : limit;
 }
 
 class rcFunnelObject extends chartObject {

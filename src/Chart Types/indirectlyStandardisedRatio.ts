@@ -2,7 +2,7 @@ import * as stats from '@stdlib/stats/base/dists';
 import chartObject from "../Classes/chartObject"
 import dataArray from '../Classes/dataArray';
 import limitArguments from '../Classes/limitArgs';
-import { sqrt, inv, asin, square } from "../Function Broadcasting/UnaryFunctions"
+import { sqrt, inv, square } from "../Function Broadcasting/UnaryFunctions"
 import { multiply, divide } from "../Function Broadcasting/BinaryFunctions"
 
 let smrSE = function(inputData: dataArray): number[] {
@@ -32,11 +32,7 @@ let smrLimitOD = function(args: limitArguments) {
   let limit_transformed: number = target + q * sqrt(square(SE) + tau2);
   let limit: number = square(limit_transformed);
 
-  if (limit < 0.0) {
-    return 0.0;
-  } else {
-    return limit;
-  }
+  return limit < 0.0 ? 0.0 : limit;
 }
 
 let smrLimit = function(args: limitArguments) {
@@ -49,11 +45,7 @@ let smrLimit = function(args: limitArguments) {
   let limit: number = (stats.chisquare.quantile(p, 2 * (denominator + offset)) / 2.0)
                         / denominator;
 
-  if (limit < 0.0) {
-    return 0.0;
-  } else {
-    return limit;
-  }
+  return limit < 0.0 ? 0.0 : limit;
 }
 
 class smrFunnelObject extends chartObject {
