@@ -102,7 +102,7 @@ function makeDots(DotObject: d3.Selection<SVGCircleElement, any, any, any>,
         });
       })
       // Hide tooltip when mouse moves out of dot
-      .on("mouseout", d => {
+      .on("mouseout", () => {
         tooltipService.hide({
           immediately: true,
           isTouchEvent: false
@@ -112,7 +112,7 @@ function makeDots(DotObject: d3.Selection<SVGCircleElement, any, any, any>,
   MergedDotObject.exit().remove();
   DotObject.exit().remove();
 
-  svg.on('click', (d) => {
+  svg.on('click', () => {
     selectionManager.clear();
     highlightIfSelected(MergedDotObject, [], settings.scatter.opacity.value,
                         settings.scatter.opacity_unselected.value);

@@ -1,6 +1,7 @@
 import powerbi from "powerbi-visuals-api";
 import dataArray from "../Classes/dataArray";
-import { checkValidInput, extractValues } from "../Helper Functions/Utilities";
+import checkValidInput from "./checkValidInput"
+import extractValues from "./extractValues"
 import settingsObject from "../Classes/settingsObject"
 
 function extractInputData(inputView: powerbi.DataViewCategorical,

@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import powerbi from "powerbi-visuals-api";
 import getTransformation from "../Funnel Calculations/getTransformation";
 import invertTransformation from "../Funnel Calculations/invertTransformation";
-import { divide } from "../Helper Functions/BinaryBroadcasting"
+import { divide } from "../Function Broadcasting/BinaryFunctions"
 
 type dataArrayConstructorT = {
   id?: number[],

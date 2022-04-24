@@ -20,7 +20,7 @@ import settingsObject from "./Classes/settingsObject";
 import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
 import viewModelObject from "./Classes/viewModel"
-import { scatterDotsObject } from "./Classes/scatterDotsObject"
+import scatterDotsObject from "./Classes/scatterDotsObject"
 
 type SelectionSVG = d3.Selection<SVGElement, any, any, any>;
 type SelectionSVGG = d3.Selection<SVGGElement, any, any, any>;

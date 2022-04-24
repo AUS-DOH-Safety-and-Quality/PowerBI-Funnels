@@ -11,7 +11,7 @@ import dataArray from "./dataArray";
 import limitData from "./limitData";
 import lineData from "./lineData"
 import axisLimits from "./axisLimits"
-import { scatterDotsObject } from "./scatterDotsObject"
+import scatterDotsObject from "./scatterDotsObject"
 
 type nestReturnT = {
   key: string;

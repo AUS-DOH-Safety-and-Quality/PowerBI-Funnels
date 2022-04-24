@@ -2,8 +2,8 @@ import * as d3 from "d3";
 import chartObject from "../Classes/chartObject"
 import dataArray from "../Classes/dataArray";
 import limitArguments from "../Classes/limitArgs";
-import { sqrt, inv, asin, square } from "../Helper Functions/UnaryBroadcasting"
-import { multiply, divide } from "../Helper Functions/BinaryBroadcasting"
+import { sqrt, inv, asin, square } from "../Function Broadcasting/UnaryFunctions"
+import { multiply, divide } from "../Function Broadcasting/BinaryFunctions"
 
 let prSE = function(inputData: dataArray): number[] {
   let denominator: number[] = inputData.denominator;

@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import * as stats from '@stdlib/stats/base/dists';
-import { seq } from "../Helper Functions/Utilities";
+import seq from "../Data Preparation/seq"
 import limitData from "./limitData";
 import intervalData from "./intervalData";
 import dataArray from "./dataArray";

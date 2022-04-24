@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { divide } from "../Helper Functions/BinaryBroadcasting"
+import { divide } from "../Function Broadcasting/BinaryFunctions"
 import limitData from "./limitData";
 import settingsObject from "./settingsObject";
 import dataArray from "./dataArray"

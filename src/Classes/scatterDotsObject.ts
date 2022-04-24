@@ -67,7 +67,6 @@ class scatterDotsObject {
   }
 };
 
-export {
-  scatterDotsConstructorT,
-  scatterDotsObject
-}
+export default scatterDotsObject;
+
+export { scatterDotsConstructorT };
