@@ -5,18 +5,19 @@ import ISelectionId = powerbi.visuals.ISelectionId;
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
 type scatterDotsConstructorT = {
-  category: string;
-  numerator: number;
-  denominator: number;
-  colour: string;
-  highlighted: boolean;
-  data_type: string;
-  multiplier: number;
-  target: number;
-  transform_text: string;
-  transform: (x: number) => number;
-  limits: limitData;
-  prop_labels: boolean;
+  category?: string;
+  numerator?: number;
+  denominator?: number;
+  colour?: string;
+  highlighted?: boolean;
+  data_type?: string;
+  multiplier?: number;
+  target?: number;
+  transform_text?: string;
+  transform?: (x: number) => number;
+  limits?: limitData;
+  prop_labels?: boolean;
+  empty?: boolean
 }
 
 class scatterDotsObject {
@@ -33,6 +34,17 @@ class scatterDotsObject {
   tooltip: VisualTooltipDataItem[];
 
   constructor(args: scatterDotsConstructorT) {
+    if (args.empty) {
+      this.category = null;
+      this.numerator = null;
+      this.denominator = null;
+      this.ratio = null;
+      this.colour = null;
+      this.highlighted = null;
+      this.identity = null;
+      this.tooltip = null;
+      return;
+    }
     this.category = args.category;
     this.numerator = args.numerator;
     this.denominator = args.denominator;

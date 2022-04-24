@@ -112,10 +112,18 @@ export class Visual implements IVisual {
     this.svg.attr("width", width)
             .attr("height", height);
 
-    let yAxisMin: number = this.viewModel.axisLimits.y.lower;
-    let yAxisMax: number = this.viewModel.axisLimits.y.upper;
-    let xAxisMin: number = this.viewModel.axisLimits.x.lower;
-    let xAxisMax: number = this.viewModel.axisLimits.x.upper;
+    let yAxisMin: number = this.viewModel.axisLimits
+      ? this.viewModel.axisLimits.y.lower
+      : null;
+    let yAxisMax: number = this.viewModel.axisLimits
+      ? this.viewModel.axisLimits.y.upper
+      : null;
+    let xAxisMin: number = this.viewModel.axisLimits
+      ? this.viewModel.axisLimits.x.lower
+      : null;
+    let xAxisMax: number = this.viewModel.axisLimits
+      ? this.viewModel.axisLimits.x.upper
+      : null;
 
     let yAxisPadding: number = this.settings.axispad.y.padding.value;
     let xAxisPadding: number = this.settings.axispad.x.padding.value;
@@ -142,7 +150,9 @@ export class Visual implements IVisual {
                                       .selectAll(".ttip-line")
                                       .data(this.viewModel.scatterDots);
 
-    let displayPlot: boolean = this.viewModel.scatterDots.length > 1;
+    let displayPlot: boolean = this.viewModel.scatterDots
+      ? this.viewModel.scatterDots.length > 1
+      : null;
     if (displayPlot) {
       initTooltipTracking(
         this.svg,
@@ -157,7 +167,9 @@ export class Visual implements IVisual {
       );
     }
 
-    let prop_labels: boolean = this.viewModel.inputData.prop_labels;
+    let prop_labels: boolean = this.viewModel.inputData
+      ? this.viewModel.inputData.prop_labels
+      : null;
 
     let yAxis: d3.Axis<d3.NumberValue>
       = d3.axisLeft(yScale)

@@ -108,10 +108,16 @@ class viewModelObject {
   constructor(args: { options: VisualUpdateOptions;
                       inputSettings: settingsObject;
                       host: IVisualHost; }) {
-
     let dv: powerbi.DataView[] = args.options.dataViews;
-
     if (checkInvalidDataView(dv)) {
+      this.inputData = new dataArray({});
+      this.inputSettings = args.inputSettings;
+      this.chartBase = null;
+      this.calculatedLimits = null;
+      this.scatterDots = [new scatterDotsObject({ empty: true })];
+      this.groupedLines = [{ key: null, value: null, values: new lineData() }];
+      this.axisLimits = null;
+      this.anyHighlights = null;
       return;
     }
 

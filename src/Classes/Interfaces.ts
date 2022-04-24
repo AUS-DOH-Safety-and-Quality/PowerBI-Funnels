@@ -47,11 +47,13 @@ class dataArray {
     this.transform = pars.transform_text ? getTransformation(pars.transform_text) : null;
     this.inverse_transform = pars.transform_text ? invertTransformation(pars.transform_text) : null;
     this.dot_colour = pars.dot_colour ? pars.dot_colour : null;
-    this.maxDenominator = d3.max(this.denominator);
-    this.maxRatio = d3.max(divide(this.numerator, this.denominator));
-    this.prop_labels = this.data_type === "PR" &&
-                      this.multiplier === 1 &&
-                      this.transform_text === "none";
+    this.maxDenominator = pars.denominator ? d3.max(this.denominator) : null;
+    this.maxRatio = (pars.denominator && pars.numerator) ? d3.max(divide(this.numerator, this.denominator)) : null;
+    this.prop_labels = (pars.data_type && pars.multiplier && pars.transform_text)
+      ? this.data_type === "PR" &&
+          this.multiplier === 1 &&
+          this.transform_text === "none"
+      : null;
     this.multiplier = this.prop_labels ? 100 : this.multiplier;
     this.odAdjust = pars.odAdjust ? pars.odAdjust : null
   }
@@ -117,6 +119,14 @@ class lineData {
   group: string;
   colour: string;
   width: number;
+
+  constructor() {
+    this.x = null;
+    this.line_value = null;
+    this.group = null;
+    this.colour = null;
+    this.width = null;
+  }
 };
 
 class axisLimits {
