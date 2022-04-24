@@ -150,6 +150,9 @@ class chartObject {
     this.yFunction = args.yFunction;
     this.limitFunction = args.limitFunction;
     this.limitFunctionOD = args.limitFunctionOD;
+
+    this.inputData = null;
+    this.odAdjust = null;
   }
 }
 

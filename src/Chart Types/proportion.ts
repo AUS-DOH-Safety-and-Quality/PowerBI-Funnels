@@ -42,14 +42,19 @@ let prLimit = function(args: limitArguments) {
   }
 }
 
-let prFunnelObject = new chartObject({
-  seFunction: prSE,
-  seFunctionOD: prSE,
-  targetFunction: prTarget,
-  targetFunctionTransformed: prTargetTransformed,
-  yFunction: prY,
-  limitFunction: prLimit,
-  limitFunctionOD: prLimit
-});
+class prFunnelObject extends chartObject {
+  constructor(inputData: dataArray) {
+    super({
+      seFunction: prSE,
+      seFunctionOD: prSE,
+      targetFunction: prTarget,
+      targetFunctionTransformed: prTargetTransformed,
+      yFunction: prY,
+      limitFunction: prLimit,
+      limitFunctionOD: prLimit
+    });
+    this.inputData = inputData;
+  }
+}
 
 export default prFunnelObject;

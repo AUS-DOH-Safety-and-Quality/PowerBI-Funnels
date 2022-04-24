@@ -50,9 +50,10 @@ export class Visual implements IVisual {
   private selectionManager: ISelectionManager;
 
   // Settings for plot aesthetics
-  private settings = new settingsObject();
+  private settings: settingsObject;
 
   constructor(options: VisualConstructorOptions) {
+    console.log("Begin constructor")
     // Add reference to host object, for accessing environment (e.g. colour)
     this.host = options.host;
 
@@ -84,6 +85,8 @@ export class Visual implements IVisual {
     // Request a new selectionManager tied to the visual
     this.selectionManager = this.host.createSelectionManager();
 
+    this.settings = new settingsObject();
+
     // Update dot highlighting on initialisation
     this.selectionManager.registerOnSelectCallback(() => {
       highlightIfSelected(this.dotSelection,
@@ -91,11 +94,15 @@ export class Visual implements IVisual {
                           this.settings.scatter.opacity.value,
                           this.settings.scatter.opacity_unselected.value);
     })
+    console.log("End constructor")
   }
 
   public update(options: VisualUpdateOptions) {
+
+    console.log("Begin update")
     // Update settings object with user-specified values (if present)
     updateSettings(this.settings, options.dataViews[0].metadata.objects);
+    console.log("Updated settings")
 
     // Insert the viewModel object containing the user-input data
     //   This function contains the construction of the funnel
@@ -103,6 +110,7 @@ export class Visual implements IVisual {
     this.viewModel = new viewModelObject({ options: options,
                                            inputSettings: this.settings,
                                            host: this.host });
+    console.log(this.viewModel)
 
     // Get the width and height of plotting space
     let width: number = options.viewport.width;

@@ -46,14 +46,19 @@ let rcLimit = function(args: limitArguments): number {
   }
 }
 
-let rcFunnelObject = new chartObject({
-  seFunction: rcSE,
-  seFunctionOD: rcSE,
-  targetFunction: rcTarget,
-  targetFunctionTransformed: rcTargetTransformed,
-  yFunction: rcY,
-  limitFunction: rcLimit,
-  limitFunctionOD: rcLimit
-});
+class rcFunnelObject extends chartObject {
+  constructor(inputData: dataArray) {
+    super({
+      seFunction: rcSE,
+      seFunctionOD: rcSE,
+      targetFunction: rcTarget,
+      targetFunctionTransformed: rcTargetTransformed,
+      yFunction: rcY,
+      limitFunction: rcLimit,
+      limitFunctionOD: rcLimit
+    });
+    this.inputData = inputData;
+  }
+}
 
 export default rcFunnelObject;

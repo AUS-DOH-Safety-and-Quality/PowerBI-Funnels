@@ -55,14 +55,19 @@ let smrLimit = function(args: limitArguments) {
   }
 }
 
-let smrFunnelObject = new chartObject({
-  seFunction: smrSE,
-  seFunctionOD: smrSEOD,
-  targetFunction: smrTarget,
-  targetFunctionTransformed: smrTarget,
-  yFunction: smrY,
-  limitFunction: smrLimit,
-  limitFunctionOD: smrLimitOD
-});
+class smrFunnelObject extends chartObject {
+  constructor(inputData: dataArray) {
+    super({
+      seFunction: smrSE,
+      seFunctionOD: smrSEOD,
+      targetFunction: smrTarget,
+      targetFunctionTransformed: smrTarget,
+      yFunction: smrY,
+      limitFunction: smrLimit,
+      limitFunctionOD: smrLimitOD
+    });
+    this.inputData = inputData;
+  }
+}
 
 export default smrFunnelObject;

@@ -1,16 +1,31 @@
 class settingsPairNumber {
   default: number;
   value: number;
+
+  constructor(initialValue: number) {
+    this.default = initialValue;
+    this.value = initialValue;
+  }
 }
 
 class settingsPairString {
   default: string;
   value: string;
+
+  constructor(initialValue: string) {
+    this.default = initialValue;
+    this.value = initialValue;
+  }
 }
 
 class settingsPairNull {
   default: null;
   value: null;
+
+  constructor() {
+    this.default = null;
+    this.value = null;
+  }
 }
 
 class axispadSettings {
@@ -24,10 +39,14 @@ class axispadSettings {
   };
 
   constructor() {
-    this.x.padding.default = 50;
-    this.x.padding.value = 50;
-    this.x.end_padding.default = 10;
-    this.x.end_padding.value = 10;
+    this.x = {
+      padding: new settingsPairNumber(50),
+      end_padding: new settingsPairNumber(10)
+    };
+    this.y = {
+      padding: new settingsPairNumber(10),
+      end_padding: new settingsPairNumber(50)
+    };
   };
 };
 
@@ -36,17 +55,14 @@ class funnelSettings {
   od_adjust: settingsPairString;
   multiplier: settingsPairNumber;
   transformation: settingsPairString;
-  alt_target: settingsPairNull
+  alt_target: settingsPairNumber;
 
   constructor() {
-    this.data_type.default = "PR";
-    this.data_type.value = "PR";
-    this.od_adjust.default = "no";
-    this.od_adjust.value = "no";
-    this.multiplier.default = 1;
-    this.multiplier.value = 1;
-    this.transformation.default = "none";
-    this.transformation.value = "none";
+    this.data_type = new settingsPairString("PR");
+    this.od_adjust = new settingsPairString("no");
+    this.multiplier = new settingsPairNumber(1);
+    this.transformation = new settingsPairString("none");
+    this.alt_target = new settingsPairNumber(null);
   }
 }
 
@@ -57,14 +73,10 @@ class scatterSettings {
   opacity_unselected: settingsPairNumber;
 
   constructor() {
-    this.size.default = 3;
-    this.size.value = 3;
-    this.colour.default = "#000000";
-    this.colour.value = "#000000";
-    this.opacity.default = 1;
-    this.opacity.value = 1;
-    this.opacity_unselected.default = 0.2;
-    this.opacity_unselected.value = 0.2;
+    this.size = new settingsPairNumber(3);
+    this.colour = new settingsPairString("#000000");
+    this.opacity = new settingsPairNumber(1);
+    this.opacity_unselected = new settingsPairNumber(0.2);
   }
 }
 
@@ -79,22 +91,14 @@ class lineSettings {
   colour_alt_target: settingsPairString;
 
   constructor() {
-    this.width_99.default = 2;
-    this.width_99.value = 2;
-    this.width_95.default = 2;
-    this.width_95.value = 2;
-    this.width_target.default = 1.5;
-    this.width_target.value = 1.5;
-    this.width_alt_target.default = 1.5;
-    this.width_alt_target.value = 1.5;
-    this.colour_99.default = "#6495ED";
-    this.colour_99.value = "#6495ED";
-    this.colour_95.default = "#6495ED";
-    this.colour_95.value = "#6495ED";
-    this.colour_target.default = "#6495ED";
-    this.colour_target.value = "#6495ED";
-    this.colour_alt_target.default = "#6495ED";
-    this.colour_alt_target.value = "#6495ED";
+    this.width_99 = new settingsPairNumber(2);
+    this.width_95 = new settingsPairNumber(2);
+    this.width_target = new settingsPairNumber(1.5);
+    this.width_alt_target = new settingsPairNumber(1.5);
+    this.colour_99 = new settingsPairString("#6495ED");
+    this.colour_95 = new settingsPairString("#6495ED");
+    this.colour_target = new settingsPairString("#6495ED");
+    this.colour_alt_target = new settingsPairString("#6495ED");
   }
 }
 
@@ -107,19 +111,13 @@ class axisSettings {
   ylimit_u: settingsPairNull;
 
   constructor() {
-    this.xlimit_label.default = null;
-    this.xlimit_label.value = null;
-    this.ylimit_label.default = null;
-    this.ylimit_label.value = null;
-    this.xlimit_l.default = null;
-    this.xlimit_l.value = null;
-    this.xlimit_u.default = null;
-    this.xlimit_u.value = null;
-    this.ylimit_l.default = null;
-    this.ylimit_l.value = null;
-    this.ylimit_u.default = null;
-    this.ylimit_u.value = null;
-  }
+    this.xlimit_label = new settingsPairNull();
+    this.ylimit_label = new settingsPairNull();
+    this.xlimit_l = new settingsPairNull();
+    this.xlimit_u = new settingsPairNull();
+    this.ylimit_l = new settingsPairNull();
+    this.ylimit_u = new settingsPairNull();
+  };
 }
 
 class settingsObject {
@@ -130,11 +128,16 @@ class settingsObject {
   axis: axisSettings;
 
   constructor() {
+    console.log("Begin settings constructor")
     this.axispad = new axispadSettings();
+    console.log("axispad")
     this.funnel = new funnelSettings();
+    console.log("funnel")
     this.scatter = new scatterSettings();
+    console.log("scatter")
     this.lines = new lineSettings();
     this.axis = new axisSettings();
+    console.log("finished settings")
   }
 }
 

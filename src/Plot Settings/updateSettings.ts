@@ -1,4 +1,5 @@
 import powerbi from "powerbi-visuals-api";
+import settingsObject from "../Classes/settingsObject";
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
 /**
@@ -8,7 +9,8 @@ import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
  * @param settings        - Existing settings object to update
  * @param objects         - List of settings objects to get values from
  */
-function updateSettings(settings: any, objects: powerbi.DataViewObjects) {
+function updateSettings(settings: settingsObject, objects: powerbi.DataViewObjects) {
+  console.log("Begin funnel settings")
   settings.funnel.data_type.value = dataViewObjects.getValue(
     objects, {
       objectName: "funnel",
@@ -16,6 +18,7 @@ function updateSettings(settings: any, objects: powerbi.DataViewObjects) {
     },
     settings.funnel.data_type.default
   )
+  console.log("Updated funnel data type")
   settings.funnel.od_adjust.value = dataViewObjects.getValue(
     objects, {
       objectName: "funnel",
@@ -37,6 +40,7 @@ function updateSettings(settings: any, objects: powerbi.DataViewObjects) {
     },
     settings.funnel.transformation.default
   )
+  console.log("Updated funnel transformation")
   settings.funnel.alt_target.value = dataViewObjects.getValue(
     objects, {
       objectName: "funnel",
@@ -44,6 +48,7 @@ function updateSettings(settings: any, objects: powerbi.DataViewObjects) {
     },
     settings.funnel.alt_target.default
   )
+  console.log("Updated funnel settings")
   settings.scatter.size.value = dataViewObjects.getValue(
     objects, {
       objectName: "scatter",
@@ -72,6 +77,7 @@ function updateSettings(settings: any, objects: powerbi.DataViewObjects) {
     },
     settings.scatter.opacity_unselected.default
   )
+  console.log("Updated scatter settings")
   settings.lines.width_99.value = dataViewObjects.getValue(
     objects, {
       objectName: "lines",
@@ -128,6 +134,7 @@ function updateSettings(settings: any, objects: powerbi.DataViewObjects) {
     },
     settings.lines.colour_alt_target.default
   )
+  console.log("Updated lines settings")
   settings.axis.xlimit_label.value = dataViewObjects.getValue(
     objects, {
       objectName: "axis",

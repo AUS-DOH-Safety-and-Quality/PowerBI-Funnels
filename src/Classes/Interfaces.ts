@@ -123,11 +123,20 @@ class axisLimits {
                       calculatedLimits: limitData[] }) {
     let maxRatio: number = d3.max(divide(args.inputData.numerator,
                                          args.inputData.denominator));
+    let xLowerInput: number = args.inputSettings.axis.xlimit_l.value;
+    let xUpperInput: number = args.inputSettings.axis.xlimit_u.value;
+    let yLowerInput: number = args.inputSettings.axis.ylimit_l.value;
+    let yUpperInput: number = args.inputSettings.axis.ylimit_u.value;
 
-    this.x.lower = args.inputSettings.axis.xlimit_l.value ? args.inputSettings.axis.xlimit_l.value : 0;
-    this.x.upper = args.inputSettings.axis.xlimit_u.value ? args.inputSettings.axis.xlimit_u.value : d3.max(args.inputData.denominator) * 1.1;
-    this.y.lower = args.inputSettings.axis.ylimit_l.value ? args.inputSettings.axis.ylimit_l.value : args.inputData.transform(0);
-    this.y.upper = args.inputSettings.axis.ylimit_u.value ? args.inputSettings.axis.ylimit_u.value : args.inputData.transform(maxRatio);
+    this.x = {
+      lower: xLowerInput ? xLowerInput : 0,
+      upper: xUpperInput ? xUpperInput : d3.max(args.inputData.denominator) * 1.1
+    };
+
+    this.y = {
+      lower: yLowerInput ? yLowerInput : args.inputData.transform(0),
+      upper: yUpperInput ? yUpperInput : args.inputData.transform(maxRatio)
+    };
   }
 }
 

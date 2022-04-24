@@ -4,17 +4,16 @@ import rcFunnelObject from "./ratioCounts";
 import { dataArray } from "../Classes/Interfaces";
 import chartObject from "../Classes/chartObject";
 
-class allCharts {
-  SR = smrFunnelObject;
-  PR = prFunnelObject;
-  RC = rcFunnelObject;
+const allCharts = {
+  SR: smrFunnelObject,
+  PR: prFunnelObject,
+  RC: rcFunnelObject
 }
 
 function initialiseChartObject(inputData: dataArray): chartObject {
-  let rtnObject: chartObject = allCharts[inputData.data_type];
-  rtnObject.inputData = inputData;
+  let data_type: string = inputData.data_type as keyof typeof allCharts;
 
-  return rtnObject;
+  return new allCharts[data_type](inputData);
 }
 
 export default initialiseChartObject;

@@ -114,21 +114,32 @@ class viewModelObject {
                       host: IVisualHost; }) {
 
     let dv: powerbi.DataView[] = args.options.dataViews;
+    console.log("Begin viewmodel constructor")
     if (checkInvalidDataView(dv)) {
       return;
     }
 
+    console.log("Checked valid input view")
+
     this.inputData = extractInputData(dv[0].categorical,
                                       args.inputSettings);
-    this.inputSettings = args.inputSettings;
-    this.anyHighlights = this.inputData.highlights.length > 0;
 
+    console.log("Extracted and filtered input data")
+    this.inputSettings = args.inputSettings;
+    console.log("Updated settings")
+    this.anyHighlights = this.inputData.highlights ? true : false;
+
+    console.log("Updated highlights")
     this.chartBase = initialiseChartObject(this.inputData);
+    console.log("Initialised chart limit object")
     this.calculatedLimits = this.chartBase.getLimits();
+    console.log("Calculated funnel limits")
+    console.log(this.calculatedLimits);
     this.axisLimits = new axisLimits({ inputData: this.inputData,
                                        inputSettings: this.inputSettings,
                                        calculatedLimits: this.calculatedLimits });
 
+    console.log("Initialised axis limits")
     this.scatterDots = this.getScatterData();
     this.scatterDots.forEach((scatter, idx) => {
       scatter.identity = args.host
