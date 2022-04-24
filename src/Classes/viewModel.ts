@@ -50,10 +50,11 @@ class viewModelObject {
   getGroupedLines(): nestReturnT[] {
     let multiplier: number = this.inputData.multiplier;
     let transform: (x: number) => number = this.inputData.transform;
+
     let target: number = this.chartBase.getTarget({ transformed: false });
     target = transform(target * multiplier)
     let alt_target: number = this.inputSettings.funnel.alt_target.value;
-    console.log("ggl alt_target: ", alt_target)
+
     let formattedLines: lineData[] = new Array<lineData>();
     this.calculatedLimits.forEach(limits => {
       formattedLines.push({
@@ -104,40 +105,31 @@ class viewModelObject {
               .entries(formattedLines)
   }
 
-
   constructor(args: { options: VisualUpdateOptions;
                       inputSettings: settingsObject;
                       host: IVisualHost; }) {
 
     let dv: powerbi.DataView[] = args.options.dataViews;
-    console.log("Begin viewmodel constructor")
+
     if (checkInvalidDataView(dv)) {
       return;
     }
 
-    console.log("Checked valid input view")
-
     this.inputData = extractInputData(dv[0].categorical,
                                       args.inputSettings);
 
-    console.log("Extracted and filtered input data")
     this.inputSettings = args.inputSettings;
-    console.log("Updated settings")
+
     this.anyHighlights = this.inputData.highlights ? true : false;
 
-    console.log("Updated highlights")
     this.chartBase = initialiseChartObject(this.inputData);
-    console.log("Initialised chart limit object")
+
     this.calculatedLimits = this.chartBase.getLimits();
-    console.log("Calculated funnel limits")
-    console.log(this.calculatedLimits);
     this.axisLimits = new axisLimits({ inputData: this.inputData,
                                        inputSettings: this.inputSettings,
                                        calculatedLimits: this.calculatedLimits });
 
-    console.log("Initialised axis limits")
     this.scatterDots = this.getScatterData();
-    console.log("Initialised scatterDots")
     this.scatterDots.forEach((scatter, idx) => {
       scatter.identity = args.host
                               .createSelectionIdBuilder()
@@ -145,10 +137,8 @@ class viewModelObject {
                                             this.inputData.id[idx])
                               .createSelectionId()
     });
-    console.log("Added identities to scatterdots")
 
     this.groupedLines = this.getGroupedLines();
-    console.log("initialised groupedLines")
   }
 };
 

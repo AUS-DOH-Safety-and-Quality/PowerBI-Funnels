@@ -18,7 +18,6 @@ class settingsPairString {
   }
 }
 
-
 class axispadSettings {
   x: {
     padding: settingsPairNumber,
@@ -48,6 +47,16 @@ class funnelSettings {
   transformation: settingsPairString;
   alt_target: settingsPairNumber;
 
+  returnValues() {
+    return {
+      data_type: this.data_type.value,
+      od_adjust: this.od_adjust.value,
+      multiplier: this.multiplier.value,
+      transformation: this.transformation.value,
+      alt_target: this.alt_target.value
+    }
+  };
+
   constructor() {
     this.data_type = new settingsPairString("PR");
     this.od_adjust = new settingsPairString("no");
@@ -62,6 +71,15 @@ class scatterSettings {
   colour: settingsPairString;
   opacity: settingsPairNumber;
   opacity_unselected: settingsPairNumber;
+
+  returnValues() {
+    return {
+      size: this.size.value,
+      colour: this.colour.value,
+      opacity: this.opacity.value,
+      opacity_unselected: this.opacity_unselected.value
+    }
+  };
 
   constructor() {
     this.size = new settingsPairNumber(3);
@@ -80,6 +98,19 @@ class lineSettings {
   colour_95: settingsPairString;
   colour_target: settingsPairString;
   colour_alt_target: settingsPairString;
+
+  returnValues() {
+    return {
+      width_99: this.width_99.value,
+      width_95: this.width_95.value,
+      width_target: this.width_target.value,
+      width_alt_target: this.width_alt_target.value,
+      colour_99: this.colour_99.value,
+      colour_95: this.colour_95.value,
+      colour_target: this.colour_target.value,
+      colour_alt_target: this.colour_alt_target.value
+    }
+  }
 
   constructor() {
     this.width_99 = new settingsPairNumber(2);
@@ -101,6 +132,17 @@ class axisSettings {
   ylimit_l: settingsPairNumber;
   ylimit_u: settingsPairNumber;
 
+  returnValues() {
+    return {
+      xlimit_label: this.xlimit_label.value,
+      ylimit_label: this.ylimit_label.value,
+      xlimit_l: this.xlimit_l.value,
+      xlimit_u: this.xlimit_u.value,
+      ylimit_l: this.ylimit_l.value,
+      ylimit_u: this.ylimit_u.value
+    }
+  }
+
   constructor() {
     this.xlimit_label = new settingsPairString(null);
     this.ylimit_label = new settingsPairString(null);
@@ -119,16 +161,11 @@ class settingsObject {
   axis: axisSettings;
 
   constructor() {
-    console.log("Begin settings constructor")
     this.axispad = new axispadSettings();
-    console.log("axispad")
     this.funnel = new funnelSettings();
-    console.log("funnel")
     this.scatter = new scatterSettings();
-    console.log("scatter")
     this.lines = new lineSettings();
     this.axis = new axisSettings();
-    console.log("finished settings")
   }
 }
 

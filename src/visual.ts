@@ -20,7 +20,6 @@ import updateSettings from "./Plot Settings/updateSettings";
 import settingsObject from "./Classes/settingsObject";
 import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
-import getTransformation from "./Funnel Calculations/getTransformation";
 import viewModelObject from "./Classes/viewModel"
 import { scatterDotsObject } from "./Classes/scatterDotsObject"
 
@@ -94,16 +93,11 @@ export class Visual implements IVisual {
                           this.settings.scatter.opacity.value,
                           this.settings.scatter.opacity_unselected.value);
     })
-    console.log("End constructor")
   }
 
   public update(options: VisualUpdateOptions) {
-
-    console.log("Begin update")
     // Update settings object with user-specified values (if present)
     updateSettings(this.settings, options.dataViews[0].metadata.objects);
-    console.log("update alt_target", this.settings.funnel.alt_target.value)
-    console.log("Updated settings")
 
     // Insert the viewModel object containing the user-input data
     //   This function contains the construction of the funnel
@@ -111,7 +105,6 @@ export class Visual implements IVisual {
     this.viewModel = new viewModelObject({ options: options,
                                            inputSettings: this.settings,
                                            host: this.host });
-    console.log(this.viewModel)
 
     // Get the width and height of plotting space
     let width: number = options.viewport.width;
@@ -242,7 +235,6 @@ export class Visual implements IVisual {
       (<any>d3).event.preventDefault();
     });
     this.listeningRectSelection.exit().remove()
-    console.log("fin")
   }
 
   // Function to render the properties specified in capabilities.json to the properties pane
@@ -251,67 +243,11 @@ export class Visual implements IVisual {
       let propertyGroupName: string = options.objectName;
       // Object that holds the specified settings/options to be rendered
       let properties: VisualObjectInstance[] = [];
-
-      // Call a different function for each specified property group
-      switch (propertyGroupName) {
-        // Specify behaviour for x-axis settings
-        case "funnel":
-          // Add y-axis settings to object to be rendered
-          properties.push({
-            objectName: propertyGroupName,
-            properties: {
-              data_type: this.settings.funnel.data_type.value,
-              od_adjust: this.settings.funnel.od_adjust.value,
-              multiplier: this.settings.funnel.multiplier.value,
-              transformation: this.settings.funnel.transformation.value,
-              alt_target: this.settings.funnel.alt_target.value
-            },
-            selector: null
-          });
-        break;
-        case "scatter":
-          properties.push({
-            objectName: propertyGroupName,
-            properties: {
-              size: this.settings.scatter.size.value,
-              colour: this.settings.scatter.colour.value,
-              opacity: this.settings.scatter.opacity.value,
-              opacity_unselected: this.settings.scatter.opacity_unselected.value
-            },
-            selector: null
-          });
-        break;
-        case "lines":
-          properties.push({
-            objectName: propertyGroupName,
-            properties: {
-              width_99: this.settings.lines.width_99.value,
-              width_95: this.settings.lines.width_95.value,
-              width_target: this.settings.lines.width_target.value,
-              width_alt_target: this.settings.lines.width_alt_target.value,
-              colour_99: this.settings.lines.colour_99.value,
-              colour_95: this.settings.lines.colour_95.value,
-              colour_target: this.settings.lines.colour_target.value,
-              colour_alt_target: this.settings.lines.colour_alt_target.value
-            },
-            selector: null
-          });
-        break;
-        case "axis":
-          properties.push({
-            objectName: propertyGroupName,
-            properties: {
-              xlimit_label: this.settings.axis.xlimit_label.value,
-              ylimit_label: this.settings.axis.ylimit_label.value,
-              ylimit_l: this.settings.axis.ylimit_l.value,
-              ylimit_u: this.settings.axis.ylimit_u.value,
-              xlimit_l: this.settings.axis.xlimit_l.value,
-              xlimit_u: this.settings.axis.xlimit_u.value
-            },
-            selector: null
-          });
-        break;
-      };
+      properties.push({
+        objectName: propertyGroupName,
+        properties: this.settings[propertyGroupName].returnValues(),
+        selector: null
+      });
       return properties;
     }
 }
