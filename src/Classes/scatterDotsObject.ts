@@ -1,6 +1,6 @@
 import powerbi from "powerbi-visuals-api";
 import buildTooltip from "../Plotting Functions/buildTooltip";
-import { limitData } from "./Interfaces";
+import limitData from "./limitData";
 import ISelectionId = powerbi.visuals.ISelectionId;
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 

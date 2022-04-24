@@ -1,7 +1,10 @@
 import * as d3 from "d3";
 import * as stats from '@stdlib/stats/base/dists';
-import { dataArray, limitArguments, intervalData, limitData } from "./Interfaces"
-import { seq } from "../Helper Functions/Utilities"
+import { seq } from "../Helper Functions/Utilities";
+import limitData from "./limitData";
+import intervalData from "./intervalData";
+import dataArray from "./dataArray";
+import limitArguments from "./limitArgs";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";

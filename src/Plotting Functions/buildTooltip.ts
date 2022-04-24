@@ -1,6 +1,6 @@
 import powerbi from "powerbi-visuals-api";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import { limitData } from "../Classes/Interfaces"
+import limitData from "../Classes/limitData"
 
 type tooltipArgs = {
   group: string,

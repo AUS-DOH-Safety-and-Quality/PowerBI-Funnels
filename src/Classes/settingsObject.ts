@@ -1,21 +1,11 @@
 import powerbi from "powerbi-visuals-api";
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
-class settingsPairNumber {
-  default: number;
-  value: number;
+class settingsPair<T> {
+  default: T;
+  value: T;
 
-  constructor(initialValue: number) {
-    this.default = initialValue;
-    this.value = initialValue;
-  }
-}
-
-class settingsPairString {
-  default: string;
-  value: string;
-
-  constructor(initialValue: string) {
+  constructor(initialValue: T) {
     this.default = initialValue;
     this.value = initialValue;
   }
@@ -23,93 +13,93 @@ class settingsPairString {
 
 class axispadSettings {
   x: {
-    padding: settingsPairNumber,
-    end_padding: settingsPairNumber
+    padding: settingsPair<number>,
+    end_padding: settingsPair<number>
   };
   y: {
-    padding: settingsPairNumber,
-    end_padding: settingsPairNumber
+    padding: settingsPair<number>,
+    end_padding: settingsPair<number>
   };
 
   constructor() {
     this.x = {
-      padding: new settingsPairNumber(50),
-      end_padding: new settingsPairNumber(10)
+      padding: new settingsPair(50),
+      end_padding: new settingsPair(10)
     };
     this.y = {
-      padding: new settingsPairNumber(50),
-      end_padding: new settingsPairNumber(10)
+      padding: new settingsPair(50),
+      end_padding: new settingsPair(10)
     };
   };
 };
 
 class funnelSettings {
-  data_type: settingsPairString;
-  od_adjust: settingsPairString;
-  multiplier: settingsPairNumber;
-  transformation: settingsPairString;
-  alt_target: settingsPairNumber;
+  data_type: settingsPair<string>;
+  od_adjust: settingsPair<string>;
+  multiplier: settingsPair<number>;
+  transformation: settingsPair<string>;
+  alt_target: settingsPair<number>;
 
   constructor() {
-    this.data_type = new settingsPairString("PR");
-    this.od_adjust = new settingsPairString("no");
-    this.multiplier = new settingsPairNumber(1);
-    this.transformation = new settingsPairString("none");
-    this.alt_target = new settingsPairNumber(null);
+    this.data_type = new settingsPair("PR");
+    this.od_adjust = new settingsPair("no");
+    this.multiplier = new settingsPair(1);
+    this.transformation = new settingsPair("none");
+    this.alt_target = new settingsPair(<number>null);
   }
 }
 
 class scatterSettings {
-  size: settingsPairNumber;
-  colour: settingsPairString;
-  opacity: settingsPairNumber;
-  opacity_unselected: settingsPairNumber;
+  size: settingsPair<number>;
+  colour: settingsPair<string>;
+  opacity: settingsPair<number>;
+  opacity_unselected: settingsPair<number>;
 
   constructor() {
-    this.size = new settingsPairNumber(3);
-    this.colour = new settingsPairString("#000000");
-    this.opacity = new settingsPairNumber(1);
-    this.opacity_unselected = new settingsPairNumber(0.2);
+    this.size = new settingsPair(3);
+    this.colour = new settingsPair("#000000");
+    this.opacity = new settingsPair(1);
+    this.opacity_unselected = new settingsPair(0.2);
   }
 }
 
 class lineSettings {
-  width_99: settingsPairNumber;
-  width_95: settingsPairNumber;
-  width_target: settingsPairNumber;
-  width_alt_target: settingsPairNumber;
-  colour_99: settingsPairString;
-  colour_95: settingsPairString;
-  colour_target: settingsPairString;
-  colour_alt_target: settingsPairString;
+  width_99: settingsPair<number>;
+  width_95: settingsPair<number>;
+  width_target: settingsPair<number>;
+  width_alt_target: settingsPair<number>;
+  colour_99: settingsPair<string>;
+  colour_95: settingsPair<string>;
+  colour_target: settingsPair<string>;
+  colour_alt_target: settingsPair<string>;
 
   constructor() {
-    this.width_99 = new settingsPairNumber(2);
-    this.width_95 = new settingsPairNumber(2);
-    this.width_target = new settingsPairNumber(1.5);
-    this.width_alt_target = new settingsPairNumber(1.5);
-    this.colour_99 = new settingsPairString("#6495ED");
-    this.colour_95 = new settingsPairString("#6495ED");
-    this.colour_target = new settingsPairString("#6495ED");
-    this.colour_alt_target = new settingsPairString("#6495ED");
+    this.width_99 = new settingsPair(2);
+    this.width_95 = new settingsPair(2);
+    this.width_target = new settingsPair(1.5);
+    this.width_alt_target = new settingsPair(1.5);
+    this.colour_99 = new settingsPair("#6495ED");
+    this.colour_95 = new settingsPair("#6495ED");
+    this.colour_target = new settingsPair("#6495ED");
+    this.colour_alt_target = new settingsPair("#6495ED");
   }
 }
 
 class axisSettings {
-  xlimit_label: settingsPairString;
-  ylimit_label: settingsPairString;
-  xlimit_l: settingsPairNumber;
-  xlimit_u: settingsPairNumber;
-  ylimit_l: settingsPairNumber;
-  ylimit_u: settingsPairNumber;
+  xlimit_label: settingsPair<string>;
+  ylimit_label: settingsPair<string>;
+  xlimit_l: settingsPair<number>;
+  xlimit_u: settingsPair<number>;
+  ylimit_l: settingsPair<number>;
+  ylimit_u: settingsPair<number>;
 
   constructor() {
-    this.xlimit_label = new settingsPairString(null);
-    this.ylimit_label = new settingsPairString(null);
-    this.xlimit_l = new settingsPairNumber(null);
-    this.xlimit_u = new settingsPairNumber(null);
-    this.ylimit_l = new settingsPairNumber(null);
-    this.ylimit_u = new settingsPairNumber(null);
+    this.xlimit_label = new settingsPair(<string>null);
+    this.ylimit_label = new settingsPair(<string>null);
+    this.xlimit_l = new settingsPair(<number>null);
+    this.xlimit_u = new settingsPair(<number>null);
+    this.ylimit_l = new settingsPair(<number>null);
+    this.ylimit_u = new settingsPair(<number>null);
   };
 }
 

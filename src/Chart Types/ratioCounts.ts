@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import chartObject from "../Classes/chartObject"
-import { dataArray, limitArguments } from "../Classes/Interfaces"
+import dataArray from "../Classes/dataArray";
+import limitArguments from "../Classes/limitArgs";
 import { sqrt, log, exp, square } from "../Helper Functions/UnaryBroadcasting"
 import { add, divide } from "../Helper Functions/BinaryBroadcasting"
 

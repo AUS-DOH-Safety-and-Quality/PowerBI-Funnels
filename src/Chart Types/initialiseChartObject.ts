@@ -1,7 +1,7 @@
 import prFunnelObject from "./proportion";
 import smrFunnelObject from "./indirectlyStandardisedRatio";
 import rcFunnelObject from "./ratioCounts";
-import { dataArray } from "../Classes/Interfaces";
+import dataArray from "../Classes/dataArray";
 import chartObject from "../Classes/chartObject";
 
 const allCharts = {

@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import viewModelObject from "../Classes/viewModel";
-import { lineData } from "../Classes/Interfaces"
+import lineData from "../Classes/lineData";
 
 /**
  * Function for plotting the control limit and target lines, as well

@@ -1,5 +1,5 @@
 import powerbi from "powerbi-visuals-api";
-import { dataArray } from "../Classes/Interfaces";
+import dataArray from "../Classes/dataArray";
 import { checkValidInput, extractValues } from "../Helper Functions/Utilities";
 import settingsObject from "../Classes/settingsObject"
 

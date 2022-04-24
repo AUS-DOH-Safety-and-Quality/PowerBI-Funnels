@@ -7,8 +7,17 @@ import settingsObject from "./settingsObject";
 import extractInputData from "../Data Preparation/extractInputData";
 import checkInvalidDataView from "../Data Preparation/checkInvalidDataView"
 import initialiseChartObject from "../Chart Types/initialiseChartObject"
-import { dataArray, limitData, lineData, axisLimits, nestReturnT } from "./Interfaces"
+import dataArray from "./dataArray";
+import limitData from "./limitData";
+import lineData from "./lineData"
+import axisLimits from "./axisLimits"
 import { scatterDotsObject } from "./scatterDotsObject"
+
+type nestReturnT = {
+  key: string;
+  values: any;
+  value: undefined;
+}
 
 class viewModelObject {
   inputData: dataArray;
