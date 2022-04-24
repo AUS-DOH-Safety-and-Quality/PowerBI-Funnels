@@ -15,11 +15,11 @@ function seq(from: number, to: number, by: number): number[] {
 function checkValidInput(numerator: number, denominator: number, data_type: string): boolean {
   let numeratorValid: boolean = numerator !== null && numerator !== undefined;
   let denominatorValid: boolean = denominator !== null && denominator !== undefined && denominator > 0;
-  let proportionDenominatorValid: boolean = data_type === "PR" ? numerator < denominator : true;
+  let proportionDenominatorValid: boolean = data_type === "PR" ? numerator <= denominator : true;
   return numeratorValid && denominatorValid && proportionDenominatorValid;
 }
 
-function extractValues(valuesArray: number[], indexArray: number[]): number[] {
+function extractValues<T>(valuesArray: T[], indexArray: number[]): T[] {
   return valuesArray.filter((d,idx) => indexArray.indexOf(idx) != -1)
 }
 

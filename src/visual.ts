@@ -16,7 +16,6 @@ import ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "d3";
 import makeDots from "./Plotting Functions/makeDots";
 import makeLines from "./Plotting Functions/makeLines";
-import updateSettings from "./Plot Settings/updateSettings";
 import settingsObject from "./Classes/settingsObject";
 import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
@@ -52,7 +51,6 @@ export class Visual implements IVisual {
   private settings: settingsObject;
 
   constructor(options: VisualConstructorOptions) {
-    console.log("Begin constructor")
     // Add reference to host object, for accessing environment (e.g. colour)
     this.host = options.host;
 
@@ -97,7 +95,7 @@ export class Visual implements IVisual {
 
   public update(options: VisualUpdateOptions) {
     // Update settings object with user-specified values (if present)
-    updateSettings(this.settings, options.dataViews[0].metadata.objects);
+    this.settings.updateSettings(options.dataViews[0].metadata.objects);
 
     // Insert the viewModel object containing the user-input data
     //   This function contains the construction of the funnel
@@ -126,17 +124,15 @@ export class Visual implements IVisual {
     //   Takes a given plot axis value and returns the appropriate screen height
     //     to plot at.
     let yScale: d3.ScaleLinear<number, number, never>
-        = d3.scaleLinear()
-            .domain([yAxisMin, yAxisMax])
-            .range([height - this.settings.axispad.x.padding.value,
-              this.settings.axispad.x.end_padding.value]);
+      = d3.scaleLinear()
+          .domain([yAxisMin, yAxisMax])
+          .range([height - this.settings.axispad.x.padding.value,
+            this.settings.axispad.x.end_padding.value]);
     let xScale: d3.ScaleLinear<number, number, never>
-        = d3.scaleLinear()
-            .domain([xAxisMin, xAxisMax])
-            .range([yAxisPadding,
-                    width - this.settings.axispad.y.end_padding.value]);
-
-
+      = d3.scaleLinear()
+          .domain([xAxisMin, xAxisMax])
+          .range([yAxisPadding,
+                  width - this.settings.axispad.y.end_padding.value]);
 
     this.listeningRectSelection = this.listeningRect
                                       .selectAll(".obs-sel")
@@ -148,29 +144,27 @@ export class Visual implements IVisual {
 
     let displayPlot: boolean = this.viewModel.scatterDots.length > 1;
     if (displayPlot) {
-        initTooltipTracking(
-          this.svg,
-          this.listeningRectSelection,
-          this.tooltipLineSelection,
-          width,
-          height - this.settings.axispad.x.padding.value,
-          xScale,
-          yScale,
-          this.host.tooltipService,
-          this.viewModel
-        );
+      initTooltipTracking(
+        this.svg,
+        this.listeningRectSelection,
+        this.tooltipLineSelection,
+        width,
+        height - this.settings.axispad.x.padding.value,
+        xScale,
+        yScale,
+        this.host.tooltipService,
+        this.viewModel
+      );
     }
 
     let prop_labels: boolean = this.viewModel.inputData.prop_labels;
 
     let yAxis: d3.Axis<d3.NumberValue>
-        = d3.axisLeft(yScale)
-            .tickFormat(
-                d => {
-                  // If axis displayed on % scale, then disable axis values > 100%
-                  return prop_labels ? (<number>d).toFixed(2) + "%" : <string><unknown>d;
-                }
-            );
+      = d3.axisLeft(yScale)
+          .tickFormat(d => {
+            // If axis displayed on % scale, then disable axis values > 100%
+            return prop_labels ? (<number>d).toFixed(2) + "%" : <string><unknown>d;
+          });
     let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
     // Draw axes on plot
@@ -245,7 +239,7 @@ export class Visual implements IVisual {
       let properties: VisualObjectInstance[] = [];
       properties.push({
         objectName: propertyGroupName,
-        properties: this.settings[propertyGroupName].returnValues(),
+        properties: this.settings.returnValues(propertyGroupName),
         selector: null
       });
       return properties;

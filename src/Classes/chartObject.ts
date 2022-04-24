@@ -19,7 +19,6 @@ type chartObjectConstructorT = {
 
 class chartObject {
   inputData: dataArray;
-  odAdjust: string;
   seFunction: (x: dataArray) => number[];
   seFunctionOD: (x: dataArray) => number[];
   targetFunction: (x: dataArray) => number;
@@ -69,11 +68,11 @@ class chartObject {
   };
 
   getTau2Bool(): boolean {
-    if (this.odAdjust === "yes") {
+    if (this.inputData.odAdjust === "yes") {
       return true;
-    } else if (this.odAdjust === "no") {
+    } else if (this.inputData.odAdjust === "no") {
       return false;
-    } else if (this.odAdjust === "auto") {
+    } else if (this.inputData.odAdjust === "auto") {
       return true;
     }
   };
@@ -151,9 +150,7 @@ class chartObject {
     this.yFunction = args.yFunction;
     this.limitFunction = args.limitFunction;
     this.limitFunctionOD = args.limitFunctionOD;
-
     this.inputData = null;
-    this.odAdjust = null;
   }
 }
 
