@@ -21,7 +21,7 @@ function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
   let ul99: number = args.transform(args.limits.ul99 * args.multiplier);
   let ll99: number = args.transform(args.limits.ll99 * args.multiplier);
   let prop_labels: boolean = args.data_type === "PR" && args.multiplier == 1 && args.transform_text === "none";
-  let tooltip: VisualTooltipDataItem[];
+  let tooltip: VisualTooltipDataItem[] = new Array<VisualTooltipDataItem>();
   tooltip.push({
     displayName: "Group",
     value: args.group

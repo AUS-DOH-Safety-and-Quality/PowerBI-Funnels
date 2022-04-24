@@ -31,7 +31,8 @@ function extractInputData(inputView: powerbi.DataViewCategorical,
     data_type: data_type,
     multiplier: multiplier,
     categories: inputView.categories[0],
-    transform_text: inputSettings.funnel.transformation.value
+    transform_text: inputSettings.funnel.transformation.value,
+    dot_colour: [inputSettings.scatter.colour.value]
   });
 }
 

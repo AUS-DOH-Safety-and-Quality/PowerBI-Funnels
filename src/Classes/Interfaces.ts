@@ -33,18 +33,18 @@ class dataArray {
   maxRatio: number;
 
   constructor(pars: dataArrayConstructorT) {
-    this.id = pars.id;
-    this.numerator = pars.numerator;
-    this.denominator = pars.denominator;
-    this.highlights = pars.highlights;
-    this.data_type = pars.data_type;
-    this.multiplier = pars.multiplier;
-    this.categories = pars.categories;
-    this.transform_text = pars.transform_text;
-    this.transform = getTransformation(pars.transform_text);
-    this.inverse_transform = invertTransformation(pars.transform_text);
-    this.dot_colour = pars.dot_colour;
-    this.maxDenominator = d3.max(pars.denominator);
+    this.id = pars.id ? pars.id : null;
+    this.numerator = pars.numerator ? pars.numerator : null;
+    this.denominator = pars.denominator ? pars.denominator : null;
+    this.highlights = pars.highlights ? pars.highlights : null;
+    this.data_type = pars.data_type ? pars.data_type : null;
+    this.multiplier = pars.multiplier ? pars.multiplier : null;
+    this.categories = pars.categories ? pars.categories : null;
+    this.transform_text = pars.transform_text ? pars.transform_text : null;
+    this.transform = pars.transform_text ? getTransformation(pars.transform_text) : null;
+    this.inverse_transform = pars.transform_text ? invertTransformation(pars.transform_text) : null;
+    this.dot_colour = pars.dot_colour ? pars.dot_colour : null;
+    this.maxDenominator = d3.max(this.denominator);
     this.maxRatio = d3.max(divide(this.numerator, this.denominator));
   }
 }

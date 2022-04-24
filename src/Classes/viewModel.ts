@@ -45,7 +45,7 @@ class viewModelObject {
   };
 
   getFormattedLines(): lineData[] {
-    let formattedLines: lineData[];
+    let formattedLines: lineData[] = new Array<lineData>();
     this.calculatedLimits.forEach(limits => {
       formattedLines.push({
         x: limits.denominator,
@@ -95,6 +95,7 @@ class viewModelObject {
   };
 
   getGroupedLines(): nestReturnT[] {
+    console.log("Get formatted lines")
     let formattedLines: lineData[] =
       this.getFormattedLines()
           .filter(d => {
@@ -103,6 +104,7 @@ class viewModelObject {
             d.line_value >= this.axisLimits.y.lower &&
             d.line_value <= this.axisLimits.y.upper
           })
+    console.log("Return data grouped")
     return d3.nest()
               .key(function(d: lineData) { return d.group; })
               .entries(formattedLines)
@@ -141,6 +143,7 @@ class viewModelObject {
 
     console.log("Initialised axis limits")
     this.scatterDots = this.getScatterData();
+    console.log("Initialised scatterDots")
     this.scatterDots.forEach((scatter, idx) => {
       scatter.identity = args.host
                               .createSelectionIdBuilder()
@@ -148,8 +151,10 @@ class viewModelObject {
                                             this.inputData.id[idx])
                               .createSelectionId()
     });
+    console.log("Added identities to scatterdots")
 
     this.groupedLines = this.getGroupedLines();
+    console.log("initialised groupedLines")
   }
 };
 
