@@ -9,6 +9,7 @@ import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
 import getTau2 from "../Funnel Calculations/getTau2";
+import settingsObject from "./settingsObject";
 
 type chartObjectConstructorT = {
   seFunction: (x: dataArray) => number[];
@@ -22,6 +23,7 @@ type chartObjectConstructorT = {
 
 class chartObject {
   inputData: dataArray;
+  inputSettings: settingsObject;
   seFunction: (x: dataArray) => number[];
   seFunctionOD: (x: dataArray) => number[];
   targetFunction: (x: dataArray) => number;
@@ -110,6 +112,7 @@ class chartObject {
     }
 
     let target: number = this.getTarget({ transformed: false });
+    let alt_target: number = this.inputSettings.funnel.alt_target.value;
     let target_transformed: number = this.getTarget({ transformed: true });
 
     let intervals: intervalData[] = this.getIntervals();
@@ -139,6 +142,8 @@ class chartObject {
 
         calcLimit[interval.label] = limit
       });
+      calcLimit.target = target;
+      calcLimit.alt_target = alt_target;
       return calcLimit;
     });
 
@@ -154,6 +159,7 @@ class chartObject {
     this.limitFunction = args.limitFunction;
     this.limitFunctionOD = args.limitFunctionOD;
     this.inputData = null;
+    this.inputSettings = null;
   }
 }
 

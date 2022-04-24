@@ -4,6 +4,7 @@ import dataArray from "../Classes/dataArray";
 import limitArguments from "../Classes/limitArgs";
 import { sqrt, log, exp, square } from "../Function Broadcasting/UnaryFunctions"
 import { add, divide } from "../Function Broadcasting/BinaryFunctions"
+import settingsObject from "../Classes/settingsObject";
 
 let rcSE = function(inputData: dataArray): number[] {
   let numerator: number[] = inputData.numerator;
@@ -44,7 +45,8 @@ let rcLimit = function(args: limitArguments): number {
 }
 
 class rcFunnelObject extends chartObject {
-  constructor(inputData: dataArray) {
+  constructor(args: { inputData: dataArray,
+                      inputSettings: settingsObject}) {
     super({
       seFunction: rcSE,
       seFunctionOD: rcSE,
@@ -54,7 +56,8 @@ class rcFunnelObject extends chartObject {
       limitFunction: rcLimit,
       limitFunctionOD: rcLimit
     });
-    this.inputData = inputData;
+    this.inputData = args.inputData;
+    this.inputSettings = args.inputSettings;
   }
 }
 

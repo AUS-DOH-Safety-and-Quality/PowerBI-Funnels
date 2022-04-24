@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import chartObject from "../Classes/chartObject"
 import dataArray from "../Classes/dataArray";
 import limitArguments from "../Classes/limitArgs";
+import settingsObject from "../Classes/settingsObject";
 import { sqrt, inv, asin, square } from "../Function Broadcasting/UnaryFunctions"
 import { multiply, divide } from "../Function Broadcasting/BinaryFunctions"
 
@@ -44,7 +45,8 @@ let prLimit = function(args: limitArguments) {
 }
 
 class prFunnelObject extends chartObject {
-  constructor(inputData: dataArray) {
+  constructor(args: { inputData: dataArray,
+                      inputSettings: settingsObject}) {
     super({
       seFunction: prSE,
       seFunctionOD: prSE,
@@ -54,7 +56,8 @@ class prFunnelObject extends chartObject {
       limitFunction: prLimit,
       limitFunctionOD: prLimit
     });
-    this.inputData = inputData;
+    this.inputData = args.inputData;
+    this.inputSettings = args.inputSettings;
   }
 }
 

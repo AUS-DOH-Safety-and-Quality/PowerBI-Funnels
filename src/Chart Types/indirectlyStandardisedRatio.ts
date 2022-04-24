@@ -2,6 +2,7 @@ import * as stats from '@stdlib/stats/base/dists';
 import chartObject from "../Classes/chartObject"
 import dataArray from '../Classes/dataArray';
 import limitArguments from '../Classes/limitArgs';
+import settingsObject from '../Classes/settingsObject';
 import { sqrt, inv, square } from "../Function Broadcasting/UnaryFunctions"
 import { multiply, divide } from "../Function Broadcasting/BinaryFunctions"
 
@@ -49,7 +50,8 @@ let smrLimit = function(args: limitArguments) {
 }
 
 class smrFunnelObject extends chartObject {
-  constructor(inputData: dataArray) {
+  constructor(args: { inputData: dataArray,
+                      inputSettings: settingsObject}) {
     super({
       seFunction: smrSE,
       seFunctionOD: smrSEOD,
@@ -59,7 +61,8 @@ class smrFunnelObject extends chartObject {
       limitFunction: smrLimit,
       limitFunctionOD: smrLimitOD
     });
-    this.inputData = inputData;
+    this.inputData = args.inputData;
+    this.inputSettings = args.inputSettings;
   }
 }
 

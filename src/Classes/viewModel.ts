@@ -61,53 +61,39 @@ class viewModelObject {
     let transform: (x: number) => number = this.inputData.transform;
 
     let target: number = this.chartBase.getTarget({ transformed: false });
-    target = transform(target * multiplier)
     let alt_target: number = this.inputSettings.funnel.alt_target.value;
+    let colours = {
+      l99: this.inputSettings.lines.colour_99.value,
+      l95: this.inputSettings.lines.colour_95.value,
+      u95: this.inputSettings.lines.colour_95.value,
+      u99: this.inputSettings.lines.colour_99.value,
+      target: this.inputSettings.lines.colour_target.value,
+      alt_target: this.inputSettings.lines.colour_alt_target.value
+    }
+    let widths = {
+      l99: this.inputSettings.lines.width_99.value,
+      l95: this.inputSettings.lines.width_95.value,
+      u95: this.inputSettings.lines.width_95.value,
+      u99: this.inputSettings.lines.width_99.value,
+      target: this.inputSettings.lines.width_target.value,
+      alt_target: this.inputSettings.lines.width_alt_target.value
+    }
+
+    let labels: string[] = ["ll99", "ll95", "ul95", "ul99", "target", "alt_target"];
 
     let formattedLines: lineData[] = new Array<lineData>();
     this.calculatedLimits.forEach(limits => {
-      formattedLines.push({
-        x: limits.denominator,
-        group: "ll99",
-        line_value: transform(limits.ll99 * multiplier),
-        colour: this.inputSettings.lines.colour_99.value,
-        width: this.inputSettings.lines.width_99.value
-      });
-      formattedLines.push({
-        x: limits.denominator,
-        group: "ll95",
-        line_value: transform(limits.ll95 * multiplier),
-        colour: this.inputSettings.lines.colour_95.value,
-        width: this.inputSettings.lines.width_95.value
-      });
-      formattedLines.push({
-        x: limits.denominator,
-        group: "ul95",
-        line_value: transform(limits.ul95 * multiplier),
-        colour: this.inputSettings.lines.colour_95.value,
-        width: this.inputSettings.lines.width_95.value
-      });
-      formattedLines.push({
-        x: limits.denominator,
-        group: "ul99",
-        line_value: transform(limits.ul99 * multiplier),
-        colour: this.inputSettings.lines.colour_99.value,
-        width: this.inputSettings.lines.width_99.value
-      });
-      formattedLines.push({
-        x: limits.denominator,
-        group: "target",
-        line_value: target,
-        colour: this.inputSettings.lines.colour_target.value,
-        width: this.inputSettings.lines.width_target.value
-      });
-      formattedLines.push({
-        x: limits.denominator,
-        group: "alt_target",
-        line_value: alt_target,
-        colour: this.inputSettings.lines.colour_alt_target.value,
-        width: this.inputSettings.lines.width_alt_target.value
-      });
+      limits.target = target;
+      limits.alt_target = alt_target;
+      labels.forEach(label => {
+        formattedLines.push({
+          x: limits.denominator,
+          group: label,
+          line_value: transform(limits[label] * multiplier),
+          colour: colours[label],
+          width: widths[label]
+        });
+      })
     })
     return d3.nest()
               .key(function(d: lineData) { return d.group; })
@@ -137,9 +123,11 @@ class viewModelObject {
 
     this.anyHighlights = this.inputData.highlights ? true : false;
 
-    this.chartBase = initialiseChartObject(this.inputData);
+    this.chartBase = initialiseChartObject({ inputData: this.inputData,
+                                             inputSettings: this.inputSettings });
 
     this.calculatedLimits = this.chartBase.getLimits();
+
     this.axisLimits = new axisLimits({ inputData: this.inputData,
                                        inputSettings: this.inputSettings,
                                        calculatedLimits: this.calculatedLimits });
