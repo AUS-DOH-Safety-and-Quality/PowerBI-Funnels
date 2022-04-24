@@ -1,7 +1,7 @@
 import powerbi from "powerbi-visuals-api";
 import ITooltipService = powerbi.extensibility.ITooltipService;
 import * as d3 from "d3";
-import { ViewModel } from "../Interfaces"
+import viewModelObject from "../Classes/viewModel";
 
 function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                              listeningRect: d3.Selection<any, any, any, any>,
@@ -10,7 +10,7 @@ function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
                              xScale: d3.ScaleLinear<number, number, never>,
                              yScale: d3.ScaleLinear<number, number, never>,
                              tooltipService: ITooltipService,
-                             viewModel: ViewModel): void {
+                             viewModel: viewModelObject): void {
   let xAxisLine = toolTipLine.enter()
                           .append("rect")
                           .merge(<any>toolTipLine);
@@ -41,7 +41,7 @@ function initTooltipTracking(svg: d3.Selection<SVGElement, any, any, any>,
             let scaled_y: number = yScale(viewModel.scatterDots[minInd].ratio)
 
             tooltipService.show({
-              dataItems: viewModel.scatterDots[minInd].tooltips,
+              dataItems: viewModel.scatterDots[minInd].tooltip,
               identities: [viewModel.scatterDots[minInd].identity],
               coordinates: [scaled_x, scaled_y],
               isTouchEvent: false

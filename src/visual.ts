@@ -16,13 +16,11 @@ import ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "d3";
 import makeDots from "./Plotting Functions/makeDots";
 import makeLines from "./Plotting Functions/makeLines";
-import updateSettings from "./Plot Settings/updateSettings";
-import getViewModel from "../src/getViewModel";
-import initSettings from "./Plot Settings/initSettings";
+import settingsObject from "./Classes/settingsObject";
 import initTooltipTracking from "./Plotting Functions/initTooltipTracking";
 import highlightIfSelected from "./Selection Helpers/highlightIfSelected";
-import { ViewModel, ScatterDots } from "./Interfaces"
-import getTransformation from "./Funnel Calculations/getTransformation";
+import viewModelObject from "./Classes/viewModel"
+import scatterDotsObject from "./Classes/scatterDotsObject"
 
 type SelectionSVG = d3.Selection<SVGElement, any, any, any>;
 type SelectionSVGG = d3.Selection<SVGGElement, any, any, any>;
@@ -43,14 +41,14 @@ export class Visual implements IVisual {
   private xAxisLabels: SelectionSVGG;
   private yAxisGroup: SelectionSVGG;
   private yAxisLabels: SelectionSVGG;
-  private viewModel: ViewModel;
+  private viewModel: viewModelObject;
 
   // Method for notifying PowerBI of changes in the visual to propagate to the
   //   rest of the report
   private selectionManager: ISelectionManager;
 
   // Settings for plot aesthetics
-  private settings = initSettings();
+  private settings: settingsObject;
 
   constructor(options: VisualConstructorOptions) {
     // Add reference to host object, for accessing environment (e.g. colour)
@@ -84,6 +82,8 @@ export class Visual implements IVisual {
     // Request a new selectionManager tied to the visual
     this.selectionManager = this.host.createSelectionManager();
 
+    this.settings = new settingsObject();
+
     // Update dot highlighting on initialisation
     this.selectionManager.registerOnSelectCallback(() => {
       highlightIfSelected(this.dotSelection,
@@ -95,56 +95,51 @@ export class Visual implements IVisual {
 
   public update(options: VisualUpdateOptions) {
     // Update settings object with user-specified values (if present)
-    updateSettings(this.settings, options.dataViews[0].metadata.objects);
+    this.settings.updateSettings(options.dataViews[0].metadata.objects);
 
     // Insert the viewModel object containing the user-input data
     //   This function contains the construction of the funnel
     //   control limits
-    this.viewModel = getViewModel(options, this.settings, this.host);
-    this.settings.funnel.data_type.value = this.viewModel.data_type;
-    this.settings.funnel.multiplier.value = this.viewModel.multiplier;
-    console.log(this.viewModel);
-
+    this.viewModel = new viewModelObject({ options: options,
+                                           inputSettings: this.settings,
+                                           host: this.host });
     // Get the width and height of plotting space
     let width: number = options.viewport.width;
     let height: number = options.viewport.height;
-
-    // Add appropriate padding so that plotted data doesn't overlay axis
-    let xAxisPadding: number = this.settings.axispad.x.padding.value;
-    let yAxisPadding: number = this.settings.axispad.y.padding.value;
-    let xAxisEndPadding: number = this.settings.axispad.x.end_padding.value;
-    let yAxisEndPadding: number = this.settings.axispad.y.end_padding.value;
-    let data_type: string = this.settings.funnel.data_type.value;
-    let multiplier: number = this.settings.funnel.multiplier.value;
-    let xAxisMin: number = this.settings.axis.xlimit_l.value ? this.settings.axis.xlimit_l.value : 0;
-    let xAxisMax: number = this.settings.axis.xlimit_u.value ? this.settings.axis.xlimit_u.value : this.viewModel.maxDenominator;
-    let yAxisMin: number = this.settings.axis.ylimit_l.value ? this.settings.axis.ylimit_l.value : 0;
-    let yAxisMax: number = this.settings.axis.ylimit_u.value ? this.settings.axis.ylimit_u.value : (this.viewModel.maxRatio);
-
-    let transformation: (x: number) => number
-    = getTransformation(this.settings.funnel.transformation.value);
-
-    xAxisMin = xAxisMin;
-    xAxisMax = xAxisMax;
-    yAxisMin = transformation(yAxisMin * multiplier);
-    yAxisMax = transformation(yAxisMax * multiplier);
-    let displayPlot: boolean = this.viewModel.scatterDots.length > 1;
 
     // Dynamically scale chart to use all available space
     this.svg.attr("width", width)
             .attr("height", height);
 
+    let yAxisMin: number = this.viewModel.axisLimits
+      ? this.viewModel.axisLimits.y.lower
+      : null;
+    let yAxisMax: number = this.viewModel.axisLimits
+      ? this.viewModel.axisLimits.y.upper
+      : null;
+    let xAxisMin: number = this.viewModel.axisLimits
+      ? this.viewModel.axisLimits.x.lower
+      : null;
+    let xAxisMax: number = this.viewModel.axisLimits
+      ? this.viewModel.axisLimits.x.upper
+      : null;
+
+    let yAxisPadding: number = this.settings.axispad.y.padding.value;
+    let xAxisPadding: number = this.settings.axispad.x.padding.value;
+
     // Define axes for chart.
     //   Takes a given plot axis value and returns the appropriate screen height
     //     to plot at.
     let yScale: d3.ScaleLinear<number, number, never>
-        = d3.scaleLinear()
-            .domain([yAxisMin, yAxisMax])
-            .range([height - xAxisPadding, xAxisEndPadding]);
+      = d3.scaleLinear()
+          .domain([yAxisMin, yAxisMax])
+          .range([height - this.settings.axispad.x.padding.value,
+            this.settings.axispad.x.end_padding.value]);
     let xScale: d3.ScaleLinear<number, number, never>
-        = d3.scaleLinear()
-            .domain([xAxisMin, xAxisMax])
-            .range([yAxisPadding, width - yAxisEndPadding]);
+      = d3.scaleLinear()
+          .domain([xAxisMin, xAxisMax])
+          .range([yAxisPadding,
+                  width - this.settings.axispad.y.end_padding.value]);
 
     this.listeningRectSelection = this.listeningRect
                                       .selectAll(".obs-sel")
@@ -153,20 +148,34 @@ export class Visual implements IVisual {
     this.tooltipLineSelection = this.tooltipLineGroup
                                       .selectAll(".ttip-line")
                                       .data(this.viewModel.scatterDots);
+
+    let displayPlot: boolean = this.viewModel.scatterDots
+      ? this.viewModel.scatterDots.length > 1
+      : null;
     if (displayPlot) {
-        initTooltipTracking(this.svg, this.listeningRectSelection, this.tooltipLineSelection, width, height - xAxisPadding,
-                            xScale, yScale, this.host.tooltipService, this.viewModel);
+      initTooltipTracking(
+        this.svg,
+        this.listeningRectSelection,
+        this.tooltipLineSelection,
+        width,
+        height - this.settings.axispad.x.padding.value,
+        xScale,
+        yScale,
+        this.host.tooltipService,
+        this.viewModel
+      );
     }
 
+    let prop_labels: boolean = this.viewModel.inputData
+      ? this.viewModel.inputData.prop_labels
+      : null;
+
     let yAxis: d3.Axis<d3.NumberValue>
-        = d3.axisLeft(yScale)
-            .tickFormat(
-                d => {
-                  // If axis displayed on % scale, then disable axis values > 100%
-                  let prop_limits: boolean = data_type == "PR" && multiplier == 1;
-                  return prop_limits ? (d <= 1 ? (<number>d * 100).toFixed(2) + "%" : "" ) : <string><unknown>d;
-                }
-            );
+      = d3.axisLeft(yScale)
+          .tickFormat(d => {
+            // If axis displayed on % scale, then disable axis values > 100%
+            return prop_labels ? (<number>d).toFixed(2) + "%" : <string><unknown>d;
+          });
     let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
 
     // Draw axes on plot
@@ -204,15 +213,11 @@ export class Visual implements IVisual {
                     // List all child elements of dotGroup that have CSS class '.dot'
                     .selectAll(".dot")
                     .data(this.viewModel
-                              .scatterDots
-                              .filter(d => (d.ratio >= yAxisMin
-                                            && d.ratio <= yAxisMax
-                                            && d.denominator >= xAxisMin
-                                            && d.denominator <= xAxisMax)));
+                              .scatterDots);
 
     // Plotting of scatter points
     makeDots(this.dotSelection, this.settings,
-              this.viewModel.highlights, this.selectionManager,
+              this.viewModel.anyHighlights, this.selectionManager,
               this.host.tooltipService, xScale, yScale,
               this.svg);
 
@@ -222,12 +227,12 @@ export class Visual implements IVisual {
 
     makeLines(this.lineSelection, this.settings,
               xScale, yScale, this.viewModel,
-              this.viewModel.highlights);
+              this.viewModel.anyHighlights);
     this.lineSelection.exit().remove()
 
     this.svg.on('contextmenu', () => {
       const eventTarget: EventTarget = (<any>d3).event.target;
-      let dataPoint: ScatterDots = <ScatterDots>(d3.select(<d3.BaseType>eventTarget).datum());
+      let dataPoint: scatterDotsObject = <scatterDotsObject>(d3.select(<d3.BaseType>eventTarget).datum());
       this.selectionManager.showContextMenu(dataPoint ? dataPoint.identity : {}, {
         x: (<any>d3).event.clientX,
         y: (<any>d3).event.clientY
@@ -235,7 +240,6 @@ export class Visual implements IVisual {
       (<any>d3).event.preventDefault();
     });
     this.listeningRectSelection.exit().remove()
-    console.log("fin")
   }
 
   // Function to render the properties specified in capabilities.json to the properties pane
@@ -244,67 +248,11 @@ export class Visual implements IVisual {
       let propertyGroupName: string = options.objectName;
       // Object that holds the specified settings/options to be rendered
       let properties: VisualObjectInstance[] = [];
-
-      // Call a different function for each specified property group
-      switch (propertyGroupName) {
-        // Specify behaviour for x-axis settings
-        case "funnel":
-          // Add y-axis settings to object to be rendered
-          properties.push({
-            objectName: propertyGroupName,
-            properties: {
-              data_type: this.settings.funnel.data_type.value,
-              od_adjust: this.settings.funnel.od_adjust.value,
-              multiplier: this.settings.funnel.multiplier.value,
-              transformation: this.settings.funnel.transformation.value,
-              alt_target: this.settings.funnel.alt_target.value
-            },
-            selector: null
-          });
-        break;
-        case "scatter":
-          properties.push({
-            objectName: propertyGroupName,
-            properties: {
-              size: this.settings.scatter.size.value,
-              colour: this.settings.scatter.colour.value,
-              opacity: this.settings.scatter.opacity.value,
-              opacity_unselected: this.settings.scatter.opacity_unselected.value
-            },
-            selector: null
-          });
-        break;
-        case "lines":
-          properties.push({
-            objectName: propertyGroupName,
-            properties: {
-              width_99: this.settings.lines.width_99.value,
-              width_95: this.settings.lines.width_95.value,
-              width_target: this.settings.lines.width_target.value,
-              width_alt_target: this.settings.lines.width_alt_target.value,
-              colour_99: this.settings.lines.colour_99.value,
-              colour_95: this.settings.lines.colour_95.value,
-              colour_target: this.settings.lines.colour_target.value,
-              colour_alt_target: this.settings.lines.colour_alt_target.value
-            },
-            selector: null
-          });
-        break;
-        case "axis":
-          properties.push({
-            objectName: propertyGroupName,
-            properties: {
-              xlimit_label: this.settings.axis.xlimit_label.value,
-              ylimit_label: this.settings.axis.ylimit_label.value,
-              ylimit_l: this.settings.axis.ylimit_l.value,
-              ylimit_u: this.settings.axis.ylimit_u.value,
-              xlimit_l: this.settings.axis.xlimit_l.value,
-              xlimit_u: this.settings.axis.xlimit_u.value
-            },
-            selector: null
-          });
-        break;
-      };
+      properties.push({
+        objectName: propertyGroupName,
+        properties: this.settings.returnValues(propertyGroupName),
+        selector: null
+      });
       return properties;
     }
 }

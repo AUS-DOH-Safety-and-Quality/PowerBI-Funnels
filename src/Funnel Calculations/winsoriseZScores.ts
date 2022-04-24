@@ -8,7 +8,7 @@ import * as d3 from "d3";
  * @param z
  * @returns
  */
-function winsoriseZScore(z: number[]): number[] {
+function winsoriseZScores(z: number[]): number[] {
   let z_sorted: number[] = z.sort(function(a, b){ return a - b; });
   let lower_z: number = d3.quantile(z_sorted, 0.1);
   let upper_z: number = d3.quantile(z_sorted, 0.9);
@@ -24,4 +24,4 @@ function winsoriseZScore(z: number[]): number[] {
   });
 }
 
-export default winsoriseZScore;
+export default winsoriseZScores;

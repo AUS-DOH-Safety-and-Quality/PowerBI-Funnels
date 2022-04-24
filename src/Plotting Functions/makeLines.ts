@@ -1,5 +1,6 @@
 import * as d3 from "d3";
-import { ViewModel, groupedData } from "../Interfaces"
+import viewModelObject from "../Classes/viewModel";
+import lineData from "../Classes/lineData";
 
 /**
  * Function for plotting the control limit and target lines, as well
@@ -19,7 +20,7 @@ function makeLines(LineObject: any,
                    settings: any,
                    x_scale: d3.ScaleLinear<number, number, never>,
                    y_scale: d3.ScaleLinear<number, number, never>,
-                   viewModel: ViewModel,
+                   viewModel: viewModelObject,
                    highlights: boolean): void {
   let l99_width: number = settings.lines.width_99.value;
   let l95_width: number = settings.lines.width_95.value;
@@ -46,10 +47,10 @@ function makeLines(LineObject: any,
                              .merge(<any>LineObject);
   lineMerged.classed('line', true);
   lineMerged.attr("d", d => {
-    return d3.line<groupedData>()
+    return d3.line<lineData>()
              .x(d => x_scale(d.x))
-             .y(d => y_scale(d.value))
-             .defined(function(d) { return d.value !== null; })
+             .y(d => y_scale(d.line_value))
+             .defined(function(d) { return d.line_value !== null; })
              (d.values)
   })
   lineMerged.attr("fill", "none")
