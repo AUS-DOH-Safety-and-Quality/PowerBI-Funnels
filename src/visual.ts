@@ -102,6 +102,7 @@ export class Visual implements IVisual {
     console.log("Begin update")
     // Update settings object with user-specified values (if present)
     updateSettings(this.settings, options.dataViews[0].metadata.objects);
+    console.log("update alt_target", this.settings.funnel.alt_target.value)
     console.log("Updated settings")
 
     // Insert the viewModel object containing the user-input data
@@ -139,7 +140,7 @@ export class Visual implements IVisual {
     let xScale: d3.ScaleLinear<number, number, never>
         = d3.scaleLinear()
             .domain([xAxisMin, xAxisMax])
-            .range([this.settings.axispad.y.padding.value,
+            .range([yAxisPadding,
                     width - this.settings.axispad.y.end_padding.value]);
 
 
@@ -167,16 +168,14 @@ export class Visual implements IVisual {
         );
     }
 
-    let prop_limits: boolean = this.viewModel.inputData.data_type === "PR" &&
-                                this.viewModel.inputData.multiplier === 1 &&
-                                this.viewModel.inputData.transform_text === "none";
+    let prop_labels: boolean = this.viewModel.inputData.prop_labels;
 
     let yAxis: d3.Axis<d3.NumberValue>
         = d3.axisLeft(yScale)
             .tickFormat(
                 d => {
                   // If axis displayed on % scale, then disable axis values > 100%
-                  return prop_limits ? (<number>d * 100).toFixed(2) + "%" : <string><unknown>d;
+                  return prop_labels ? (<number>d).toFixed(2) + "%" : <string><unknown>d;
                 }
             );
     let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(xScale);
@@ -216,11 +215,7 @@ export class Visual implements IVisual {
                     // List all child elements of dotGroup that have CSS class '.dot'
                     .selectAll(".dot")
                     .data(this.viewModel
-                              .scatterDots
-                              .filter(d => (d.ratio >= yAxisMin
-                                            && d.ratio <= yAxisMax
-                                            && d.denominator >= xAxisMin
-                                            && d.denominator <= xAxisMax)));
+                              .scatterDots);
 
     // Plotting of scatter points
     makeDots(this.dotSelection, this.settings,

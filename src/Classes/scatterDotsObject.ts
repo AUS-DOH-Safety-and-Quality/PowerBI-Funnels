@@ -16,6 +16,7 @@ type scatterDotsConstructorT = {
   transform_text: string;
   transform: (x: number) => number;
   limits: limitData;
+  prop_labels: boolean;
 }
 
 class scatterDotsObject {
@@ -35,9 +36,10 @@ class scatterDotsObject {
     this.category = args.category;
     this.numerator = args.numerator;
     this.denominator = args.denominator;
-    this.ratio = args.transform((args.numerator / args.denominator) / args.multiplier);
+    this.ratio = args.transform((args.numerator / args.denominator) * args.multiplier);
     this.colour = args.colour;
     this.highlighted = args.highlighted;
+    this.identity = null;
     this.tooltip = buildTooltip({
       group: args.category,
       numerator: args.numerator,
@@ -47,7 +49,8 @@ class scatterDotsObject {
       transform: args.transform,
       limits: args.limits,
       data_type: args.data_type,
-      multiplier: args.multiplier
+      multiplier: args.multiplier,
+      prop_labels: args.prop_labels
     })
   }
 };

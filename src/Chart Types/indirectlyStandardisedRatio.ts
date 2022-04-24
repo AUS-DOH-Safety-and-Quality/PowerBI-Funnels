@@ -24,7 +24,7 @@ let smrY = function(inputData: dataArray): number[] {
 }
 
 let smrLimitOD = function(args: limitArguments) {
-  let target: number = args.target;
+  let target: number = args.target_transformed;
   let q: number = args.q;
   let SE: number = args.SE;
   let tau2: number = args.tau2;

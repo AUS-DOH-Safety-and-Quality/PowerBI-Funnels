@@ -78,7 +78,7 @@ function makeDots(DotObject: d3.Selection<SVGCircleElement, any, any, any>,
         let y: any = (<any>d3).event.pageY;
 
         tooltipService.show({
-          dataItems: d.tooltips,
+          dataItems: d.tooltip,
           identities: [d.identity],
           coordinates: [x, y],
           isTouchEvent: false
@@ -95,7 +95,7 @@ function makeDots(DotObject: d3.Selection<SVGCircleElement, any, any, any>,
 
         // Use the 'move' service for more responsive display
         tooltipService.move({
-          dataItems: d.tooltips,
+          dataItems: d.tooltip,
           identities: [d.identity],
           coordinates: [x, y],
           isTouchEvent: false

@@ -25,86 +25,80 @@ class viewModelObject {
       let colour: string = this.inputData.dot_colour.length == 1 ?
         this.inputData.dot_colour[0] :
         this.inputData.dot_colour[idx];
+      let denominator: number = this.inputData.denominator[idx];
+      let limits: limitData = this.calculatedLimits.filter(d => d.denominator === denominator)[0];
 
       return new scatterDotsObject({
         category: (typeof this.inputData.categories.values[i] === "number") ?
                     (this.inputData.categories.values[i]).toString() :
                     <string>(this.inputData.categories.values[i]),
         numerator: this.inputData.numerator[idx],
-        denominator: this.inputData.denominator[idx],
-        limits: this.calculatedLimits[idx],
+        denominator: denominator,
+        limits: limits,
         colour: colour,
         highlighted: this.inputData.highlights ? (this.inputData.highlights[i] ? true : false) : false,
         data_type: this.inputData.data_type,
         multiplier: this.inputData.multiplier,
         target: this.chartBase.getTarget({ transformed: false }),
         transform_text: this.inputData.transform_text,
-        transform: this.inputData.transform
+        transform: this.inputData.transform,
+        prop_labels: this.inputData.prop_labels
       });
     });
   };
 
-  getFormattedLines(): lineData[] {
+  getGroupedLines(): nestReturnT[] {
+    let multiplier: number = this.inputData.multiplier;
+    let transform: (x: number) => number = this.inputData.transform;
+    let target: number = this.chartBase.getTarget({ transformed: false });
+    target = transform(target * multiplier)
+    let alt_target: number = this.inputSettings.funnel.alt_target.value;
+    console.log("ggl alt_target: ", alt_target)
     let formattedLines: lineData[] = new Array<lineData>();
     this.calculatedLimits.forEach(limits => {
       formattedLines.push({
         x: limits.denominator,
         group: "ll99",
-        line_value: limits.ll99,
+        line_value: transform(limits.ll99 * multiplier),
         colour: this.inputSettings.lines.colour_99.value,
         width: this.inputSettings.lines.width_99.value
       });
       formattedLines.push({
         x: limits.denominator,
         group: "ll95",
-        line_value: limits.ll95,
+        line_value: transform(limits.ll95 * multiplier),
         colour: this.inputSettings.lines.colour_95.value,
         width: this.inputSettings.lines.width_95.value
       });
       formattedLines.push({
         x: limits.denominator,
         group: "ul95",
-        line_value: limits.ul95,
+        line_value: transform(limits.ul95 * multiplier),
         colour: this.inputSettings.lines.colour_95.value,
         width: this.inputSettings.lines.width_95.value
       });
       formattedLines.push({
         x: limits.denominator,
         group: "ul99",
-        line_value: limits.ul99,
+        line_value: transform(limits.ul99 * multiplier),
         colour: this.inputSettings.lines.colour_99.value,
         width: this.inputSettings.lines.width_99.value
       });
       formattedLines.push({
         x: limits.denominator,
         group: "target",
-        line_value: this.chartBase.getTarget({ transformed: false }),
+        line_value: target,
         colour: this.inputSettings.lines.colour_target.value,
         width: this.inputSettings.lines.width_target.value
       });
       formattedLines.push({
         x: limits.denominator,
         group: "alt_target",
-        line_value: this.inputSettings.funnel.alt_target.value,
+        line_value: alt_target,
         colour: this.inputSettings.lines.colour_alt_target.value,
         width: this.inputSettings.lines.width_alt_target.value
       });
     })
-
-    return formattedLines;
-  };
-
-  getGroupedLines(): nestReturnT[] {
-    console.log("Get formatted lines")
-    let formattedLines: lineData[] =
-      this.getFormattedLines()
-          .filter(d => {
-            d.x >= this.axisLimits.x.lower &&
-            d.x <= this.axisLimits.x.upper &&
-            d.line_value >= this.axisLimits.y.lower &&
-            d.line_value <= this.axisLimits.y.upper
-          })
-    console.log("Return data grouped")
     return d3.nest()
               .key(function(d: lineData) { return d.group; })
               .entries(formattedLines)

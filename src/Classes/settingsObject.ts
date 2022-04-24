@@ -18,15 +18,6 @@ class settingsPairString {
   }
 }
 
-class settingsPairNull {
-  default: null;
-  value: null;
-
-  constructor() {
-    this.default = null;
-    this.value = null;
-  }
-}
 
 class axispadSettings {
   x: {
@@ -44,8 +35,8 @@ class axispadSettings {
       end_padding: new settingsPairNumber(10)
     };
     this.y = {
-      padding: new settingsPairNumber(10),
-      end_padding: new settingsPairNumber(50)
+      padding: new settingsPairNumber(50),
+      end_padding: new settingsPairNumber(10)
     };
   };
 };
@@ -103,20 +94,20 @@ class lineSettings {
 }
 
 class axisSettings {
-  xlimit_label: settingsPairNull;
-  ylimit_label: settingsPairNull;
-  xlimit_l: settingsPairNull;
-  xlimit_u: settingsPairNull;
-  ylimit_l: settingsPairNull;
-  ylimit_u: settingsPairNull;
+  xlimit_label: settingsPairString;
+  ylimit_label: settingsPairString;
+  xlimit_l: settingsPairNumber;
+  xlimit_u: settingsPairNumber;
+  ylimit_l: settingsPairNumber;
+  ylimit_u: settingsPairNumber;
 
   constructor() {
-    this.xlimit_label = new settingsPairNull();
-    this.ylimit_label = new settingsPairNull();
-    this.xlimit_l = new settingsPairNull();
-    this.xlimit_u = new settingsPairNull();
-    this.ylimit_l = new settingsPairNull();
-    this.ylimit_u = new settingsPairNull();
+    this.xlimit_label = new settingsPairString(null);
+    this.ylimit_label = new settingsPairString(null);
+    this.xlimit_l = new settingsPairNumber(null);
+    this.xlimit_u = new settingsPairNumber(null);
+    this.ylimit_l = new settingsPairNumber(null);
+    this.ylimit_u = new settingsPairNumber(null);
   };
 }
 

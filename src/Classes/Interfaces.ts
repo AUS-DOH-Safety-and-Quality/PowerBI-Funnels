@@ -31,6 +31,7 @@ class dataArray {
   dot_colour: string[];
   maxDenominator: number;
   maxRatio: number;
+  prop_labels: boolean;
 
   constructor(pars: dataArrayConstructorT) {
     this.id = pars.id ? pars.id : null;
@@ -46,12 +47,17 @@ class dataArray {
     this.dot_colour = pars.dot_colour ? pars.dot_colour : null;
     this.maxDenominator = d3.max(this.denominator);
     this.maxRatio = d3.max(divide(this.numerator, this.denominator));
+    this.prop_labels = this.data_type === "PR" &&
+                      this.multiplier === 1 &&
+                      this.transform_text === "none";
+    this.multiplier = this.prop_labels ? 100 : this.multiplier;
   }
 }
 
 type limitArgsConstructorT = {
   q?: number;
   target?: number;
+  target_transformed?: number;
   SE?: number;
   tau2?: number;
   denominator?: number;
@@ -60,6 +66,7 @@ type limitArgsConstructorT = {
 class limitArguments {
   q: number;
   target: number;
+  target_transformed: number;
   SE: number;
   tau2: number;
   denominator: number;
@@ -67,6 +74,7 @@ class limitArguments {
   constructor(args: limitArgsConstructorT) {
     this.q = args.q;
     this.target = args.target;
+    this.target_transformed = args.target_transformed;
     this.SE = args.SE;
     this.tau2 = args.tau2;
     this.denominator = args.denominator;
@@ -127,6 +135,7 @@ class axisLimits {
     let xUpperInput: number = args.inputSettings.axis.xlimit_u.value;
     let yLowerInput: number = args.inputSettings.axis.ylimit_l.value;
     let yUpperInput: number = args.inputSettings.axis.ylimit_u.value;
+    let multiplier: number = args.inputData.multiplier;
 
     this.x = {
       lower: xLowerInput ? xLowerInput : 0,
@@ -135,7 +144,7 @@ class axisLimits {
 
     this.y = {
       lower: yLowerInput ? yLowerInput : args.inputData.transform(0),
-      upper: yUpperInput ? yUpperInput : args.inputData.transform(maxRatio)
+      upper: yUpperInput ? yUpperInput : args.inputData.transform(maxRatio * multiplier)
     };
   }
 }
