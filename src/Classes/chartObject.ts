@@ -1,0 +1,156 @@
+import * as d3 from "d3";
+import * as stats from '@stdlib/stats/base/dists';
+import { dataArray, limitArguments, intervalData, limitData } from "./Interfaces"
+import { seq } from "../Helper Functions/Utilities"
+import getZScores from "../Funnel Calculations/getZScores";
+import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
+import getPhi from "../Funnel Calculations/getPhi";
+import getTau2 from "../Funnel Calculations/getTau2";
+import limitObject from "./limitObject"
+
+type chartObjectConstructorT = {
+  seFunction: (x: dataArray) => number[];
+  seFunctionOD: (x: dataArray) => number[];
+  targetFunction: (x: dataArray) => number;
+  targetFunctionTransformed: (x: dataArray) => number;
+  yFunction: (x: dataArray) => number[];
+  limitFunction: (x: limitArguments) => number;
+  limitFunctionOD: (x: limitArguments) => number;
+}
+
+class chartObject {
+  inputData: dataArray;
+  odAdjust: string;
+  seFunction: (x: dataArray) => number[];
+  seFunctionOD: (x: dataArray) => number[];
+  targetFunction: (x: dataArray) => number;
+  targetFunctionTransformed: (x: dataArray) => number;
+  yFunction: (x: dataArray) => number[];
+  limitFunction: (x: limitArguments) => number;
+  limitFunctionOD: (x: limitArguments) => number;
+
+  getPlottingDenominators(): number[] {
+    let maxDenominator: number = d3.max(this.inputData.denominator);
+    let plotDenomLower: number = 1;
+    let plotDenomUpper: number = maxDenominator + maxDenominator * 0.1;
+    let plotDenomStep: number = maxDenominator * 0.01;
+    return seq(plotDenomLower, plotDenomUpper, plotDenomStep)
+            .concat(this.inputData.denominator)
+            .sort((a, b) => a - b);
+  };
+
+  getTarget(par: { transformed: boolean }): number {
+    let targetFun = par.transformed ? this.targetFunctionTransformed : this.targetFunction;
+    return targetFun(this.inputData)
+  };
+
+  getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
+    let seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
+    if (par.plottingDenominators) {
+      let dummyArray: dataArray = new dataArray({ denominator: par.plottingDenominators });
+      return seFun(dummyArray);
+    } else {
+      return seFun(this.inputData);
+    }
+  };
+
+  getY(): number[] {
+    return this.yFunction(this.inputData)
+  };
+
+  getTau2(): number {
+    let targetOD: number = this.getTarget({ transformed: true });
+    let seOD: number[] = this.getSE({ odAdjust: true });
+    let yTransformed: number[] = this.getY();
+    let zScores: number[] = getZScores(yTransformed, seOD, targetOD);
+    let zScoresWinsorized: number[] = winsoriseZScores(zScores);
+    let phi: number = getPhi(zScoresWinsorized);
+
+    return getTau2(phi, seOD);
+  };
+
+  getTau2Bool(): boolean {
+    if (this.odAdjust === "yes") {
+      return true;
+    } else if (this.odAdjust === "no") {
+      return false;
+    } else if (this.odAdjust === "auto") {
+      return true;
+    }
+  };
+
+  getSingleLimit(par: { odAdjust: boolean, inputArgs: limitArguments }): number {
+    let limitFun = par.odAdjust ? this.limitFunctionOD : this.limitFunction;
+    return limitFun(par.inputArgs);
+  }
+
+  getIntervals(): intervalData[] {
+    // Specify the intervals for the limits: 95% and 99.8%
+    let qs: number[] = [0.001, 0.025, 0.975, 0.999]
+                         .map(p => stats.normal.quantile(p, 0, 1));
+    let q_labels: string[] = ["ll99", "ll95", "ul95", "ul99"];
+
+    return qs.map((d, idx) => new intervalData({
+      quantile: d,
+      label: q_labels[idx]
+    }));
+  }
+
+  getLimits(): limitData[] {
+    let calculateTau2: boolean = this.getTau2Bool();
+    let odAdjust: boolean;
+    let tau2: number;
+    if (calculateTau2) {
+      tau2 = this.getTau2();
+      odAdjust = tau2 > 0;
+    } else {
+      tau2 = 0;
+      odAdjust = false;
+    }
+
+    let target: number = this.getTarget({ transformed: odAdjust });
+
+    let intervals: intervalData[] = this.getIntervals();
+
+    let plottingDenominators: number[] = this.getPlottingDenominators();
+    let plottingSE: number[] = this.getSE({
+      odAdjust: odAdjust,
+      plottingDenominators: plottingDenominators
+    });
+
+    let calcLimits: limitData[] = plottingDenominators.map((denom, idx) => {
+      let calcLimit: limitData = new limitData(denom);
+      intervals.forEach(interval => {
+        let functionArgs: limitArguments = new limitArguments({
+          q: interval.quantile,
+          target: target,
+          SE: plottingSE[idx],
+          tau2: tau2,
+          denominator: denom
+        });
+
+        let limit: number = this.getSingleLimit({
+          odAdjust: odAdjust,
+          inputArgs: functionArgs
+        });
+
+        calcLimit[interval.label] = limit
+      });
+      return calcLimit;
+    });
+
+    return calcLimits;
+  }
+
+  constructor(args: chartObjectConstructorT) {
+    this.seFunction = args.seFunction;
+    this.seFunctionOD = args.seFunctionOD;
+    this.targetFunction = args.targetFunction;
+    this.targetFunctionTransformed = args.targetFunctionTransformed;
+    this.yFunction = args.yFunction;
+    this.limitFunction = args.limitFunction;
+    this.limitFunctionOD = args.limitFunctionOD;
+  }
+}
+
+export default chartObject;

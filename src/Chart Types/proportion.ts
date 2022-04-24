@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import limitObject from "../Classes/limitObject"
+import chartObject from "../Classes/chartObject"
 import { dataArray, limitArguments } from "../Classes/Interfaces"
 import { sqrt, inv, asin, square } from "../Helper Functions/UnaryBroadcasting"
 import { multiply, divide } from "../Helper Functions/BinaryBroadcasting"
@@ -15,11 +15,8 @@ let prTarget = function(inputData: dataArray): number {
   return d3.sum(numerator) / d3.sum(denominator);
 }
 
-let prTargetOD = function(inputData: dataArray): number {
-  let numerator: number[] = inputData.numerator;
-  let denominator: number[] = inputData.denominator;
-  let ratio: number = d3.sum(numerator) / d3.sum(denominator);
-  return Math.asin(Math.sqrt(ratio));
+let prTargetTransformed = function(inputData: dataArray): number {
+  return Math.asin(Math.sqrt(prTarget(inputData)));
 }
 
 let prY = function(inputData: dataArray): number[] {
@@ -45,11 +42,11 @@ let prLimit = function(args: limitArguments) {
   }
 }
 
-let prFunnelObject = new limitObject({
+let prFunnelObject = new chartObject({
   seFunction: prSE,
   seFunctionOD: prSE,
   targetFunction: prTarget,
-  targetFunctionOD: prTargetOD,
+  targetFunctionTransformed: prTargetTransformed,
   yFunction: prY,
   limitFunction: prLimit,
   limitFunctionOD: prLimit

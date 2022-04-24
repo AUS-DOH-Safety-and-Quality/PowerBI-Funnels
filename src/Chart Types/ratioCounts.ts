@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import limitObject from "../Classes/limitObject"
+import chartObject from "../Classes/chartObject"
 import { dataArray, limitArguments } from "../Classes/Interfaces"
 import { sqrt, log, exp, square } from "../Helper Functions/UnaryBroadcasting"
 import { add, divide } from "../Helper Functions/BinaryBroadcasting"
@@ -19,7 +19,7 @@ let rcTarget = function(inputData: dataArray): number {
   return d3.sum(numerator) / d3.sum(denominator);
 }
 
-let rcTargetOD = function(inputData: dataArray): number {
+let rcTargetTransformed = function(inputData: dataArray): number {
   let numerator: number[] = inputData.numerator;
   let denominator: number[] = inputData.denominator;
   return log(d3.sum(numerator)) - log(d3.sum(denominator));
@@ -31,7 +31,7 @@ let rcY = function(inputData: dataArray): number[] {
   return log(divide(add(numerator, 0.5), add(denominator, 0.5)));
 }
 
-let rcLimit = function(args: limitArguments) {
+let rcLimit = function(args: limitArguments): number {
   let target: number = args.target;
   let q: number = args.q;
   let SE: number = args.SE;
@@ -46,11 +46,11 @@ let rcLimit = function(args: limitArguments) {
   }
 }
 
-let rcFunnelObject = new limitObject({
+let rcFunnelObject = new chartObject({
   seFunction: rcSE,
   seFunctionOD: rcSE,
   targetFunction: rcTarget,
-  targetFunctionOD: rcTargetOD,
+  targetFunctionTransformed: rcTargetTransformed,
   yFunction: rcY,
   limitFunction: rcLimit,
   limitFunctionOD: rcLimit

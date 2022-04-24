@@ -1,28 +1,51 @@
+import * as d3 from "d3";
 import powerbi from "powerbi-visuals-api";
-import ISelectionId = powerbi.visuals.ISelectionId;
-import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+import getTransformation from "../Funnel Calculations/getTransformation";
+import invertTransformation from "../Funnel Calculations/invertTransformation";
+import { divide } from "../Helper Functions/BinaryBroadcasting"
+import settingsObject from "./settingsObject";
 
 type dataArrayConstructorT = {
-  data_type?: string,
-  od_adjust?: string,
   id?: number[],
   numerator?: number[],
-  denominator?: number[]
+  denominator?: number[],
+  highlights?: powerbi.PrimitiveValue[],
+  data_type?: string,
+  multiplier?: number,
+  categories?: powerbi.DataViewCategoryColumn,
+  transform_text?: string,
+  dot_colour?: string[]
 };
 
 class dataArray {
-  data_type: string;
-  od_adjust: string;
   id: number[];
   numerator: number[];
   denominator: number[];
+  highlights: powerbi.PrimitiveValue[];
+  data_type: string;
+  multiplier: number;
+  categories: powerbi.DataViewCategoryColumn;
+  transform_text: string;
+  transform: (x: number) => number;
+  inverse_transform: (x: number) => number;
+  dot_colour: string[];
+  maxDenominator: number;
+  maxRatio: number;
 
   constructor(pars: dataArrayConstructorT) {
-    this.data_type = pars.data_type;
-    this.od_adjust = pars.od_adjust;
     this.id = pars.id;
     this.numerator = pars.numerator;
     this.denominator = pars.denominator;
+    this.highlights = pars.highlights;
+    this.data_type = pars.data_type;
+    this.multiplier = pars.multiplier;
+    this.categories = pars.categories;
+    this.transform_text = pars.transform_text;
+    this.transform = getTransformation(pars.transform_text);
+    this.inverse_transform = invertTransformation(pars.transform_text);
+    this.dot_colour = pars.dot_colour;
+    this.maxDenominator = d3.max(pars.denominator);
+    this.maxRatio = d3.max(divide(this.numerator, this.denominator));
   }
 }
 
@@ -65,30 +88,6 @@ class intervalData {
   }
 }
 
-type groupedDataConstructorT = {
-  x: number;
-  line_value: number;
-  group: string;
-  colour: string;
-  width: number;
-}
-
-class groupedData {
-  x: number;
-  line_value: number;
-  group: string;
-  colour: string;
-  width: number;
-
-  constructor(args: groupedDataConstructorT) {
-    this.x = args.x;
-    this.line_value = args.line_value;
-    this.group = args.group;
-    this.colour = args.colour;
-    this.width = args.width;
-  }
-};
-
 class limitData {
   denominator: number;
   ll99: number;
@@ -101,59 +100,58 @@ class limitData {
   }
 }
 
+class lineData {
+  x: number;
+  line_value: number;
+  group: string;
+  colour: string;
+  width: number;
+};
 
+class axisLimits {
+  x: {
+    lower: number,
+    upper: number
+  };
+  y: {
+    lower: number,
+    upper: number
+  }
 
+  constructor(args: { inputData: dataArray,
+                      inputSettings: settingsObject,
+                      calculatedLimits: limitData[] }) {
+    let maxRatio: number = d3.max(divide(args.inputData.numerator,
+                                         args.inputData.denominator));
 
-
-
-
-
-
-
-
-
-
-
-interface measureIndex {
-  numerator: number,
-  denominator: number,
-  chart_type: number,
-  chart_multiplier: number
+    this.x.lower = args.inputSettings.axis.xlimit_l.value ? args.inputSettings.axis.xlimit_l.value : 0;
+    this.x.upper = args.inputSettings.axis.xlimit_u.value ? args.inputSettings.axis.xlimit_u.value : d3.max(args.inputData.denominator) * 1.1;
+    this.y.lower = args.inputSettings.axis.ylimit_l.value ? args.inputSettings.axis.ylimit_l.value : args.inputData.transform(0);
+    this.y.upper = args.inputSettings.axis.ylimit_u.value ? args.inputSettings.axis.ylimit_u.value : args.inputData.transform(maxRatio);
+  }
 }
 
-interface nestArray {
+type nestReturnT = {
+  key: string;
+  values: any;
+  value: undefined;
+}
+
+
+
+
+
+
+
+
+
+
+interface groupedLine {
   key: string;
   values: number;
-  value: number;
+  line_value: number;
 }
 
-// Used to represent the different datapoints on the chart
-interface ScatterDots {
-  category: string;
-  numerator: number;
-  denominator: number;
-  ratio: number;
-  colour: string;
-  // ISelectionId allows the visual to report the selection choice to PowerBI
-  identity: ISelectionId;
-  // Flag for whether dot should be highlighted by selections in other charts
-  highlighted: boolean;
-  // Tooltip data to print
-  tooltips: VisualTooltipDataItem[];
-};
-
-// Separator between code that gets data from PBI, and code that renders
-//   the data in the visual
-interface ViewModel {
-  scatterDots: ScatterDots[];
-  lineData: groupedData[];
-  groupedLines: nestArray[];
-  maxRatio: number;
-  maxDenominator: number;
-  highlights: boolean;
-  data_type: string;
-  multiplier: number;
-};
 
 interface LimitLines {
   limit: number;
@@ -161,14 +159,13 @@ interface LimitLines {
 };
 
 export {
-  ScatterDots,
   LimitLines,
-  ViewModel,
-  measureIndex,
-  groupedData,
-  nestArray,
+  lineData,
+  groupedLine,
   dataArray,
   limitArguments,
   intervalData,
-  limitData
+  limitData,
+  axisLimits,
+  nestReturnT
 }

@@ -1,6 +1,5 @@
-import * as d3 from "d3";
 import * as stats from '@stdlib/stats/base/dists';
-import limitObject from "../Classes/limitObject"
+import chartObject from "../Classes/chartObject"
 import { dataArray, limitArguments } from "../Classes/Interfaces"
 import { sqrt, inv, asin, square } from "../Helper Functions/UnaryBroadcasting"
 import { multiply, divide } from "../Helper Functions/BinaryBroadcasting"
@@ -56,11 +55,11 @@ let smrLimit = function(args: limitArguments) {
   }
 }
 
-let smrFunnelObject = new limitObject({
+let smrFunnelObject = new chartObject({
   seFunction: smrSE,
   seFunctionOD: smrSEOD,
   targetFunction: smrTarget,
-  targetFunctionOD: smrTarget,
+  targetFunctionTransformed: smrTarget,
   yFunction: smrY,
   limitFunction: smrLimit,
   limitFunctionOD: smrLimitOD

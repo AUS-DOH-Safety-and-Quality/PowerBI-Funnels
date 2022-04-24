@@ -1,151 +1,96 @@
-import * as d3 from "d3";
-import * as stats from '@stdlib/stats/base/dists';
-import { dataArray, limitArguments, intervalData, groupedData, limitData } from "./Interfaces"
-import { seq } from "../Helper Functions/Utilities"
-import getZScores from "../Funnel Calculations/getZScores";
-import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
-import getPhi from "../Funnel Calculations/getPhi";
-import getTau2 from "../Funnel Calculations/getTau2";
-
-type limitObjectConstructorT = {
-  seFunction: (x: dataArray) => number[];
-  seFunctionOD: (x: dataArray) => number[];
-  targetFunction: (x: dataArray) => number;
-  targetFunctionOD: (x: dataArray) => number;
-  yFunction: (x: dataArray) => number[];
-  limitFunction: (x: limitArguments) => number;
-  limitFunctionOD: (x: limitArguments) => number;
-}
+import { dataArray, limitData, lineData } from "./Interfaces";
+import settingsObject from "./settingsObject";
+import { scatterDotsConstructorT, scatterDotsObject } from "./scatterDotsObject";
 
 class limitObject {
   inputData: dataArray;
-  seFunction: (x: dataArray) => number[];
-  seFunctionOD: (x: dataArray) => number[];
-  targetFunction: (x: dataArray) => number;
-  targetFunctionOD: (x: dataArray) => number;
-  yFunction: (x: dataArray) => number[];
-  limitFunction: (x: limitArguments) => number;
-  limitFunctionOD: (x: limitArguments) => number;
+  inputSettings: settingsObject;
+  calculatedLimits: limitData[];
+  target: number;
 
-  getPlottingDenominators(): number[] {
-    let maxDenominator: number = d3.max(this.inputData.denominator);
-    let plotDenomLower: number = 1;
-    let plotDenomUpper: number = maxDenominator + maxDenominator * 0.1;
-    let plotDenomStep: number = maxDenominator * 0.01;
-    return seq(plotDenomLower, plotDenomUpper, plotDenomStep)
-            .concat(this.inputData.denominator)
-            .sort((a, b) => a - b);
-  };
+  getScatterData(): scatterDotsObject[] {
+    return this.inputData.id.map((i, idx) => {
+      let limits: limitData = this.calculatedLimits.filter(d => d.denominator == this.inputData.denominator[idx])[0];
+      let colour: string = this.inputData.dot_colour.length == 1 ?
+        this.inputData.dot_colour[0] :
+        this.inputData.dot_colour[idx];
 
-  getTarget(par: { odAdjust: boolean }): number {
-    let targetFun = par.odAdjust ? this.targetFunctionOD : this.targetFunction;
-    return targetFun(this.inputData)
-  };
+      let conArgs: scatterDotsConstructorT = {
+        category: (typeof this.inputData.categories.values[i] === "number") ?
+                    (this.inputData.categories.values[i]).toString() :
+                    <string>(this.inputData.categories.values[i]),
+        numerator: this.inputData.numerator[idx],
+        denominator: this.inputData.denominator[idx],
+        limits: this.calculatedLimits[idx],
+        colour: colour,
+        highlighted: this.inputData.highlights ? (this.inputData.highlights[i] ? true : false) : false,
+        data_type: this.inputData.data_type,
+        multiplier: this.inputData.multiplier,
+        target: this.target,
+        transform_text: this.inputData.transform_text,
+        transform: this.inputData.transform
+      };
 
-  getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
-    let seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
-    if (par.plottingDenominators) {
-      let dummyArray: dataArray = new dataArray({ denominator: par.plottingDenominators });
-      return seFun(dummyArray);
-    } else {
-      return seFun(this.inputData);
-    }
-  };
-
-  getY(): number[] {
-    return this.yFunction(this.inputData)
-  };
-
-  getTau2(): number {
-    let targetOD: number = this.getTarget({ odAdjust: true });
-    let seOD: number[] = this.getSE({ odAdjust: true });
-    let yTransformed: number[] = this.getY();
-    let zScores: number[] = getZScores(yTransformed, seOD, targetOD);
-    let zScoresWinsorized: number[] = winsoriseZScores(zScores);
-    let phi: number = getPhi(zScoresWinsorized);
-
-    return getTau2(phi, seOD);
-  };
-
-  getTau2Bool(): boolean {
-    if (this.inputData.od_adjust === "yes") {
-      return true;
-    } else if (this.inputData.od_adjust === "no") {
-      return false;
-    } else if (this.inputData.od_adjust === "auto") {
-      return true;
-    }
-  };
-
-  getSingleLimit(par: { odAdjust: boolean, inputArgs: limitArguments }): number {
-    let limitFun = par.odAdjust ? this.limitFunctionOD : this.limitFunction;
-    return limitFun(par.inputArgs);
-  }
-
-  getIntervals(): intervalData[] {
-    // Specify the intervals for the limits: 95% and 99.8%
-    let qs: number[] = [0.001, 0.025, 0.975, 0.999]
-                         .map(p => stats.normal.quantile(p, 0, 1));
-    let q_labels: string[] = ["ll99", "ll95", "ul95", "ul99"];
-
-    return qs.map((d, idx) => new intervalData({
-      quantile: d,
-      label: q_labels[idx]
-    }))
-  }
-
-  getLimits(): limitData[] {
-    let calculateTau2: boolean = this.getTau2Bool();
-    let odAdjust: boolean;
-    let tau2: number;
-    if (calculateTau2) {
-      tau2 = this.getTau2();
-      odAdjust = tau2 > 0;
-    } else {
-      tau2 = 0;
-      odAdjust = false;
-    }
-
-    let target: number = this.getTarget({ odAdjust: odAdjust });
-
-    let intervals: intervalData[] = this.getIntervals();
-
-    let plottingDenominators: number[] = this.getPlottingDenominators();
-    let plottingSE: number[] = this.getSE({
-      odAdjust: odAdjust,
-      plottingDenominators: plottingDenominators
+      return new scatterDotsObject(conArgs);
     });
+  };
 
-    return plottingDenominators.map((denom, idx) => {
-      let calcLimit: limitData = new limitData(denom);
-      intervals.forEach(interval => {
-        let functionArgs: limitArguments = new limitArguments({
-          q: interval.quantile,
-          target: target,
-          SE: plottingSE[idx],
-          tau2: tau2,
-          denominator: denom
-        });
-
-        let limit: number = this.getSingleLimit({
-          odAdjust: odAdjust,
-          inputArgs: functionArgs
-        });
-
-        calcLimit[interval.label] = limit
+  getFormattedLines(): lineData[] {
+    let formattedLines: lineData[];
+    this.calculatedLimits.forEach(limits => {
+      formattedLines.push({
+        x: limits.denominator,
+        group: "ll99",
+        line_value: limits.ll99,
+        colour: this.inputSettings.lines.colour_99.value,
+        width: this.inputSettings.lines.width_99.value
       });
-      return calcLimit;
-    });
-  }
+      formattedLines.push({
+        x: limits.denominator,
+        group: "ll95",
+        line_value: limits.ll95,
+        colour: this.inputSettings.lines.colour_95.value,
+        width: this.inputSettings.lines.width_95.value
+      });
+      formattedLines.push({
+        x: limits.denominator,
+        group: "ul95",
+        line_value: limits.ul95,
+        colour: this.inputSettings.lines.colour_95.value,
+        width: this.inputSettings.lines.width_95.value
+      });
+      formattedLines.push({
+        x: limits.denominator,
+        group: "ul99",
+        line_value: limits.ul99,
+        colour: this.inputSettings.lines.colour_99.value,
+        width: this.inputSettings.lines.width_99.value
+      });
+      formattedLines.push({
+        x: limits.denominator,
+        group: "target",
+        line_value: this.target,
+        colour: this.inputSettings.lines.colour_target.value,
+        width: this.inputSettings.lines.width_target.value
+      });
+      formattedLines.push({
+        x: limits.denominator,
+        group: "alt_target",
+        line_value: this.inputSettings.funnel.alt_target.value,
+        colour: this.inputSettings.lines.colour_alt_target.value,
+        width: this.inputSettings.lines.width_alt_target.value
+      });
+    })
 
-  constructor(args: limitObjectConstructorT) {
-    this.seFunction = args.seFunction;
-    this.seFunctionOD = args.seFunctionOD;
-    this.targetFunction = args.targetFunction;
-    this.targetFunctionOD = args.targetFunctionOD;
-    this.yFunction = args.yFunction;
-    this.limitFunction = args.limitFunction;
-    this.limitFunctionOD = args.limitFunctionOD;
+    return formattedLines;
+  };
+
+  constructor(args: { inputData: dataArray,
+                      calculatedLimits: limitData[],
+                      target: number }) {
+    this.inputData = args.inputData;
+    this.calculatedLimits = args.calculatedLimits;
+    this.target = args.target;
   }
 }
 
