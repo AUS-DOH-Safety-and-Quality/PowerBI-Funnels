@@ -7,11 +7,13 @@ import dataArray from "./dataArray"
 class axisLimits {
   x: {
     lower: number,
-    upper: number
+    upper: number,
+    padding: number
   };
   y: {
     lower: number,
-    upper: number
+    upper: number,
+    padding: number
   }
 
   constructor(args: { inputData: dataArray,
@@ -27,12 +29,14 @@ class axisLimits {
 
     this.x = {
       lower: xLowerInput ? xLowerInput : 0,
-      upper: xUpperInput ? xUpperInput : d3.max(args.inputData.denominator) * 1.1
+      upper: xUpperInput ? xUpperInput : d3.max(args.inputData.denominator) * 1.1,
+      padding: args.inputSettings.axispad.x.padding.value
     };
 
     this.y = {
       lower: yLowerInput ? yLowerInput : args.inputData.transform(0),
-      upper: yUpperInput ? yUpperInput : args.inputData.transform(maxRatio * multiplier)
+      upper: yUpperInput ? yUpperInput : args.inputData.transform(maxRatio * multiplier),
+      padding: args.inputSettings.axispad.y.padding.value
     };
   }
 }

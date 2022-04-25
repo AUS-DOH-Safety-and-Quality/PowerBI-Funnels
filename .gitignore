@@ -1,4 +1,4 @@
-# VS Code 
+# VS Code
 .vscode
 
 # dependencies
@@ -10,3 +10,5 @@ node_modules
 dist
 package-lock*
 webpack.statistics*
+
+doc/*
