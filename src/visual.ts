@@ -14,7 +14,7 @@ import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "d3";
-import checkIDSelected from "./Selection Helpers/checkIDSelected";
+import checkIDSelected from "./Data Preparation/checkIDSelected";
 import settingsObject from "./Classes/settingsObject";
 import viewModelObject from "./Classes/viewModel"
 import scatterDotsObject from "./Classes/scatterDotsObject"
