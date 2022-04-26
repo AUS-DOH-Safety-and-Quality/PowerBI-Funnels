@@ -130,6 +130,20 @@ export class Visual implements IVisual {
     this.addContextMenu();
   }
 
+  // Function to render the properties specified in capabilities.json to the properties pane
+  public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions):
+    VisualObjectInstanceEnumeration {
+      let propertyGroupName: string = options.objectName;
+      // Object that holds the specified settings/options to be rendered
+      let properties: VisualObjectInstance[] = [];
+      properties.push({
+        objectName: propertyGroupName,
+        properties: this.settings.returnValues(propertyGroupName),
+        selector: null
+      });
+      return properties;
+  }
+  
   highlightIfSelected(): void {
     if (!this.dotSelection || !this.selectionManager.getSelectionIds()) {
       return;
@@ -462,17 +476,4 @@ export class Visual implements IVisual {
     this.lineSelection.exit().remove();
   }
 
-  // Function to render the properties specified in capabilities.json to the properties pane
-  public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions):
-    VisualObjectInstanceEnumeration {
-      let propertyGroupName: string = options.objectName;
-      // Object that holds the specified settings/options to be rendered
-      let properties: VisualObjectInstance[] = [];
-      properties.push({
-        objectName: propertyGroupName,
-        properties: this.settings.returnValues(propertyGroupName),
-        selector: null
-      });
-      return properties;
-  }
 }
