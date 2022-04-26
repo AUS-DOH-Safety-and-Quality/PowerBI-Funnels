@@ -46,7 +46,7 @@ let rcLimit = function(args: limitArguments): number {
 
 class rcFunnelObject extends chartObject {
   constructor(args: { inputData: dataArray,
-                      inputSettings: settingsObject}) {
+                      inputSettings: settingsObject }) {
     super({
       seFunction: rcSE,
       seFunctionOD: rcSE,
@@ -54,10 +54,10 @@ class rcFunnelObject extends chartObject {
       targetFunctionTransformed: rcTargetTransformed,
       yFunction: rcY,
       limitFunction: rcLimit,
-      limitFunctionOD: rcLimit
+      limitFunctionOD: rcLimit,
+      inputData: args.inputData,
+      inputSettings: args.inputSettings
     });
-    this.inputData = args.inputData;
-    this.inputSettings = args.inputSettings;
   }
 }
 

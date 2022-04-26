@@ -46,7 +46,7 @@ let prLimit = function(args: limitArguments) {
 
 class prFunnelObject extends chartObject {
   constructor(args: { inputData: dataArray,
-                      inputSettings: settingsObject}) {
+                      inputSettings: settingsObject }) {
     super({
       seFunction: prSE,
       seFunctionOD: prSE,
@@ -54,10 +54,10 @@ class prFunnelObject extends chartObject {
       targetFunctionTransformed: prTargetTransformed,
       yFunction: prY,
       limitFunction: prLimit,
-      limitFunctionOD: prLimit
+      limitFunctionOD: prLimit,
+      inputData: args.inputData,
+      inputSettings: args.inputSettings
     });
-    this.inputData = args.inputData;
-    this.inputSettings = args.inputSettings;
   }
 }
 
