@@ -14,12 +14,14 @@ import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "d3";
+import svgObjectClass from "./Classes/svgObjectClass"
+import svgSelectionClass from "./Classes/svgSelectionClass"
 import checkIDSelected from "./Data Preparation/checkIDSelected";
 import settingsObject from "./Classes/settingsObject";
 import viewModelObject from "./Classes/viewModel"
 import scatterDotsObject from "./Classes/scatterDotsObject"
 import lineData from "./Classes/lineData"
-import axisLimits from "./Classes/axisLimits";
+import plotPropertiesClass from "./Classes/plotProperties"
 import getGroupKeys from "./Data Preparation/getGroupKeys"
 import { groupKeysT } from "./Data Preparation/getGroupKeys"
 
@@ -30,56 +32,26 @@ type SelectionAny = d3.Selection<any, any, any, any>;
 export class Visual implements IVisual {
   private host: IVisualHost;
   private svg: SelectionSVG;
-  private dotGroup: SelectionSVG;
-  private dotSelection: SelectionAny;
-  private lineGroup: SelectionSVG;
-  private lineSelection: SelectionAny;
-  private listeningRect: SelectionSVG;
-  private listeningRectSelection: SelectionAny;
-  private tooltipLineGroup: SelectionSVG;
-  private tooltipLineSelection: SelectionAny;
-  private xAxisGroup: SelectionSVGG;
-  private xAxisLabels: SelectionSVGG;
-  private yAxisGroup: SelectionSVGG;
-  private yAxisLabels: SelectionSVGG;
+  private svgObjects: svgObjectClass;
+  private svgSelections: svgSelectionClass;
   private viewModel: viewModelObject;
   private selectionManager: ISelectionManager;
   private settings: settingsObject;
-  private xScale: d3.ScaleLinear<number, number, never>;
-  private yScale: d3.ScaleLinear<number, number, never>;
-  private width: number;
-  private height: number;
-  private axisLimits: axisLimits;
-  private displayPlot: boolean;
+  private plotProperties: plotPropertiesClass;
+
 
   constructor(options: VisualConstructorOptions) {
+    console.log("start constructor");
     // Add reference to host object, for accessing environment (e.g. colour)
     this.host = options.host;
 
-                // Get reference to element object for manipulation
-                //   (reference to html container for visual)
+    // Get reference to element object for manipulation
+    //   (reference to html container for visual)
     this.svg = d3.select(options.element)
-                // Create new svg element inside container
                   .append("svg")
                   .classed("funnelchart", true);
-    this.listeningRect = this.svg.append("g")
-                            .classed("listen-group", true);
-    this.tooltipLineGroup = this.svg.append("g")
-                            .classed("tooltip-group", true);
-    this.lineGroup = this.svg.append("g")
-                              .classed("line-group", true);
-    this.dotGroup = this.svg.append("g")
-                            .classed("dotGroup", true);
-
-    // Add a grouping ('g') element to the canvas that will later become the x-axis
-    this.xAxisGroup = this.svg.append("g")
-                              .classed("x-axis", true);
-    this.xAxisLabels = this.svg.append("text");
-
-    // Add a grouping ('g') element to the canvas that will later become the y-axis
-    this.yAxisGroup = this.svg.append("g")
-                              .classed("y-axis", true);
-    this.yAxisLabels = this.svg.append("text");
+    this.svgObjects = new svgObjectClass(this.svg);
+    this.svgSelections = new svgSelectionClass();
 
     // Request a new selectionManager tied to the visual
     this.selectionManager = this.host.createSelectionManager();
@@ -90,11 +62,14 @@ export class Visual implements IVisual {
     this.selectionManager.registerOnSelectCallback(() => {
       this.highlightIfSelected();
     })
+    console.log("finish constructor");
   }
 
   public update(options: VisualUpdateOptions) {
+    console.log("start update");
     // Update settings object with user-specified values (if present)
     this.settings.updateSettings(options.dataViews[0].metadata.objects);
+    console.log("Updated settings");
 
     // Insert the viewModel object containing the user-input data
     //   This function contains the construction of the funnel
@@ -102,32 +77,38 @@ export class Visual implements IVisual {
     this.viewModel = new viewModelObject({ options: options,
                                            inputSettings: this.settings,
                                            host: this.host });
-    // Get the width and height of plotting space
-    this.width = options.viewport.width;
-    this.height = options.viewport.height;
+    console.log("Calculated limits");
+
+    this.plotProperties = new plotPropertiesClass({
+      options: options,
+      viewModel: this.viewModel,
+      inputSettings: this.settings
+    });
+    console.log("Updated plot properties");
 
     // Dynamically scale chart to use all available space
-    this.svg.attr("width", this.width)
-            .attr("height", this.height);
+    this.svg.attr("width", this.plotProperties.width)
+            .attr("height", this.plotProperties.height);
 
-    this.displayPlot = this.viewModel.scatterDots
-      ? this.viewModel.scatterDots.length > 1
-      : null;
 
-    this.extractLimitsSettings();
-
-    if (this.displayPlot) {
-      this.initTooltipTracking();
-    }
+    this.initTooltipTracking();
+    console.log("Initialised tooltips");
 
     this.drawXAxis();
+    console.log("Drawn x-axis");
+
     this.drawYAxis();
+    console.log("Drawn y-axis");
 
     // Plotting of scatter points
     this.drawDots();
+    console.log("Drawn dots");
+
     this.drawLines();
+    console.log("Drawn lines");
 
     this.addContextMenu();
+    console.log("finish update");
   }
 
   // Function to render the properties specified in capabilities.json to the properties pane
@@ -145,76 +126,38 @@ export class Visual implements IVisual {
   }
   
   highlightIfSelected(): void {
-    if (!this.dotSelection || !this.selectionManager.getSelectionIds()) {
+    if (!this.svgSelections.dotSelection || !this.selectionManager.getSelectionIds()) {
       return;
     }
     let opacitySelected: number = this.settings.scatter.opacity.value;
     let opacityUnselected: number = this.settings.scatter.opacity_unselected.value;
 
     if (!this.selectionManager.getSelectionIds().length) {
-      this.dotSelection.style("fill-opacity", opacitySelected);
+      this.svgSelections.dotSelection.style("fill-opacity", opacitySelected);
       return;
     }
 
-    this.dotSelection.each(d => {
+    this.svgSelections.dotSelection.each(d => {
       const opacity: number
         = checkIDSelected(this.selectionManager.getSelectionIds() as ISelectionId[],
                           d.identity)
             ? opacitySelected
             : opacityUnselected;
 
-      (<any>d3).select(this.dotSelection)
+      (<any>d3).select(this.svgSelections.dotSelection)
                 .style("fill-opacity", opacity);
     });
   }
 
-  extractLimitsSettings(): void {
-    let yAxisMin: number = this.viewModel.axisLimits
-      ? this.viewModel.axisLimits.y.lower
-      : null;
-    let yAxisMax: number = this.viewModel.axisLimits
-      ? this.viewModel.axisLimits.y.upper
-      : null;
-    let xAxisMin: number = this.viewModel.axisLimits
-      ? this.viewModel.axisLimits.x.lower
-      : null;
-    let xAxisMax: number = this.viewModel.axisLimits
-      ? this.viewModel.axisLimits.x.upper
-      : null;
-
-    let xAxisPadding: number = this.settings.axispad.x.padding.value;
-    let yAxisPadding: number = this.settings.axispad.y.padding.value;
-
-    this.axisLimits = {
-      x: {
-        lower: xAxisMin,
-        upper: xAxisMax,
-        padding: xAxisPadding
-      },
-      y: {
-        lower: yAxisMin,
-        upper: yAxisMax,
-        padding: yAxisPadding
-      }
-    }
-  }
-
   drawXAxis(): void {
-    let xAxisMin: number = this.axisLimits.x.lower;
-    let xAxisMax: number = this.axisLimits.x.upper;
-    let yAxisPadding: number = this.axisLimits.y.padding;
-    let xAxisPadding: number = this.axisLimits.x.padding;
-    this.xScale = d3.scaleLinear()
-                    .domain([xAxisMin, xAxisMax])
-                    .range([yAxisPadding,
-                            this.width - this.settings.axispad.y.end_padding.value]);
+    let xAxisPadding: number = this.plotProperties.axisLimits.x.padding;
 
-    let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(this.xScale);
-    this.xAxisGroup
+    let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(this.plotProperties.xScale);
+    this.svgObjects.xAxisGroup
         .call(xAxis)
-        .attr("color", this.displayPlot ? "#000000" : "#FFFFFF")
+        .attr("color", this.plotProperties.displayPlot ? "#000000" : "#FFFFFF")
         // Plots the axis at the correct height
-        .attr("transform", "translate(0, " + (this.height - xAxisPadding) + ")")
+        .attr("transform", "translate(0, " + (this.plotProperties.height - xAxisPadding) + ")")
         .selectAll("text")
         // Rotate tick labels
         .attr("transform","rotate(-35)")
@@ -223,42 +166,36 @@ export class Visual implements IVisual {
         // Scale font
         .style("font-size","x-small");
 
-    this.xAxisLabels
-        .attr("x",this.width/2)
-        .attr("y",this.height - xAxisPadding/10)
+    this.svgObjects.xAxisLabels
+        .attr("x",this.plotProperties.width/2)
+        .attr("y",this.plotProperties.height - xAxisPadding/10)
         .style("text-anchor", "middle")
         .text(this.settings.axis.xlimit_label.value);
   }
 
   drawYAxis(): void {
-    let yAxisMin: number = this.axisLimits.y.lower;
-    let yAxisMax: number = this.axisLimits.y.upper;
-    let yAxisPadding: number = this.axisLimits.y.padding;
+    let yAxisPadding: number = this.plotProperties.axisLimits.y.padding;
     let prop_labels: boolean = this.viewModel.inputData
       ? this.viewModel.inputData.prop_labels
       : null;
 
-    this.yScale = d3.scaleLinear()
-                    .domain([yAxisMin, yAxisMax])
-                    .range([this.height - this.settings.axispad.x.padding.value,
-                            this.settings.axispad.x.end_padding.value]);
     let yAxis: d3.Axis<d3.NumberValue>
-      = d3.axisLeft(this.yScale)
+      = d3.axisLeft(this.plotProperties.yScale)
           .tickFormat(d => {
             // If axis displayed on % scale, then disable axis values > 100%
             return prop_labels ? (<number>d).toFixed(2) + "%" : <string><unknown>d;
           });
 
     // Draw axes on plot
-    this.yAxisGroup
+    this.svgObjects.yAxisGroup
         .call(yAxis)
-        .attr("color", this.displayPlot ? "#000000" : "#FFFFFF")
+        .attr("color", this.plotProperties.displayPlot ? "#000000" : "#FFFFFF")
         .attr("transform", "translate(" +  yAxisPadding + ",0)");
 
-    this.yAxisLabels
+    this.svgObjects.yAxisLabels
         .attr("x",yAxisPadding)
-        .attr("y",this.height/2)
-        .attr("transform","rotate(-90," + yAxisPadding/3 +"," + this.height/2 +")")
+        .attr("y",this.plotProperties.height/2)
+        .attr("transform","rotate(-90," + yAxisPadding/3 +"," + this.plotProperties.height/2 +")")
         .text(this.settings.axis.ylimit_label.value)
         .style("text-anchor", "end");
   }
@@ -276,65 +213,69 @@ export class Visual implements IVisual {
   }
 
   initTooltipTracking(): void {
-    let height: number = this.height - this.settings.axispad.x.padding.value;
-    this.tooltipLineSelection = this.tooltipLineGroup
+    let height: number = this.plotProperties.height - this.settings.axispad.x.padding.value;
+    this.svgSelections.tooltipLineSelection = this.svgObjects.tooltipLineGroup
                                       .selectAll(".ttip-line")
                                       .data(this.viewModel.scatterDots);
-    let xAxisLine = this.tooltipLineSelection
+    let xAxisLine = this.svgSelections.tooltipLineSelection
                         .enter()
                         .append("rect")
-                        .merge(<any>this.tooltipLineSelection);
+                        .merge(<any>this.svgSelections.tooltipLineSelection);
     xAxisLine.classed("ttip-line", true);
     xAxisLine.attr("stroke-width", "1px")
               .attr("width", ".5px")
               .attr("height", height)
               .style("fill-opacity", 0);
 
-    this.listeningRectSelection = this.listeningRect
+    this.svgSelections.listeningRectSelection = this.svgObjects.listeningRect
                                       .selectAll(".obs-sel")
                                       .data(this.viewModel.scatterDots);
 
-    let listenMerged = this.listeningRectSelection
+    let listenMerged = this.svgSelections.listeningRectSelection
                             .enter()
                             .append("rect")
-                            .merge(<any>this.listeningRectSelection)
+                            .merge(<any>this.svgSelections.listeningRectSelection)
     listenMerged.classed("obs-sel", true);
 
     listenMerged.style("fill","transparent")
-                .attr("width", this.width)
+                .attr("width", this.plotProperties.width)
                 .attr("height", height);
+    if (this.plotProperties.displayPlot) {
+      listenMerged.on("mousemove", () => {
+        let xval: number = this.plotProperties.xScale.invert((<any>d3).event.pageX);
 
-    listenMerged.on("mousemove", () => {
-      let xval: number = this.xScale.invert((<any>d3).event.pageX);
+        let x_dist: number[] = this.viewModel
+                                    .scatterDots
+                                    .map(d => d.denominator)
+                                    .map(d => Math.abs(d - xval));
+        let minInd: number = d3.scan(x_dist,(a,b) => a-b);
 
-      let x_dist: number[] = this.viewModel
-                                  .scatterDots
-                                  .map(d => d.denominator)
-                                  .map(d => Math.abs(d - xval));
-      let minInd: number = d3.scan(x_dist,(a,b) => a-b);
+        let scaled_x: number = this.plotProperties.xScale(this.viewModel.scatterDots[minInd].denominator)
+        let scaled_y: number = this.plotProperties.yScale(this.viewModel.scatterDots[minInd].ratio)
 
-      let scaled_x: number = this.xScale(this.viewModel.scatterDots[minInd].denominator)
-      let scaled_y: number = this.yScale(this.viewModel.scatterDots[minInd].ratio)
-
-      this.host.tooltipService.show({
-        dataItems: this.viewModel.scatterDots[minInd].tooltip,
-        identities: [this.viewModel.scatterDots[minInd].identity],
-        coordinates: [scaled_x, scaled_y],
-        isTouchEvent: false
+        this.host.tooltipService.show({
+          dataItems: this.viewModel.scatterDots[minInd].tooltip,
+          identities: [this.viewModel.scatterDots[minInd].identity],
+          coordinates: [scaled_x, scaled_y],
+          isTouchEvent: false
+        });
+        xAxisLine.style("fill-opacity", 1)
+                  .attr("transform", "translate(" + scaled_x + ",0)");
       });
-      xAxisLine.style("fill-opacity", 1)
-                .attr("transform", "translate(" + scaled_x + ",0)");
-    });
 
-    listenMerged.on("mouseleave", () => {
-      this.host.tooltipService.hide({
-        immediately: true,
-        isTouchEvent: false
+      listenMerged.on("mouseleave", () => {
+        this.host.tooltipService.hide({
+          immediately: true,
+          isTouchEvent: false
+        });
+        xAxisLine.style("fill-opacity", 0);
       });
-      xAxisLine.style("fill-opacity", 0);
-    });
+    } else {
+      listenMerged.on("mousemove", () => {})
+      listenMerged.on("mouseleave", () => {})
+    }
 
-    this.listeningRectSelection.exit().remove()
+    this.svgSelections.listeningRectSelection.exit().remove()
     listenMerged.exit().remove()
     xAxisLine.exit().remove()
   }
@@ -346,21 +287,21 @@ export class Visual implements IVisual {
     let dot_opacity_unsel: number = this.settings.scatter.opacity_unselected.value;
 
     // Bind input data to dotGroup reference
-    this.dotSelection = this.dotGroup
+    this.svgSelections.dotSelection = this.svgObjects.dotGroup
                             // List all child elements of dotGroup that have CSS class '.dot'
                             .selectAll(".dot")
                             .data(this.viewModel.scatterDots);
 
     // Update the datapoints if data is refreshed
     const MergedDotObject: d3.Selection<SVGCircleElement, any, any, any>
-      = this.dotSelection.enter()
+      = this.svgSelections.dotSelection.enter()
       .append("circle")
-      .merge(<any>this.dotSelection);
+      .merge(<any>this.svgSelections.dotSelection);
 
     MergedDotObject.classed("dot", true);
 
-    MergedDotObject.attr("cy", d => this.yScale(d.ratio))
-                    .attr("cx", d => this.xScale(d.denominator))
+    MergedDotObject.attr("cy", d => this.plotProperties.yScale(d.ratio))
+                    .attr("cx", d => this.plotProperties.xScale(d.denominator))
                     .attr("r", dot_size)
                     // Fill each dot with the colour in each DataPoint
                     .style("fill", d => dot_colour);
@@ -387,50 +328,58 @@ export class Visual implements IVisual {
             });
           });
       (<any>d3).event.stopPropagation();
-    })
-    // Display tooltip content on mouseover
-    .on("mouseover", d => {
-      // Get screen coordinates of mouse pointer, tooltip will
-      //   be displayed at these coordinates
-      //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
-      //      to d3 properly
-      let x: any = (<any>d3).event.pageX;
-      let y: any = (<any>d3).event.pageY;
-
-      this.host.tooltipService.show({
-        dataItems: d.tooltip,
-        identities: [d.identity],
-        coordinates: [x, y],
-        isTouchEvent: false
-      });
-    })
-    // Specify that tooltips should move with the mouse
-    .on("mousemove", d => {
-      // Get screen coordinates of mouse pointer, tooltip will
-      //   be displayed at these coordinates
-      //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
-      //      to d3 properly
-      let x: any = (<any>d3).event.pageX;
-      let y: any = (<any>d3).event.pageY;
-
-      // Use the 'move' service for more responsive display
-      this.host.tooltipService.move({
-        dataItems: d.tooltip,
-        identities: [d.identity],
-        coordinates: [x, y],
-        isTouchEvent: false
-      });
-    })
-    // Hide tooltip when mouse moves out of dot
-    .on("mouseout", () => {
-      this.host.tooltipService.hide({
-        immediately: true,
-        isTouchEvent: false
-      })
     });
 
+    if(this.plotProperties.displayPlot) {
+      // Display tooltip content on mouseover
+      MergedDotObject.on("mouseover", d => {
+        // Get screen coordinates of mouse pointer, tooltip will
+        //   be displayed at these coordinates
+        //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
+        //      to d3 properly
+        let x: any = (<any>d3).event.pageX;
+        let y: any = (<any>d3).event.pageY;
+
+        this.host.tooltipService.show({
+          dataItems: d.tooltip,
+          identities: [d.identity],
+          coordinates: [x, y],
+          isTouchEvent: false
+        });
+      });
+
+      // Specify that tooltips should move with the mouse
+      MergedDotObject.on("mousemove", d => {
+        // Get screen coordinates of mouse pointer, tooltip will
+        //   be displayed at these coordinates
+        //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
+        //      to d3 properly
+        let x: any = (<any>d3).event.pageX;
+        let y: any = (<any>d3).event.pageY;
+
+        // Use the 'move' service for more responsive display
+        this.host.tooltipService.move({
+          dataItems: d.tooltip,
+          identities: [d.identity],
+          coordinates: [x, y],
+          isTouchEvent: false
+        });
+      });
+      
+      // Hide tooltip when mouse moves out of dot
+      MergedDotObject.on("mouseout", () => {
+        this.host.tooltipService.hide({
+          immediately: true,
+          isTouchEvent: false
+        })
+      });
+    } else {
+      MergedDotObject.on("mouseover", () => {});
+      MergedDotObject.on("mousemove", () => {});
+      MergedDotObject.on("mouseout", () => {});
+    }
     MergedDotObject.exit().remove();
-    this.dotSelection.exit().remove();
+    this.svgSelections.dotSelection.exit().remove();
 
     this.svg.on('click', () => {
       this.selectionManager.clear();
@@ -452,19 +401,19 @@ export class Visual implements IVisual {
                         .domain(inputKeys)
                         .range(keyAesthetics.widths);
 
-    this.lineSelection = this.lineGroup
+    this.svgSelections.lineSelection = this.svgObjects.lineGroup
                               .selectAll(".line")
                               .data(this.viewModel.groupedLines);
 
-    let lineMerged = this.lineSelection
+    let lineMerged = this.svgSelections.lineSelection
                           .enter()
                           .append("path")
-                          .merge(<any>this.lineSelection);
+                          .merge(<any>this.svgSelections.lineSelection);
     lineMerged.classed('line', true);
     lineMerged.attr("d", d => {
       return d3.line<lineData>()
-                .x(d => this.xScale(d.x))
-                .y(d => this.yScale(d.line_value))
+                .x(d => this.plotProperties.xScale(d.x))
+                .y(d => this.plotProperties.yScale(d.line_value))
                 .defined(function(d) { return d.line_value !== null; })
                 (d.values)
     })
@@ -473,7 +422,6 @@ export class Visual implements IVisual {
               .attr("stroke-width", d => <number>line_width(d.key));
 
     lineMerged.exit().remove();
-    this.lineSelection.exit().remove();
+    this.svgSelections.lineSelection.exit().remove();
   }
-
 }
