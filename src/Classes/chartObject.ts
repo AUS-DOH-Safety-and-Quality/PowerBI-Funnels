@@ -19,6 +19,8 @@ type chartObjectConstructorT = {
   yFunction: (x: dataArray) => number[];
   limitFunction: (x: limitArguments) => number;
   limitFunctionOD: (x: limitArguments) => number;
+  inputData: dataArray;
+  inputSettings: settingsObject;
 }
 
 class chartObject {
@@ -158,8 +160,8 @@ class chartObject {
     this.yFunction = args.yFunction;
     this.limitFunction = args.limitFunction;
     this.limitFunctionOD = args.limitFunctionOD;
-    this.inputData = null;
-    this.inputSettings = null;
+    this.inputData = args.inputData;
+    this.inputSettings = args.inputSettings;
   }
 }
 

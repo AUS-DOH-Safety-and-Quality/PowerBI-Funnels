@@ -51,7 +51,7 @@ let smrLimit = function(args: limitArguments) {
 
 class smrFunnelObject extends chartObject {
   constructor(args: { inputData: dataArray,
-                      inputSettings: settingsObject}) {
+                      inputSettings: settingsObject }) {
     super({
       seFunction: smrSE,
       seFunctionOD: smrSEOD,
@@ -59,10 +59,10 @@ class smrFunnelObject extends chartObject {
       targetFunctionTransformed: smrTarget,
       yFunction: smrY,
       limitFunction: smrLimit,
-      limitFunctionOD: smrLimitOD
+      limitFunctionOD: smrLimitOD,
+      inputData: args.inputData,
+      inputSettings: args.inputSettings
     });
-    this.inputData = args.inputData;
-    this.inputSettings = args.inputSettings;
   }
 }
 
