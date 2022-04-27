@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import winsorise from "../Data Preparation/winsorise"
 
 /**
  * Winsorise unadjusted z-scores to remove influence of
@@ -13,15 +14,7 @@ function winsoriseZScores(z: number[]): number[] {
   let lower_z: number = d3.quantile(z_sorted, 0.1);
   let upper_z: number = d3.quantile(z_sorted, 0.9);
 
-  return z.map(d => {
-    if (d < lower_z) {
-      return lower_z;
-    } else if (d > upper_z) {
-      return upper_z;
-    } else {
-      return d;
-    }
-  });
+  return winsorise(z, {lower: lower_z, upper: upper_z});
 }
 
 export default winsoriseZScores;

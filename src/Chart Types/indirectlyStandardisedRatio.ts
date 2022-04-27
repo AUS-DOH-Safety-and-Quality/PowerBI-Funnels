@@ -3,6 +3,7 @@ import chartObject from "../Classes/chartObject"
 import dataArray from '../Classes/dataArray';
 import limitArguments from '../Classes/limitArgs';
 import settingsObject from '../Classes/settingsObject';
+import winsorise from '../Data Preparation/winsorise';
 import { sqrt, inv, square } from "../Function Broadcasting/UnaryFunctions"
 import { multiply, divide } from "../Function Broadcasting/BinaryFunctions"
 
@@ -33,7 +34,7 @@ let smrLimitOD = function(args: limitArguments) {
   let limit_transformed: number = target + q * sqrt(square(SE) + tau2);
   let limit: number = square(limit_transformed);
 
-  return limit < 0.0 ? 0.0 : limit;
+  return winsorise(limit, {lower: 0})
 }
 
 let smrLimit = function(args: limitArguments) {
@@ -46,7 +47,7 @@ let smrLimit = function(args: limitArguments) {
   let limit: number = (stats.chisquare.quantile(p, 2 * (denominator + offset)) / 2.0)
                         / denominator;
 
-  return limit < 0.0 ? 0.0 : limit;
+  return winsorise(limit, {lower: 0})
 }
 
 class smrFunnelObject extends chartObject {

@@ -3,6 +3,7 @@ import chartObject from "../Classes/chartObject"
 import dataArray from "../Classes/dataArray";
 import limitArguments from "../Classes/limitArgs";
 import settingsObject from "../Classes/settingsObject";
+import winsorise from "../Data Preparation/winsorise";
 import { sqrt, inv, asin, square } from "../Function Broadcasting/UnaryFunctions"
 import { multiply, divide } from "../Function Broadcasting/BinaryFunctions"
 
@@ -35,13 +36,7 @@ let prLimit = function(args: limitArguments) {
   let limit_transformed: number = target + q * sqrt(square(SE) + tau2);
   let limit: number = square(Math.sin(limit_transformed));
 
-  if (limit > 1.0) {
-    return 1.0;
-  } else if (limit < 0.0) {
-    return 0.0;
-  } else {
-    return limit;
-  }
+  return winsorise(limit, {lower: 0, upper: 1})
 }
 
 class prFunnelObject extends chartObject {
