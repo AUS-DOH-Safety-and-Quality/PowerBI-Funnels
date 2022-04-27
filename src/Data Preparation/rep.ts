@@ -1,5 +1,5 @@
 function rep(x: number, n: number) : number[] {
-  return Array.apply(null, Array(n)).map(d => x)
+  return Array.apply(null, Array(n)).map(() => x);
 }
 
 export default rep;

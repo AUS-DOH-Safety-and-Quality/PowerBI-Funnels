@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import chartObject from "../Classes/chartObject"
 import dataArray from "../Classes/dataArray";
 import limitArguments from "../Classes/limitArgs";
+import winsorise from "../Data Preparation/winsorise";
 import { sqrt, log, exp, square } from "../Function Broadcasting/UnaryFunctions"
 import { add, divide } from "../Function Broadcasting/BinaryFunctions"
 import settingsObject from "../Classes/settingsObject";
@@ -41,7 +42,7 @@ let rcLimit = function(args: limitArguments): number {
   let limit_transformed: number = target + q * sqrt(square(SE) + tau2);
   let limit: number = exp(Math.sin(limit_transformed));
 
-  return limit < 0.0 ? 0.0 : limit;
+  return winsorise(limit, {lower: 0});
 }
 
 class rcFunnelObject extends chartObject {
