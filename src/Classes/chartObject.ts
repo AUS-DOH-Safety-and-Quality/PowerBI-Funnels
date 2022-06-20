@@ -149,7 +149,14 @@ class chartObject {
       return calcLimit;
     });
 
-    return calcLimits;
+    return calcLimits.map((d, idx) => {
+      let inner = d;
+      if(idx < (calcLimits.length - 1)) {
+        inner.ll99 = d.ll99 < calcLimits[idx + 1].ll99 ? d.ll99 : null;
+        inner.ll95 = d.ll95 < calcLimits[idx + 1].ll95 ? d.ll95 : null;
+      }
+      return inner;
+    });
   }
 
   constructor(args: chartObjectConstructorT) {
