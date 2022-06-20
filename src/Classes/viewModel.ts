@@ -86,13 +86,15 @@ class viewModelObject {
       limits.target = target;
       limits.alt_target = alt_target;
       labels.forEach(label => {
-        formattedLines.push({
-          x: limits.denominator,
-          group: label,
-          line_value: transform(limits[label] * multiplier),
-          colour: colours[label],
-          width: widths[label]
-        });
+        if(!(limits[label] === null)) {
+          formattedLines.push({
+            x: limits.denominator,
+            group: label,
+            line_value: transform(limits[label] * multiplier),
+            colour: colours[label],
+            width: widths[label]
+          });
+        }
       })
     })
     return d3.nest()
