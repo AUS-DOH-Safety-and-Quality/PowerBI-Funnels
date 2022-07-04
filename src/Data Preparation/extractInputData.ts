@@ -10,12 +10,14 @@ function extractInputData(inputView: powerbi.DataViewCategorical,
   let denominator: number[] = <number[]>inputView.values.filter(d => d.source.roles.denominator)[0].values;
 
   let data_type_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.chart_type)[0];
-  let multiplier_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.multiplier)[0];
+  let multiplier_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.chart_multiplier)[0];
 
   let numerator: number[] = <number[]>numerator_raw.values;
   let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.data_type.value;
   let multiplier: number = multiplier_raw ? <number>multiplier_raw.values[0] : inputSettings.funnel.multiplier.value;
-
+  console.log("inputView.values: ", inputView.values)
+  console.log("multiplier_raw: ", multiplier_raw)
+  console.log("multiplier: ", multiplier)
   let valid_ids: number[] = new Array<number>();
 
   for (let i: number = 0; i < denominator.length; i++) {

@@ -26,8 +26,6 @@ import getGroupKeys from "./Data Preparation/getGroupKeys"
 import { groupKeysT } from "./Data Preparation/getGroupKeys"
 
 type SelectionSVG = d3.Selection<SVGElement, any, any, any>;
-type SelectionSVGG = d3.Selection<SVGGElement, any, any, any>;
-type SelectionAny = d3.Selection<any, any, any, any>;
 
 export class Visual implements IVisual {
   private host: IVisualHost;
