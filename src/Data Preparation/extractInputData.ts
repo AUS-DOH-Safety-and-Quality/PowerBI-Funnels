@@ -15,9 +15,6 @@ function extractInputData(inputView: powerbi.DataViewCategorical,
   let numerator: number[] = <number[]>numerator_raw.values;
   let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.data_type.value;
   let multiplier: number = multiplier_raw ? <number>multiplier_raw.values[0] : inputSettings.funnel.multiplier.value;
-  console.log("inputView.values: ", inputView.values)
-  console.log("multiplier_raw: ", multiplier_raw)
-  console.log("multiplier: ", multiplier)
   let valid_ids: number[] = new Array<number>();
 
   for (let i: number = 0; i < denominator.length; i++) {

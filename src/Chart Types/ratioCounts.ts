@@ -8,8 +8,9 @@ import { add, divide } from "../Function Broadcasting/BinaryFunctions"
 import settingsObject from "../Classes/settingsObject";
 
 let rcSE = function(inputData: dataArray): number[] {
-  let numerator: number[] = inputData.numerator;
+  let numerator: number[] = inputData.numerator ? inputData.numerator : inputData.denominator;
   let denominator: number[] = inputData.denominator;
+
   return sqrt(
     add(divide(numerator, square(add(numerator, 0.5))),
         divide(denominator, square(add(denominator, 0.5))))
@@ -35,12 +36,13 @@ let rcY = function(inputData: dataArray): number[] {
 }
 
 let rcLimit = function(args: limitArguments): number {
+  //console.log("args: ", args)
   let target: number = args.target_transformed;
   let q: number = args.q;
   let SE: number = args.SE;
   let tau2: number = args.tau2;
   let limit_transformed: number = target + q * sqrt(square(SE) + tau2);
-  let limit: number = exp(Math.sin(limit_transformed));
+  let limit: number = exp(limit_transformed);
 
   return winsorise(limit, {lower: 0});
 }

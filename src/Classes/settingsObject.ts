@@ -115,8 +115,20 @@ class settingsObject {
                                            .filter(groupName => groupName !== "axispad");
     allSettingGroups.forEach(settingGroup => {
       let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroup]);
-      settingNames.forEach(settingName => {
+      let valueSettings: string[] = settingNames.filter(name => !name.startsWith("colour"))
+      let colourSettings: string[] = settingNames.filter(name => name.startsWith("colour"))
+      valueSettings.forEach(settingName => {
         this[settingGroup][settingName].value = dataViewObjects.getValue(
+          inputObjects, {
+            objectName: settingGroup,
+            propertyName: settingName
+          },
+          this[settingGroup][settingName].default
+        )
+      })
+
+      colourSettings.forEach(settingName => {
+        this[settingGroup][settingName].value = dataViewObjects.getFillColor(
           inputObjects, {
             objectName: settingGroup,
             propertyName: settingName
