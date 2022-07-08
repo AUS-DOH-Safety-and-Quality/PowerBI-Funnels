@@ -1,11 +1,12 @@
 import settingsObject from "../Classes/settingsObject"
 
 type groupKeysT = {
-  colours: string[];
-  widths: number[];
+  group: string;
+  colour: string;
+  width: number;
 }
 
-function getGroupKeys(inputSettings: settingsObject) {
+function getGroupKeys(inputSettings: settingsObject): groupKeysT[] {
   let l99_width: number = inputSettings.lines.width_99.value;
   let l95_width: number = inputSettings.lines.width_95.value;
   let target_width: number = inputSettings.lines.width_target.value;
@@ -15,20 +16,39 @@ function getGroupKeys(inputSettings: settingsObject) {
   let target_colour: string = inputSettings.lines.colour_target.value;
   let alt_target_colour: string = inputSettings.lines.colour_alt_target.value;
 
-  let lineColours: string[] = [
-    l99_colour, l95_colour, l95_colour, l99_colour,
-    target_colour, alt_target_colour
-  ]
+  let GroupKeys: groupKeysT[] = new Array<groupKeysT>();
+  GroupKeys.push({
+    group: "ll99",
+    colour: l99_colour,
+    width: l99_width
+  })
+  GroupKeys.push({
+    group: "ll95",
+    colour: l95_colour,
+    width: l95_width
+  })
+  GroupKeys.push({
+    group: "ul95",
+    colour: l95_colour,
+    width: l95_width
+  })
+  GroupKeys.push({
+    group: "ul99",
+    colour: l99_colour,
+    width: l99_width
+  })
+  GroupKeys.push({
+    group: "target",
+    colour: target_colour,
+    width: target_width
+  })
+  GroupKeys.push({
+    group: "alt_target",
+    colour: alt_target_colour,
+    width: alt_target_width
+  })
 
-  let lineWidths: number[] = [
-    l99_width, l95_width, l95_width, l99_width,
-                  target_width, alt_target_width
-  ]
-
-  return {
-    colours: lineColours,
-    widths: lineWidths
-  };
+  return GroupKeys;
 }
 
 export default getGroupKeys;

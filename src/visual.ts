@@ -67,7 +67,7 @@ export class Visual implements IVisual {
     console.log("start update");
     // Update settings object with user-specified values (if present)
     this.settings.updateSettings(options.dataViews[0].metadata.objects);
-    console.log("Updated settings");
+    console.log("Updated settings:", this.settings);
 
     // Insert the viewModel object containing the user-input data
     //   This function contains the construction of the funnel
@@ -122,7 +122,7 @@ export class Visual implements IVisual {
       });
       return properties;
   }
-  
+
   highlightIfSelected(): void {
     if (!this.svgSelections.dotSelection || !this.selectionManager.getSelectionIds()) {
       return;
@@ -363,7 +363,7 @@ export class Visual implements IVisual {
           isTouchEvent: false
         });
       });
-      
+
       // Hide tooltip when mouse moves out of dot
       MergedDotObject.on("mouseout", () => {
         this.host.tooltipService.hide({
@@ -386,18 +386,15 @@ export class Visual implements IVisual {
   }
 
   drawLines(): void {
-    let inputKeys: string[] = this.viewModel
-                                    .groupedLines
-                                    .map(d => d.key);
-    let keyAesthetics: groupKeysT = getGroupKeys(this.settings);
+    let keyAesthetics: groupKeysT[] = getGroupKeys(this.settings);
 
     let line_color = d3.scaleOrdinal()
-                        .domain(inputKeys)
-                        .range(keyAesthetics.colours);
+                        .domain(keyAesthetics.map(d => d.group))
+                        .range(keyAesthetics.map(d => d.colour));
 
     let line_width = d3.scaleOrdinal()
-                        .domain(inputKeys)
-                        .range(keyAesthetics.widths);
+                        .domain(keyAesthetics.map(d => d.group))
+                        .range(keyAesthetics.map(d => d.width));
 
     this.svgSelections.lineSelection = this.svgObjects.lineGroup
                               .selectAll(".line")

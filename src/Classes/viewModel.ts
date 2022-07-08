@@ -63,18 +63,18 @@ class viewModelObject {
     let target: number = this.chartBase.getTarget({ transformed: false });
     let alt_target: number = this.inputSettings.funnel.alt_target.value;
     let colours = {
-      l99: this.inputSettings.lines.colour_99.value,
-      l95: this.inputSettings.lines.colour_95.value,
-      u95: this.inputSettings.lines.colour_95.value,
-      u99: this.inputSettings.lines.colour_99.value,
+      ll99: this.inputSettings.lines.colour_99.value,
+      ll95: this.inputSettings.lines.colour_95.value,
+      ul95: this.inputSettings.lines.colour_95.value,
+      ul99: this.inputSettings.lines.colour_99.value,
       target: this.inputSettings.lines.colour_target.value,
       alt_target: this.inputSettings.lines.colour_alt_target.value
     }
     let widths = {
-      l99: this.inputSettings.lines.width_99.value,
-      l95: this.inputSettings.lines.width_95.value,
-      u95: this.inputSettings.lines.width_95.value,
-      u99: this.inputSettings.lines.width_99.value,
+      ll99: this.inputSettings.lines.width_99.value,
+      ll95: this.inputSettings.lines.width_95.value,
+      ul95: this.inputSettings.lines.width_95.value,
+      ul99: this.inputSettings.lines.width_99.value,
       target: this.inputSettings.lines.width_target.value,
       alt_target: this.inputSettings.lines.width_alt_target.value
     }
