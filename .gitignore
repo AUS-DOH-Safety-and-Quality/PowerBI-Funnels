@@ -11,4 +11,7 @@ dist
 package-lock*
 webpack.statistics*
 
+# jest code-coverage
+coverage
+
 doc/*
