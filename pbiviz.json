@@ -4,12 +4,12 @@
         "displayName":"Funnel Plots",
         "guid":"PBIFUN",
         "visualClassName":"Visual",
-        "version":"1.1.2",
+        "version":"1.1.3",
         "description":"A PowerBI custom visual for funnel plots",
         "supportUrl":"https://github.com/AUS-DOH-Safety-and-Quality/PowerBI-Funnels",
         "gitHubUrl":"https://github.com/AUS-DOH-Safety-and-Quality/PowerBI-Funnels"
         },
-    "apiVersion":"4.0.0",
+    "apiVersion":"3.2.0",
     "author":{
         "name":"Andrew Johnson",
         "email":"Andrew.Johnson@health.wa.gov.au"
