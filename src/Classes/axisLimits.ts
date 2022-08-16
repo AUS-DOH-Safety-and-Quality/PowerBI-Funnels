@@ -27,6 +27,9 @@ class axisLimits {
     let yUpperInput: number = args.inputSettings.axis.ylimit_u.value;
     let multiplier: number = args.inputData.multiplier;
 
+    let yLowerInputData: number = args.inputData.ylimit_l;
+    let yUpperInputData: number = args.inputData.ylimit_u;
+    
     this.x = {
       lower: xLowerInput ? xLowerInput : 0,
       upper: xUpperInput ? xUpperInput : d3.max(args.inputData.denominator) * 1.1,
@@ -34,8 +37,8 @@ class axisLimits {
     };
 
     this.y = {
-      lower: yLowerInput ? yLowerInput : args.inputData.transform(0),
-      upper: yUpperInput ? yUpperInput : args.inputData.transform(maxRatio * multiplier),
+      lower: yLowerInput ? yLowerInput : (yLowerInputData? yLowerInputData * multiplier : 0),
+      upper: yUpperInput ? yUpperInput : (yUpperInputData? yUpperInputData : maxRatio) * multiplier,
       padding: args.inputSettings.axispad.y.padding.value
     };
   }

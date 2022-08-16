@@ -14,7 +14,9 @@ type dataArrayConstructorT = {
   categories?: powerbi.DataViewCategoryColumn,
   transform_text?: string,
   dot_colour?: string[],
-  odAdjust?: string
+  odAdjust?: string,
+  ylimit_u?: number,
+  ylimit_l?: number
 };
 
 class dataArray {
@@ -33,6 +35,8 @@ class dataArray {
   maxRatio: number;
   prop_labels: boolean;
   odAdjust: string;
+  ylimit_u: number;
+  ylimit_l: number
 
   constructor(pars: dataArrayConstructorT) {
     this.id = pars.id ? pars.id : null;
@@ -54,7 +58,9 @@ class dataArray {
           this.transform_text === "none"
       : null;
     this.multiplier = this.prop_labels ? 100 : this.multiplier;
-    this.odAdjust = pars.odAdjust ? pars.odAdjust : null
+    this.odAdjust = pars.odAdjust ? pars.odAdjust : null;
+    this.ylimit_u = pars.ylimit_u ? pars.ylimit_u : null;
+    this.ylimit_l = pars.ylimit_l ? pars.ylimit_l : null
   }
 }
 

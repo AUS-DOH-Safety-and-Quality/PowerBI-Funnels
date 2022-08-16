@@ -25,6 +25,16 @@
             "displayName": "Optional: Multiplier",
             "name": "chart_multiplier",
             "kind": "Measure"
+        },
+        {
+            "displayName": "Optional: Y-Axis Upper Limit",
+            "name": "y_axis_upper_limit",
+            "kind": "Measure"
+        },
+        {
+            "displayName": "Optional: Y-Axis Lower Limit",
+            "name": "y_axis_lower_limit",
+            "kind": "Measure"
         }
     ],
     "objects": {
@@ -294,6 +304,16 @@
                         {
                             "for": {
                                 "in": "chart_multiplier"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "y_axis_upper_limit"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "y_axis_lower_limit"
                             }
                         }
                     ]

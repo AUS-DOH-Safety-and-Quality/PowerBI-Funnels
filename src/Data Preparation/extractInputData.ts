@@ -11,10 +11,15 @@ function extractInputData(inputView: powerbi.DataViewCategorical,
 
   let data_type_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.chart_type)[0];
   let multiplier_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.chart_multiplier)[0];
+  
+  let y_axis_upper_limit_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.y_axis_upper_limit)[0];
+  let y_axis_lower_limit_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.y_axis_lower_limit)[0];
 
   let numerator: number[] = <number[]>numerator_raw.values;
   let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.data_type.value;
   let multiplier: number = multiplier_raw ? <number>multiplier_raw.values[0] : inputSettings.funnel.multiplier.value;
+  let ylimit_u: number = y_axis_upper_limit_raw ? <number>y_axis_upper_limit_raw.values[0] : inputSettings.axis.ylimit_u.value;
+  let ylimit_l: number = y_axis_lower_limit_raw ? <number>y_axis_lower_limit_raw.values[0] : inputSettings.axis.ylimit_l.value;
   let valid_ids: number[] = new Array<number>();
 
   for (let i: number = 0; i < denominator.length; i++) {
@@ -30,6 +35,8 @@ function extractInputData(inputView: powerbi.DataViewCategorical,
     highlights: numerator_raw.highlights,
     data_type: data_type,
     multiplier: multiplier,
+    ylimit_u: ylimit_u,
+    ylimit_l: ylimit_l,
     categories: inputView.categories[0],
     transform_text: inputSettings.funnel.transformation.value,
     dot_colour: [inputSettings.scatter.colour.value],
