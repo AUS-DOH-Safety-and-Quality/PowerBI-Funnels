@@ -405,11 +405,15 @@ export class Visual implements IVisual {
                           .append("path")
                           .merge(<any>this.svgSelections.lineSelection);
     lineMerged.classed('line', true);
+
+    let yLowerLimit = this.plotProperties.axisLimits.y.lower;
+    let yUpperLimit = this.plotProperties.axisLimits.y.upper;
+
     lineMerged.attr("d", d => {
       return d3.line<lineData>()
                 .x(d => this.plotProperties.xScale(d.x))
                 .y(d => this.plotProperties.yScale(d.line_value))
-                .defined(function(d) { return d.line_value !== null; })
+                .defined(function(d) { return d.line_value !== null && d.line_value > yLowerLimit && d.line_value < yUpperLimit; })
                 (d.values)
     })
     lineMerged.attr("fill", "none")
