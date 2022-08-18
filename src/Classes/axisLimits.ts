@@ -37,8 +37,8 @@ class axisLimits {
     };
 
     this.y = {
-      lower: yLowerInput ? yLowerInput : (yLowerInputData? yLowerInputData * multiplier : 0),
-      upper: yUpperInput ? yUpperInput : (yUpperInputData? yUpperInputData : maxRatio) * multiplier,
+      lower: yLowerInput ? yLowerInput : (yLowerInputData? yLowerInputData : 0),
+      upper: yUpperInput ? yUpperInput : (yUpperInputData? yUpperInputData : maxRatio * multiplier),
       padding: args.inputSettings.axispad.y.padding.value
     };
   }
