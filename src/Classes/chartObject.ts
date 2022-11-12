@@ -103,7 +103,6 @@ class chartObject {
   }
 
   getLimits(): limitData[] {
-    console.log("a")
     let calculateTau2: boolean = this.getTau2Bool();
     let odAdjust: boolean;
     let tau2: number;
@@ -114,22 +113,18 @@ class chartObject {
       tau2 = 0;
       odAdjust = false;
     }
-    console.log("b")
 
     let target: number = this.getTarget({ transformed: false });
     let alt_target: number = this.inputSettings.funnel.alt_target.value;
     let target_transformed: number = this.getTarget({ transformed: true });
-    console.log("c")
 
     let intervals: intervalData[] = this.getIntervals();
 
     let plottingDenominators: number[] = this.getPlottingDenominators();
-    console.log("d")
     let plottingSE: number[] = this.getSE({
       odAdjust: odAdjust,
       plottingDenominators: plottingDenominators
     });
-    console.log("e")
 
     let calcLimits: limitData[] = plottingDenominators.map((denom, idx) => {
       let calcLimit: limitData = new limitData(denom);
@@ -154,7 +149,6 @@ class chartObject {
       calcLimit.alt_target = alt_target;
       return calcLimit;
     });
-    console.log("f")
 
     return calcLimits.map((d, idx) => {
       let inner = d;
