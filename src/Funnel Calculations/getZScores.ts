@@ -1,4 +1,4 @@
-import { divide, subtract } from "../Function Broadcasting/BinaryFunctions";
+import { divide, subtract } from "../Functions/BinaryFunctions";
 
 /**
  * Generate (un-adjusted) z-scores using transformed

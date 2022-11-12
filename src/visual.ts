@@ -16,14 +16,14 @@ import ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "d3";
 import svgObjectClass from "./Classes/svgObjectClass"
 import svgSelectionClass from "./Classes/svgSelectionClass"
-import checkIDSelected from "./Data Preparation/checkIDSelected";
+import checkIDSelected from "./Functions/checkIDSelected";
 import settingsObject from "./Classes/settingsObject";
 import viewModelObject from "./Classes/viewModel"
 import scatterDotsObject from "./Classes/scatterDotsObject"
 import lineData from "./Classes/lineData"
 import plotPropertiesClass from "./Classes/plotProperties"
-import getGroupKeys from "./Data Preparation/getGroupKeys"
-import { groupKeysT } from "./Data Preparation/getGroupKeys"
+import getGroupKeys from "./Functions/getGroupKeys"
+import { groupKeysT } from "./Functions/getGroupKeys"
 
 type SelectionSVG = d3.Selection<SVGElement, any, any, any>;
 

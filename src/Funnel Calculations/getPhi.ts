@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { square } from "../Function Broadcasting/UnaryFunctions"
+import { square } from "../Functions/UnaryFunctions"
 
 /**
  * Estimate the dispersion ratio of the observed responses using

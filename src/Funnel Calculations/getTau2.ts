@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { inv, square } from "../Function Broadcasting/UnaryFunctions"
+import { inv, square } from "../Functions/UnaryFunctions"
 
 /**
  * Estimate the between-unit variance to adjust control limits

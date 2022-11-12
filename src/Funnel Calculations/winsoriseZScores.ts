@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import winsorise from "../Data Preparation/winsorise"
+import winsorise from "../Functions/winsorise"
 
 /**
  * Winsorise unadjusted z-scores to remove influence of

@@ -2,9 +2,9 @@ import * as d3 from "d3";
 import chartObject from "../Classes/chartObject"
 import dataArray from "../Classes/dataArray";
 import limitArguments from "../Classes/limitArgs";
-import winsorise from "../Data Preparation/winsorise";
-import { sqrt, log, exp, square } from "../Function Broadcasting/UnaryFunctions"
-import { add, divide } from "../Function Broadcasting/BinaryFunctions"
+import winsorise from "../Functions/winsorise";
+import { sqrt, log, exp, square } from "../Functions/UnaryFunctions"
+import { add, divide } from "../Functions/BinaryFunctions"
 import settingsObject from "../Classes/settingsObject";
 
 let rcSE = function(inputData: dataArray): number[] {
