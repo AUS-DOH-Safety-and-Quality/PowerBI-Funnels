@@ -25,7 +25,7 @@ class viewModelObject {
   chartBase: chartObject;
   calculatedLimits: limitData[];
   scatterDots: scatterDotsObject[];
-  groupedLines: nestReturnT[];
+  groupedLines: [string, lineData[]][];
   axisLimits: axisLimits;
   anyHighlights: boolean;
 
@@ -56,7 +56,7 @@ class viewModelObject {
     });
   };
 
-  getGroupedLines(): nestReturnT[] {
+  getGroupedLines(): [string, lineData[]][] {
     let multiplier: number = this.inputData.multiplier;
     let transform: (x: number) => number = this.inputData.transform;
 
@@ -97,9 +97,9 @@ class viewModelObject {
         }
       })
     })
-    return d3.nest()
-              .key(function(d: lineData) { return d.group; })
-              .entries(formattedLines)
+    let grouped = d3.groups(formattedLines, d => d.group);
+    console.log("grouped: ", grouped)
+    return grouped;
   }
 
   constructor(args: { options: VisualUpdateOptions;
@@ -112,7 +112,7 @@ class viewModelObject {
       this.chartBase = null;
       this.calculatedLimits = null;
       this.scatterDots = [new scatterDotsObject({ empty: true })];
-      this.groupedLines = [{ key: null, value: null, values: new lineData() }];
+      this.groupedLines = <[string, lineData[]][]>null;
       this.axisLimits = null;
       this.anyHighlights = null;
       return;
@@ -120,6 +120,7 @@ class viewModelObject {
 
     this.inputData = extractInputData(dv[0].categorical,
                                       args.inputSettings);
+    console.log("Updated data")
 
     this.inputSettings = args.inputSettings;
 
@@ -127,14 +128,18 @@ class viewModelObject {
 
     this.chartBase = initialiseChartObject({ inputData: this.inputData,
                                              inputSettings: this.inputSettings });
+    console.log("Initialised chart")
 
     this.calculatedLimits = this.chartBase.getLimits();
+    console.log("Calculated limits")
 
     this.axisLimits = new axisLimits({ inputData: this.inputData,
                                        inputSettings: this.inputSettings,
                                        calculatedLimits: this.calculatedLimits });
+    console.log("Initialised axis limits")
 
     this.scatterDots = this.getScatterData();
+    console.log("Initialised scatter data")
     this.scatterDots.forEach((scatter, idx) => {
       scatter.identity = args.host
                               .createSelectionIdBuilder()
@@ -142,8 +147,10 @@ class viewModelObject {
                                             this.inputData.id[idx])
                               .createSelectionId()
     });
+    console.log("Initialised scatter identities")
 
     this.groupedLines = this.getGroupedLines();
+    console.log("Grouped lines")
   }
 };
 
