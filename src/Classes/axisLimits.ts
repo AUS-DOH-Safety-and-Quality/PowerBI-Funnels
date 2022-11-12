@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { divide } from "../Function Broadcasting/BinaryFunctions"
+import { divide } from "../Functions/BinaryFunctions"
 import limitData from "./limitData";
 import settingsObject from "./settingsObject";
 import dataArray from "./dataArray"
@@ -29,7 +29,7 @@ class axisLimits {
 
     let yLowerInputData: number = args.inputData.ylimit_l;
     let yUpperInputData: number = args.inputData.ylimit_u;
-    
+
     this.x = {
       lower: xLowerInput ? xLowerInput : 0,
       upper: xUpperInput ? xUpperInput : d3.max(args.inputData.denominator) * 1.1,

@@ -4,8 +4,8 @@ import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import chartObject from "./chartObject"
 import settingsObject from "./settingsObject";
-import extractInputData from "../Data Preparation/extractInputData";
-import checkInvalidDataView from "../Data Preparation/checkInvalidDataView"
+import extractInputData from "../Functions/extractInputData";
+import checkInvalidDataView from "../Functions/checkInvalidDataView"
 import initialiseChartObject from "../Chart Types/initialiseChartObject"
 import dataArray from "./dataArray";
 import limitData from "./limitData";

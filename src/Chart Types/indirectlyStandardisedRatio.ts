@@ -3,9 +3,9 @@ import chartObject from "../Classes/chartObject"
 import dataArray from '../Classes/dataArray';
 import limitArguments from '../Classes/limitArgs';
 import settingsObject from '../Classes/settingsObject';
-import winsorise from '../Data Preparation/winsorise';
-import { sqrt, inv, square } from "../Function Broadcasting/UnaryFunctions"
-import { multiply, divide } from "../Function Broadcasting/BinaryFunctions"
+import winsorise from '../Functions/winsorise';
+import { sqrt, inv, square } from "../Functions/UnaryFunctions"
+import { multiply, divide } from "../Functions/BinaryFunctions"
 
 let smrSE = function(inputData: dataArray): number[] {
   return [];
