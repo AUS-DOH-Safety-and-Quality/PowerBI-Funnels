@@ -8,7 +8,7 @@ node_modules
 .tmp
 .cache
 dist
-package-lock*
+package-lock.json
 webpack.statistics*
 
 # jest code-coverage

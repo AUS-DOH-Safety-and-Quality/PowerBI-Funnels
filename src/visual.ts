@@ -313,9 +313,7 @@ export class Visual implements IVisual {
         ? (d.highlighted ? dot_opacity : dot_opacity_unsel)
         : dot_opacity
     })
-    .on("click", (event, i) => {
-
-      let d: scatterDotsObject = <scatterDotsObject><unknown>i;
+    .on("click", (event, d) => {
       // Propagate identities of selected data back to
       //   PowerBI based on all selected dots
       this.selectionManager
@@ -332,15 +330,11 @@ export class Visual implements IVisual {
 
     if(this.plotProperties.displayPlot) {
       // Display tooltip content on mouseover
-      MergedDotObject.on("mouseover", (event, i) => {
+      MergedDotObject.on("mouseover", (event, d) => {
         // Get screen coordinates of mouse pointer, tooltip will
         //   be displayed at these coordinates
-        //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
-        //      to d3 properly
         let x: any = event.pageX;
         let y: any = event.pageY;
-
-        let d: scatterDotsObject = <scatterDotsObject><unknown>i;
 
         this.host.tooltipService.show({
           dataItems: d.tooltip,
@@ -351,15 +345,12 @@ export class Visual implements IVisual {
       });
 
       // Specify that tooltips should move with the mouse
-      MergedDotObject.on("mousemove", (event, i) => {
+      MergedDotObject.on("mousemove", (event, d) => {
         // Get screen coordinates of mouse pointer, tooltip will
         //   be displayed at these coordinates
-        //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
-        //      to d3 properly
         let x: any = event.pageX;
         let y: any = event.pageY;
 
-        let d: scatterDotsObject = <scatterDotsObject><unknown>i;
         // Use the 'move' service for more responsive display
         this.host.tooltipService.move({
           dataItems: d.tooltip,
