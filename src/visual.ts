@@ -199,14 +199,14 @@ export class Visual implements IVisual {
   }
 
   addContextMenu(): void {
-    this.svg.on('contextmenu', () => {
-      const eventTarget: EventTarget = (<any>d3).event.target;
+    this.svg.on('contextmenu', (event) => {
+      const eventTarget: EventTarget = event.target;
       let dataPoint: scatterDotsObject = <scatterDotsObject>(d3.select(<d3.BaseType>eventTarget).datum());
       this.selectionManager.showContextMenu(dataPoint ? dataPoint.identity : {}, {
-        x: (<any>d3).event.clientX,
-        y: (<any>d3).event.clientY
+        x: event.clientX,
+        y: event.clientY
       });
-      (<any>d3).event.preventDefault();
+      event.preventDefault();
     });
   }
 
@@ -239,14 +239,14 @@ export class Visual implements IVisual {
                 .attr("width", this.plotProperties.width)
                 .attr("height", height);
     if (this.plotProperties.displayPlot) {
-      listenMerged.on("mousemove", () => {
-        let xval: number = this.plotProperties.xScale.invert((<any>d3).event.pageX);
+      listenMerged.on("mousemove", (event) => {
+        let xval: number = this.plotProperties.xScale.invert(event.pageX);
 
         let x_dist: number[] = this.viewModel
                                     .scatterDots
                                     .map(d => d.denominator)
                                     .map(d => Math.abs(d - xval));
-        let minInd: number = d3.scan(x_dist,(a,b) => a-b);
+        let minInd: number = d3.leastIndex(x_dist,(a,b) => a-b);
 
         let scaled_x: number = this.plotProperties.xScale(this.viewModel.scatterDots[minInd].denominator)
         let scaled_y: number = this.plotProperties.yScale(this.viewModel.scatterDots[minInd].ratio)
@@ -313,11 +313,13 @@ export class Visual implements IVisual {
         ? (d.highlighted ? dot_opacity : dot_opacity_unsel)
         : dot_opacity
     })
-    .on("click", d => {
+    .on("click", (event, i) => {
+
+      let d: scatterDotsObject = <scatterDotsObject><unknown>i;
       // Propagate identities of selected data back to
       //   PowerBI based on all selected dots
       this.selectionManager
-          .select(d.identity, (<any>d3).event.ctrlKey)
+          .select(d.identity, event.ctrlKey)
           .then(ids => {
             MergedDotObject.style("fill-opacity", d => {
               return ids.length > 0
@@ -325,18 +327,20 @@ export class Visual implements IVisual {
                 : dot_opacity
             });
           });
-      (<any>d3).event.stopPropagation();
+      event.stopPropagation();
     });
 
     if(this.plotProperties.displayPlot) {
       // Display tooltip content on mouseover
-      MergedDotObject.on("mouseover", d => {
+      MergedDotObject.on("mouseover", (event, i) => {
         // Get screen coordinates of mouse pointer, tooltip will
         //   be displayed at these coordinates
         //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
         //      to d3 properly
-        let x: any = (<any>d3).event.pageX;
-        let y: any = (<any>d3).event.pageY;
+        let x: any = event.pageX;
+        let y: any = event.pageY;
+
+        let d: scatterDotsObject = <scatterDotsObject><unknown>i;
 
         this.host.tooltipService.show({
           dataItems: d.tooltip,
@@ -347,14 +351,15 @@ export class Visual implements IVisual {
       });
 
       // Specify that tooltips should move with the mouse
-      MergedDotObject.on("mousemove", d => {
+      MergedDotObject.on("mousemove", (event, i) => {
         // Get screen coordinates of mouse pointer, tooltip will
         //   be displayed at these coordinates
         //    Needs the '<any>' prefix, otherwise PowerBI doesn't defer
         //      to d3 properly
-        let x: any = (<any>d3).event.pageX;
-        let y: any = (<any>d3).event.pageY;
+        let x: any = event.pageX;
+        let y: any = event.pageY;
 
+        let d: scatterDotsObject = <scatterDotsObject><unknown>i;
         // Use the 'move' service for more responsive display
         this.host.tooltipService.move({
           dataItems: d.tooltip,
@@ -387,6 +392,7 @@ export class Visual implements IVisual {
 
   drawLines(): void {
     let keyAesthetics: groupKeysT[] = getGroupKeys(this.settings);
+    console.log("keys: ", keyAesthetics)
 
     let line_color = d3.scaleOrdinal()
                         .domain(keyAesthetics.map(d => d.group))
@@ -414,11 +420,11 @@ export class Visual implements IVisual {
                 .x(d => this.plotProperties.xScale(d.x))
                 .y(d => this.plotProperties.yScale(d.line_value))
                 .defined(function(d) { return d.line_value !== null && d.line_value > yLowerLimit && d.line_value < yUpperLimit; })
-                (d.values)
+                (d[1])
     })
     lineMerged.attr("fill", "none")
-              .attr("stroke", d => <string>line_color(d.key))
-              .attr("stroke-width", d => <number>line_width(d.key));
+              .attr("stroke", d => <string>line_color(d[0]))
+              .attr("stroke-width", d => <number>line_width(d[0]));
 
     lineMerged.exit().remove();
     this.svgSelections.lineSelection.exit().remove();

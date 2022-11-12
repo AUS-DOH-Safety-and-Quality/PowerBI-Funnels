@@ -12,14 +12,14 @@
     "@stdlib/math": "^0.0.11",
     "@stdlib/stats": "^0.0.13",
     "core-js": "3.23.3",
-    "d3": "7.6.0",
+    "d3": "^7.6.1",
     "minimist": "^1.2.6",
     "powerbi-visuals-api": "~3.2.0",
     "powerbi-visuals-utils-dataviewutils": "^2.2.1",
     "regenerator-runtime": "^0.13.9"
   },
   "devDependencies": {
-    "@types/d3": "7.4.0",
+    "@types/d3": "^7.4.0",
     "process": "^0.11.10",
     "ts-loader": "9.2.9",
     "tslint": "^5.18.0",
