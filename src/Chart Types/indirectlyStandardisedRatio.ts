@@ -1,26 +1,26 @@
 import * as stats from '@stdlib/stats/base/dists';
 import chartObject from "../Classes/chartObject"
-import dataArray from '../Classes/dataArray';
+import dataObject from '../Classes/dataObject';
 import limitArguments from '../Classes/limitArgs';
 import settingsObject from '../Classes/settingsObject';
 import winsorise from '../Functions/winsorise';
 import { sqrt, inv, square } from "../Functions/UnaryFunctions"
 import { multiply, divide } from "../Functions/BinaryFunctions"
 
-let smrSE = function(inputData: dataArray): number[] {
+let smrSE = function(inputData: dataObject): number[] {
   return [];
 }
 
-let smrSEOD = function(inputData: dataArray): number[] {
+let smrSEOD = function(inputData: dataObject): number[] {
   let denominator: number[] = inputData.denominator;
   return inv(multiply(2, sqrt(denominator)));
 }
 
-let smrTarget = function(inputData: dataArray): number {
+let smrTarget = function(inputData: dataObject): number {
   return 1;
 }
 
-let smrY = function(inputData: dataArray): number[] {
+let smrY = function(inputData: dataObject): number[] {
   let numerator: number[] = inputData.numerator;
   let denominator: number[] = inputData.denominator;
   return sqrt(divide(numerator, denominator));
@@ -51,7 +51,7 @@ let smrLimit = function(args: limitArguments) {
 }
 
 class smrFunnelObject extends chartObject {
-  constructor(args: { inputData: dataArray,
+  constructor(args: { inputData: dataObject,
                       inputSettings: settingsObject }) {
     super({
       seFunction: smrSE,

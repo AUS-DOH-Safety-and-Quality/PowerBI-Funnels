@@ -3,7 +3,7 @@ import * as stats from '@stdlib/stats/base/dists';
 import seq from "../Functions/seq"
 import limitData from "./limitData";
 import intervalData from "./intervalData";
-import dataArray from "./dataArray";
+import dataObject from "./dataObject";
 import limitArguments from "./limitArgs";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
@@ -12,25 +12,25 @@ import getTau2 from "../Funnel Calculations/getTau2";
 import settingsObject from "./settingsObject";
 
 type chartObjectConstructorT = {
-  seFunction: (x: dataArray) => number[];
-  seFunctionOD: (x: dataArray) => number[];
-  targetFunction: (x: dataArray) => number;
-  targetFunctionTransformed: (x: dataArray) => number;
-  yFunction: (x: dataArray) => number[];
+  seFunction: (x: dataObject) => number[];
+  seFunctionOD: (x: dataObject) => number[];
+  targetFunction: (x: dataObject) => number;
+  targetFunctionTransformed: (x: dataObject) => number;
+  yFunction: (x: dataObject) => number[];
   limitFunction: (x: limitArguments) => number;
   limitFunctionOD: (x: limitArguments) => number;
-  inputData: dataArray;
+  inputData: dataObject;
   inputSettings: settingsObject;
 }
 
 class chartObject {
-  inputData: dataArray;
+  inputData: dataObject;
   inputSettings: settingsObject;
-  seFunction: (x: dataArray) => number[];
-  seFunctionOD: (x: dataArray) => number[];
-  targetFunction: (x: dataArray) => number;
-  targetFunctionTransformed: (x: dataArray) => number;
-  yFunction: (x: dataArray) => number[];
+  seFunction: (x: dataObject) => number[];
+  seFunctionOD: (x: dataObject) => number[];
+  targetFunction: (x: dataObject) => number;
+  targetFunctionTransformed: (x: dataObject) => number;
+  yFunction: (x: dataObject) => number[];
   limitFunction: (x: limitArguments) => number;
   limitFunctionOD: (x: limitArguments) => number;
 
@@ -52,7 +52,8 @@ class chartObject {
   getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
     let seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
     if (par.plottingDenominators) {
-      let dummyArray: dataArray = new dataArray({ denominator: par.plottingDenominators });
+      let dummyArray: dataObject = new dataObject();
+      dummyArray.denominator = par.plottingDenominators;
       return seFun(dummyArray);
     } else {
       return seFun(this.inputData);
@@ -75,11 +76,11 @@ class chartObject {
   };
 
   getTau2Bool(): boolean {
-    if (this.inputData.odAdjust === "yes") {
+    if (this.inputSettings.funnel.od_adjust.value === "yes") {
       return true;
-    } else if (this.inputData.odAdjust === "no") {
+    } else if (this.inputSettings.funnel.od_adjust.value === "no") {
       return false;
-    } else if (this.inputData.odAdjust === "auto") {
+    } else if (this.inputSettings.funnel.od_adjust.value === "auto") {
       return true;
     }
   };
@@ -102,6 +103,7 @@ class chartObject {
   }
 
   getLimits(): limitData[] {
+    console.log("a")
     let calculateTau2: boolean = this.getTau2Bool();
     let odAdjust: boolean;
     let tau2: number;
@@ -112,18 +114,22 @@ class chartObject {
       tau2 = 0;
       odAdjust = false;
     }
+    console.log("b")
 
     let target: number = this.getTarget({ transformed: false });
     let alt_target: number = this.inputSettings.funnel.alt_target.value;
     let target_transformed: number = this.getTarget({ transformed: true });
+    console.log("c")
 
     let intervals: intervalData[] = this.getIntervals();
 
     let plottingDenominators: number[] = this.getPlottingDenominators();
+    console.log("d")
     let plottingSE: number[] = this.getSE({
       odAdjust: odAdjust,
       plottingDenominators: plottingDenominators
     });
+    console.log("e")
 
     let calcLimits: limitData[] = plottingDenominators.map((denom, idx) => {
       let calcLimit: limitData = new limitData(denom);
@@ -148,6 +154,7 @@ class chartObject {
       calcLimit.alt_target = alt_target;
       return calcLimit;
     });
+    console.log("f")
 
     return calcLimits.map((d, idx) => {
       let inner = d;

@@ -174,7 +174,7 @@ export class Visual implements IVisual {
   drawYAxis(): void {
     let yAxisPadding: number = this.plotProperties.axisLimits.y.padding;
     let prop_labels: boolean = this.viewModel.inputData
-      ? this.viewModel.inputData.prop_labels
+      ? this.viewModel.inputData.data_type === "PR" && this.viewModel.inputData.multiplier === 100
       : null;
 
     let yAxis: d3.Axis<d3.NumberValue>
