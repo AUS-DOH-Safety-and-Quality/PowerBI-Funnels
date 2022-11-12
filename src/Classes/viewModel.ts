@@ -4,14 +4,14 @@ import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import chartObject from "./chartObject"
 import settingsObject from "./settingsObject";
-import extractInputData from "../Functions/extractInputData";
 import checkInvalidDataView from "../Functions/checkInvalidDataView"
 import initialiseChartObject from "../Chart Types/initialiseChartObject"
-import dataArray from "./dataArray";
+import dataObject from "./dataObject";
 import limitData from "./limitData";
 import lineData from "./lineData"
 import axisLimits from "./axisLimits"
 import scatterDotsObject from "./scatterDotsObject"
+import getTransformation from "../Funnel Calculations/getTransformation";
 
 type nestReturnT = {
   key: string;
@@ -20,7 +20,7 @@ type nestReturnT = {
 }
 
 class viewModelObject {
-  inputData: dataArray;
+  inputData: dataObject;
   inputSettings: settingsObject;
   chartBase: chartObject;
   calculatedLimits: limitData[];
@@ -31,9 +31,7 @@ class viewModelObject {
 
   getScatterData(): scatterDotsObject[] {
     return this.inputData.id.map((i, idx) => {
-      let colour: string = this.inputData.dot_colour.length == 1 ?
-        this.inputData.dot_colour[0] :
-        this.inputData.dot_colour[idx];
+      let colour: string = this.inputSettings.scatter.colour.value
       let denominator: number = this.inputData.denominator[idx];
       let limits: limitData = this.calculatedLimits.filter(d => d.denominator === denominator)[0];
 
@@ -49,16 +47,15 @@ class viewModelObject {
         data_type: this.inputData.data_type,
         multiplier: this.inputData.multiplier,
         target: this.chartBase.getTarget({ transformed: false }),
-        transform_text: this.inputData.transform_text,
-        transform: this.inputData.transform,
-        prop_labels: this.inputData.prop_labels
+        transform_text: this.inputSettings.funnel.transformation.value,
+        transform: getTransformation(this.inputSettings.funnel.transformation.value)
       });
     });
   };
 
   getGroupedLines(): [string, lineData[]][] {
     let multiplier: number = this.inputData.multiplier;
-    let transform: (x: number) => number = this.inputData.transform;
+    let transform: (x: number) => number = getTransformation(this.inputSettings.funnel.transformation.value);
 
     let target: number = this.chartBase.getTarget({ transformed: false });
     let alt_target: number = this.inputSettings.funnel.alt_target.value;
@@ -107,7 +104,7 @@ class viewModelObject {
                       host: IVisualHost; }) {
     let dv: powerbi.DataView[] = args.options.dataViews;
     if (checkInvalidDataView(dv)) {
-      this.inputData = new dataArray({});
+      this.inputData = <dataObject>null;
       this.inputSettings = args.inputSettings;
       this.chartBase = null;
       this.calculatedLimits = null;
@@ -118,8 +115,7 @@ class viewModelObject {
       return;
     }
 
-    this.inputData = extractInputData(dv[0].categorical,
-                                      args.inputSettings);
+    this.inputData = new dataObject(dv[0].categorical, args.inputSettings);
     console.log("Updated data")
 
     this.inputSettings = args.inputSettings;

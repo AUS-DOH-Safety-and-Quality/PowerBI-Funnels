@@ -16,7 +16,6 @@ type scatterDotsConstructorT = {
   transform_text?: string;
   transform?: (x: number) => number;
   limits?: limitData;
-  prop_labels?: boolean;
   empty?: boolean
 }
 
@@ -61,8 +60,7 @@ class scatterDotsObject {
       transform: args.transform,
       limits: args.limits,
       data_type: args.data_type,
-      multiplier: args.multiplier,
-      prop_labels: args.prop_labels
+      multiplier: args.multiplier
     })
   }
 };

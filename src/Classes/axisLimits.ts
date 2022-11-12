@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { divide } from "../Functions/BinaryFunctions"
 import limitData from "./limitData";
 import settingsObject from "./settingsObject";
-import dataArray from "./dataArray"
+import dataObject from "./dataObject"
 
 class axisLimits {
   x: {
@@ -16,7 +16,7 @@ class axisLimits {
     padding: number
   }
 
-  constructor(args: { inputData: dataArray,
+  constructor(args: { inputData: dataObject,
                       inputSettings: settingsObject,
                       calculatedLimits: limitData[] }) {
     let maxRatio: number = d3.max(divide(args.inputData.numerator,

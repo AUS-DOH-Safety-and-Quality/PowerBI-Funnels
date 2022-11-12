@@ -1,28 +1,28 @@
 import * as d3 from "d3";
 import chartObject from "../Classes/chartObject"
-import dataArray from "../Classes/dataArray";
+import dataObject from "../Classes/dataObject";
 import limitArguments from "../Classes/limitArgs";
 import settingsObject from "../Classes/settingsObject";
 import winsorise from "../Functions/winsorise";
 import { sqrt, inv, asin, square } from "../Functions/UnaryFunctions"
 import { multiply, divide } from "../Functions/BinaryFunctions"
 
-let prSE = function(inputData: dataArray): number[] {
+let prSE = function(inputData: dataObject): number[] {
   let denominator: number[] = inputData.denominator;
   return inv(multiply(2, sqrt(denominator)));
 }
 
-let prTarget = function(inputData: dataArray): number {
+let prTarget = function(inputData: dataObject): number {
   let numerator: number[] = inputData.numerator;
   let denominator: number[] = inputData.denominator;
   return d3.sum(numerator) / d3.sum(denominator);
 }
 
-let prTargetTransformed = function(inputData: dataArray): number {
+let prTargetTransformed = function(inputData: dataObject): number {
   return Math.asin(Math.sqrt(prTarget(inputData)));
 }
 
-let prY = function(inputData: dataArray): number[] {
+let prY = function(inputData: dataObject): number[] {
   let numerator: number[] = inputData.numerator;
   let denominator: number[] = inputData.denominator;
   return asin(sqrt(divide(numerator, denominator)));
@@ -40,7 +40,7 @@ let prLimit = function(args: limitArguments) {
 }
 
 class prFunnelObject extends chartObject {
-  constructor(args: { inputData: dataArray,
+  constructor(args: { inputData: dataObject,
                       inputSettings: settingsObject }) {
     super({
       seFunction: prSE,

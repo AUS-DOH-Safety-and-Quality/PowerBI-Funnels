@@ -272,6 +272,12 @@
                     },
                     "denominator": {
                         "max": 1
+                    },
+                    "chart_type": {
+                        "max": 1
+                    },
+                    "chart_multiplier": {
+                        "max": 1
                     }
                 }
             ],
