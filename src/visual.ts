@@ -117,7 +117,7 @@ export class Visual implements IVisual {
       let properties: VisualObjectInstance[] = [];
       properties.push({
         objectName: propertyGroupName,
-        properties: this.settings.returnValues(propertyGroupName),
+        properties: this.settings.returnValues(propertyGroupName, this.viewModel.inputData),
         selector: null
       });
       return properties;
@@ -280,7 +280,6 @@ export class Visual implements IVisual {
 
   drawDots(): void {
     let dot_size: number = this.settings.scatter.size.value;
-    let dot_colour: string = this.settings.scatter.colour.value;
     let dot_opacity: number = this.settings.scatter.opacity.value;
     let dot_opacity_unsel: number = this.settings.scatter.opacity_unselected.value;
 
@@ -302,7 +301,7 @@ export class Visual implements IVisual {
                     .attr("cx", d => this.plotProperties.xScale(d.denominator))
                     .attr("r", dot_size)
                     // Fill each dot with the colour in each DataPoint
-                    .style("fill", d => dot_colour);
+                    .style("fill", d => d.colour);
 
     this.highlightIfSelected();
 

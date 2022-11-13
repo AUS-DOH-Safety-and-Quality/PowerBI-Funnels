@@ -27,13 +27,18 @@
             "kind": "Measure"
         },
         {
+            "displayName": "Optional: Outlier Direction",
+            "name": "flag_direction",
+            "kind": "Measure"
+        },
+        {
             "displayName": "Optional: Y-Axis Upper Limit",
-            "name": "y_axis_upper_limit",
+            "name": "ylimit_u",
             "kind": "Measure"
         },
         {
             "displayName": "Optional: Y-Axis Lower Limit",
-            "name": "y_axis_lower_limit",
+            "name": "ylimit_l",
             "kind": "Measure"
         }
     ],
@@ -114,6 +119,58 @@
                         "numeric": true
                     }
                 }
+            }
+        },
+        "outliers" : {
+            "displayName": "Outlier Highlighting",
+            "properties": {
+              "flag_direction": {
+                  "displayName": "Direction to Flag",
+                  "type": {
+                    "enumeration" : [
+                      {
+                        "displayName" : "Both",
+                        "value" : "both"
+                      },
+                      {
+                        "displayName" : "Upper",
+                        "value" : "upper"
+                      },
+                      {
+                        "displayName" : "Lower",
+                        "value" : "lower"
+                      }
+                    ]
+                  }
+              },
+              "three_sigma": {
+                  "displayName": "Three Sigma Outliers",
+                  "type" : { "bool" : true }
+              },
+              "two_sigma": {
+                  "displayName": "Two Sigma Outliers",
+                  "type" : { "bool" : true }
+              },
+              "three_sigma_colour":{
+                  "displayName": "Three Sigma Colour",
+                  "type": {
+                      "fill": {
+                          "solid": {
+                              "color": true
+                          }
+                      }
+                  }
+              },
+              "two_sigma_colour":{
+                  "displayName": "Two Sigma Colour",
+                  "type": {
+                      "fill": {
+                          "solid": {
+                              "color": true
+                          }
+                      }
+                  }
+              }
             }
         },
         "scatter": {
@@ -354,6 +411,9 @@
                     },
                     "chart_multiplier": {
                         "max": 1
+                    },
+                    "flag_direction": {
+                        "max": 1
                     }
                 }
             ],
@@ -390,12 +450,17 @@
                         },
                         {
                             "for": {
-                                "in": "y_axis_upper_limit"
+                                "in": "flag_direction"
                             }
                         },
                         {
                             "for": {
-                                "in": "y_axis_lower_limit"
+                                "in": "ylimit_u"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "ylimit_l"
                             }
                         }
                     ]

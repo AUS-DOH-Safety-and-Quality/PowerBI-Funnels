@@ -10,6 +10,7 @@ class dataObject {
   highlights: powerbi.PrimitiveValue[];
   data_type: string;
   multiplier: number;
+  flag_direction: string;
   categories: powerbi.DataViewCategoryColumn;
   ylimit_u: number;
   ylimit_l: number
@@ -21,6 +22,7 @@ class dataObject {
       this.denominator = <number[]>null;
       this.data_type = <string>null;
       this.multiplier = <number>null;
+      this.flag_direction = <string>null;
       this.categories = <powerbi.DataViewCategoryColumn>null;
       this.ylimit_u = <number>null;
       this.ylimit_l = <number>null;
@@ -31,13 +33,15 @@ class dataObject {
 
     let data_type_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.chart_type)[0];
     let multiplier_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.chart_multiplier)[0];
+    let outlier_direction_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.flag_direction)[0];
 
-    let y_axis_upper_limit_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.y_axis_upper_limit)[0];
-    let y_axis_lower_limit_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.y_axis_lower_limit)[0];
+    let y_axis_upper_limit_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.ylimit_u)[0];
+    let y_axis_lower_limit_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.ylimit_l)[0];
 
     let numerator: number[] = <number[]>numerator_raw.values;
     let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.data_type.value;
     let multiplier: number = multiplier_raw ? <number>multiplier_raw.values[0] : inputSettings.funnel.multiplier.value;
+    let flag_direction: string = outlier_direction_raw ? <string>outlier_direction_raw.values[0] : inputSettings.outliers.flag_direction.value;
     let ylimit_u: number = y_axis_upper_limit_raw ? <number>y_axis_upper_limit_raw.values[0] : inputSettings.axis.ylimit_u.value;
     let ylimit_l: number = y_axis_lower_limit_raw ? <number>y_axis_lower_limit_raw.values[0] : inputSettings.axis.ylimit_l.value;
     let valid_ids: number[] = new Array<number>();
@@ -53,6 +57,7 @@ class dataObject {
     this.highlights = numerator_raw.highlights;
     this.data_type = data_type;
     this.multiplier = (data_type === "PR" && multiplier == 1) ? 100 : multiplier;
+    this.flag_direction = flag_direction.toLowerCase();
     this.ylimit_u = ylimit_u;
     this.ylimit_l = ylimit_l;
     this.categories = inputView.categories[0];

@@ -12,6 +12,9 @@ import lineData from "./lineData"
 import axisLimits from "./axisLimits"
 import scatterDotsObject from "./scatterDotsObject"
 import getTransformation from "../Funnel Calculations/getTransformation";
+import two_sigma from "../Outlier Flagging/two_sigma"
+import three_sigma from "../Outlier Flagging/three_sigma"
+import buildTooltip from "../Functions/buildTooltip"
 
 type nestReturnT = {
   key: string;
@@ -29,28 +32,65 @@ class viewModelObject {
   axisLimits: axisLimits;
   anyHighlights: boolean;
 
-  getScatterData(): scatterDotsObject[] {
-    return this.inputData.id.map((i, idx) => {
-      let colour: string = this.inputSettings.scatter.colour.value
-      let denominator: number = this.inputData.denominator[idx];
-      let limits: limitData = this.calculatedLimits.filter(d => d.denominator === denominator)[0];
+  getScatterData(host: IVisualHost): scatterDotsObject[] {
+    let plotPoints = new Array<scatterDotsObject>();
+    let transform_text: string = this.inputSettings.funnel.transformation.value;
+    let transform: (x: number) => number = getTransformation(transform_text);
+    let target: number = this.chartBase.getTarget({ transformed: false });
+    let multiplier: number = this.inputData.multiplier;
+    let data_type: string = this.inputData.data_type;
+    let flag_two_sigma: boolean = this.inputSettings.outliers.two_sigma.value;
+    let flag_three_sigma: boolean = this.inputSettings.outliers.three_sigma.value;
+    let flag_direction: string = this.inputData.flag_direction;
+    let two_sigma_colour: string = this.inputSettings.outliers.two_sigma_colour.value;
+    let three_sigma_colour: string = this.inputSettings.outliers.three_sigma_colour.value;
 
-      return new scatterDotsObject({
-        category: (typeof this.inputData.categories.values[i] === "number") ?
-                    (this.inputData.categories.values[i]).toString() :
-                    <string>(this.inputData.categories.values[i]),
-        numerator: this.inputData.numerator[idx],
+    for (let i: number = 0; i < this.inputData.id.length; i++) {
+      let numerator: number = this.inputData.numerator[i];
+      let denominator: number = this.inputData.denominator[i];
+      let ratio: number = (numerator / denominator);
+      let limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominator === denominator && d.ll99 !== null && d.ul99 !== null);
+      let limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominator === denominator)[0];
+      let dot_colour: string = this.inputSettings.scatter.colour.value;
+      let two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
+      let three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
+      let category: string = (typeof this.inputData.categories.values[i] === "number") ?
+                              (this.inputData.categories.values[i]).toString() :
+                              <string>(this.inputData.categories.values[i]);
+      if (two_sigma_outlier) {
+        dot_colour = two_sigma_colour;
+      }
+
+      if (three_sigma_outlier) {
+        dot_colour = three_sigma_colour
+      }
+
+      plotPoints.push({
+        category: category,
+        numerator: numerator,
         denominator: denominator,
-        limits: limits,
-        colour: colour,
+        ratio: transform(ratio * multiplier),
+        colour: dot_colour,
+        identity: host.createSelectionIdBuilder()
+                      .withCategory(this.inputData.categories, this.inputData.id[i])
+                      .createSelectionId(),
         highlighted: this.inputData.highlights ? (this.inputData.highlights[i] ? true : false) : false,
-        data_type: this.inputData.data_type,
-        multiplier: this.inputData.multiplier,
-        target: this.chartBase.getTarget({ transformed: false }),
-        transform_text: this.inputSettings.funnel.transformation.value,
-        transform: getTransformation(this.inputSettings.funnel.transformation.value)
-      });
-    });
+        tooltip: buildTooltip({
+          group: category,
+          numerator: numerator,
+          denominator: denominator,
+          target: target,
+          transform_text: transform_text,
+          transform: transform,
+          limits: limits,
+          data_type: data_type,
+          multiplier: multiplier,
+          two_sigma_outlier: two_sigma_outlier,
+          three_sigma_outlier: three_sigma_outlier
+        })
+      })
+    }
+    return plotPoints;
   };
 
   getGroupedLines(): [string, lineData[]][] {
@@ -94,9 +134,7 @@ class viewModelObject {
         }
       })
     })
-    let grouped = d3.groups(formattedLines, d => d.group);
-    console.log("grouped: ", grouped)
-    return grouped;
+    return d3.groups(formattedLines, d => d.group);
   }
 
   constructor(args: { options: VisualUpdateOptions;
@@ -108,7 +146,7 @@ class viewModelObject {
       this.inputSettings = args.inputSettings;
       this.chartBase = null;
       this.calculatedLimits = null;
-      this.scatterDots = [new scatterDotsObject({ empty: true })];
+      this.scatterDots = <scatterDotsObject[]>null;
       this.groupedLines = <[string, lineData[]][]>null;
       this.axisLimits = null;
       this.anyHighlights = null;
@@ -134,7 +172,7 @@ class viewModelObject {
                                        calculatedLimits: this.calculatedLimits });
     console.log("Initialised axis limits")
 
-    this.scatterDots = this.getScatterData();
+    this.scatterDots = this.getScatterData(args.host);
     console.log("Initialised scatter data")
     this.scatterDots.forEach((scatter, idx) => {
       scatter.identity = args.host

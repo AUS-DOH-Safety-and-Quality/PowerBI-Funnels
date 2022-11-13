@@ -1,4 +1,5 @@
 import powerbi from "powerbi-visuals-api";
+import dataObject from "./dataObject";
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
 class settingsPair<T> {
@@ -111,12 +112,29 @@ class axisSettings {
   };
 }
 
+class outliersSettings {
+  flag_direction: settingsPair<string>;
+  three_sigma: settingsPair<boolean>;
+  three_sigma_colour: settingsPair<string>;
+  two_sigma: settingsPair<boolean>;
+  two_sigma_colour: settingsPair<string>;
+
+  constructor() {
+    this.flag_direction = new settingsPair("both");
+    this.three_sigma = new settingsPair(true);
+    this.three_sigma_colour = new settingsPair("#E1C233");
+    this.two_sigma = new settingsPair(false);
+    this.two_sigma_colour = new settingsPair("#E1C233");
+  };
+}
+
 class settingsObject {
   axispad: axispadSettings;
   funnel: funnelSettings;
   scatter: scatterSettings;
   lines: lineSettings;
   axis: axisSettings;
+  outliers: outliersSettings;
 
   updateSettings(inputObjects: powerbi.DataViewObjects): void {
     let allSettingGroups: string[] = Object.getOwnPropertyNames(this)
@@ -136,16 +154,25 @@ class settingsObject {
     })
   }
 
-  returnValues(settingGroupName: string) {
-    let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroupName])
+  settingInData(settingGroupName: string, settingName: string): boolean {
+    let settingsInData: string[] = ["chart_type", "chart_multiplier", "flag_direction", "ylimit_l", "ylimit_u"];
+    return settingsInData.includes(settingName);
+  }
+
+  returnValues(settingGroupName: string, inputData: dataObject) {
+    let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroupName]);
     let firstSettingObject = {
-      [settingNames[0]]: this[settingGroupName][settingNames[0]].value
+      [settingNames[0]]: this.settingInData(settingGroupName, settingNames[0])
+        ? inputData[settingNames[0]]
+        : this[settingGroupName][settingNames[0]].value
     };
     return settingNames.reduce((previousSetting, currentSetting) => {
       return {
         ...previousSetting,
         ...{
-          [currentSetting]: this[settingGroupName][currentSetting].value
+          [currentSetting]: this.settingInData(settingGroupName, currentSetting)
+            ? inputData[currentSetting]
+            : this[settingGroupName][currentSetting].value
         }
       }
     }, firstSettingObject);
@@ -157,6 +184,7 @@ class settingsObject {
     this.scatter = new scatterSettings();
     this.lines = new lineSettings();
     this.axis = new axisSettings();
+    this.outliers = new outliersSettings();
   }
 }
 
