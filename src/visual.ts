@@ -393,6 +393,10 @@ export class Visual implements IVisual {
                         .domain(keyAesthetics.map(d => d.group))
                         .range(keyAesthetics.map(d => d.width));
 
+    let line_type = d3.scaleOrdinal()
+                        .domain(keyAesthetics.map(d => d.group))
+                        .range(keyAesthetics.map(d => d.type));
+
     this.svgSelections.lineSelection = this.svgObjects.lineGroup
                               .selectAll(".line")
                               .data(this.viewModel.groupedLines);
@@ -415,7 +419,8 @@ export class Visual implements IVisual {
     })
     lineMerged.attr("fill", "none")
               .attr("stroke", d => <string>line_color(d[0]))
-              .attr("stroke-width", d => <number>line_width(d[0]));
+              .attr("stroke-width", d => <number>line_width(d[0]))
+              .attr("stroke-dasharray", d => <string>line_type(d[0]));
 
     lineMerged.exit().remove();
     this.svgSelections.lineSelection.exit().remove();
