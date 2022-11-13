@@ -124,7 +124,6 @@ export class Visual implements IVisual {
   }
 
   highlightIfSelected(): void {
-    console.log("sel_ids: ", this.selectionManager.getSelectionIds())
     if (!this.svgSelections.dotSelection || !this.selectionManager.getSelectionIds()) {
       return;
     }
@@ -310,7 +309,6 @@ export class Visual implements IVisual {
         : dot_opacity
     })
     .on("click", (event, d) => {
-      console.log("dot event: ", event)
       // Propagate identities of selected data back to
       //   PowerBI based on all selected dots
       this.selectionManager
@@ -373,7 +371,6 @@ export class Visual implements IVisual {
     this.svgSelections.dotSelection.exit().remove();
 
     this.svg.on('click', (event) => {
-      console.log("svg event: ", event)
       this.selectionManager.clear();
       this.highlightIfSelected();
     });
