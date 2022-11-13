@@ -124,6 +124,7 @@ export class Visual implements IVisual {
   }
 
   highlightIfSelected(): void {
+    console.log("sel_ids: ", this.selectionManager.getSelectionIds())
     if (!this.svgSelections.dotSelection || !this.selectionManager.getSelectionIds()) {
       return;
     }
@@ -131,20 +132,16 @@ export class Visual implements IVisual {
     let opacityUnselected: number = this.settings.scatter.opacity_unselected.value;
 
     if (!this.selectionManager.getSelectionIds().length) {
-      this.svgSelections.dotSelection.style("fill-opacity", opacitySelected);
+      this.svgSelections.dotSelection.style("fill-opacity", d => opacitySelected);
       return;
     }
 
-    this.svgSelections.dotSelection.each(d => {
-      const opacity: number
-        = checkIDSelected(this.selectionManager.getSelectionIds() as ISelectionId[],
+    this.svgSelections.dotSelection.style("fill-opacity", d => {
+      return checkIDSelected(this.selectionManager.getSelectionIds() as ISelectionId[],
                           d.identity)
             ? opacitySelected
             : opacityUnselected;
-
-      (<any>d3).select(this.svgSelections.dotSelection)
-                .style("fill-opacity", opacity);
-    });
+    })
   }
 
   drawXAxis(): void {
@@ -313,10 +310,11 @@ export class Visual implements IVisual {
         : dot_opacity
     })
     .on("click", (event, d) => {
+      console.log("dot event: ", event)
       // Propagate identities of selected data back to
       //   PowerBI based on all selected dots
       this.selectionManager
-          .select(d.identity, event.ctrlKey)
+          .select(d.identity, (event.ctrlKey || event.metaKey))
           .then(ids => {
             MergedDotObject.style("fill-opacity", d => {
               return ids.length > 0
@@ -327,7 +325,7 @@ export class Visual implements IVisual {
       event.stopPropagation();
     });
 
-    if(this.plotProperties.displayPlot) {
+    if (this.plotProperties.displayPlot) {
       // Display tooltip content on mouseover
       MergedDotObject.on("mouseover", (event, d) => {
         // Get screen coordinates of mouse pointer, tooltip will
@@ -374,7 +372,8 @@ export class Visual implements IVisual {
     MergedDotObject.exit().remove();
     this.svgSelections.dotSelection.exit().remove();
 
-    this.svg.on('click', () => {
+    this.svg.on('click', (event) => {
+      console.log("svg event: ", event)
       this.selectionManager.clear();
       this.highlightIfSelected();
     });

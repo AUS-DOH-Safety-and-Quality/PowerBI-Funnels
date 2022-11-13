@@ -174,14 +174,6 @@ class viewModelObject {
 
     this.scatterDots = this.getScatterData(args.host);
     console.log("Initialised scatter data")
-    this.scatterDots.forEach((scatter, idx) => {
-      scatter.identity = args.host
-                              .createSelectionIdBuilder()
-                              .withCategory(this.inputData.categories,
-                                            this.inputData.id[idx])
-                              .createSelectionId()
-    });
-    console.log("Initialised scatter identities")
 
     this.groupedLines = this.getGroupedLines();
     console.log("Grouped lines")
