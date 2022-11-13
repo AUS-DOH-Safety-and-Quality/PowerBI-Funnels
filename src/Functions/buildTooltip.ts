@@ -11,7 +11,9 @@ type tooltipArgs = {
   transform: (x: number) => number,
   limits: limitData,
   data_type: string,
-  multiplier: number
+  multiplier: number,
+  two_sigma_outlier: boolean,
+  three_sigma_outlier: boolean
 }
 
 function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
@@ -59,6 +61,19 @@ function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
     tooltip.push({
       displayName: "Plot Scaling",
       value: args.transform_text
+    })
+  }
+  if (args.two_sigma_outlier || args.three_sigma_outlier) {
+    let patterns: string[] = new Array<string>();
+    if (args.three_sigma_outlier) {
+      patterns.push("Three Sigma Outlier")
+    }
+    if (args.two_sigma_outlier) {
+      patterns.push("Two Sigma Outlier")
+    }
+    tooltip.push({
+      displayName: "Pattern(s)",
+      value: patterns.join("\n")
     })
   }
   return tooltip;

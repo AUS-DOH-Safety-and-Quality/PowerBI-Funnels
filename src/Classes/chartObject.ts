@@ -152,7 +152,7 @@ class chartObject {
 
     return calcLimits.map((d, idx) => {
       let inner = d;
-      if(idx < (calcLimits.length - 1)) {
+      if (idx < (calcLimits.length - 1)) {
         inner.ll99 = d.ll99 < calcLimits[idx + 1].ll99 ? d.ll99 : null;
         inner.ll95 = d.ll95 < calcLimits[idx + 1].ll95 ? d.ll95 : null;
         inner.ul95 = d.ul95 > calcLimits[idx + 1].ul95 ? d.ul95 : null;
