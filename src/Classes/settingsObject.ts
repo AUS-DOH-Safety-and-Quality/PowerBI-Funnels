@@ -89,8 +89,8 @@ class lineSettings {
     this.type_alt_target = new settingsPair("10 0");
     this.colour_99 = new settingsPair("#6495ED");
     this.colour_95 = new settingsPair("#6495ED");
-    this.colour_target = new settingsPair("#6495ED");
-    this.colour_alt_target = new settingsPair("#6495ED");
+    this.colour_target = new settingsPair("#000000");
+    this.colour_alt_target = new settingsPair("#000000");
   }
 }
 
@@ -121,7 +121,7 @@ class outliersSettings {
 
   constructor() {
     this.flag_direction = new settingsPair("both");
-    this.three_sigma = new settingsPair(true);
+    this.three_sigma = new settingsPair(false);
     this.three_sigma_colour = new settingsPair("#E1C233");
     this.two_sigma = new settingsPair(false);
     this.two_sigma_colour = new settingsPair("#E1C233");
