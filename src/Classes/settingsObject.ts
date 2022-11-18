@@ -121,7 +121,7 @@ class outliersSettings {
 
   constructor() {
     this.flag_direction = new settingsPair("both");
-    this.three_sigma = new settingsPair(true);
+    this.three_sigma = new settingsPair(false);
     this.three_sigma_colour = new settingsPair("#E1C233");
     this.two_sigma = new settingsPair(false);
     this.two_sigma_colour = new settingsPair("#E1C233");
