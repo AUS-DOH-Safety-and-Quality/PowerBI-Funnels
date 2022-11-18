@@ -89,8 +89,8 @@ class lineSettings {
     this.type_alt_target = new settingsPair("10 0");
     this.colour_99 = new settingsPair("#6495ED");
     this.colour_95 = new settingsPair("#6495ED");
-    this.colour_target = new settingsPair("#6495ED");
-    this.colour_alt_target = new settingsPair("#6495ED");
+    this.colour_target = new settingsPair("#000000");
+    this.colour_alt_target = new settingsPair("#000000");
   }
 }
 
