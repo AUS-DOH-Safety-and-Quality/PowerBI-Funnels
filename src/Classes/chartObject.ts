@@ -72,8 +72,7 @@ class chartObject {
     let zScoresWinsorized: number[] = winsoriseZScores(zScores);
     let phi: number = getPhi(zScoresWinsorized);
 
-    let tau2: number = getTau2(phi, seOD);
-    return tau2;
+    return getTau2(phi, seOD);
   };
 
   getTau2Bool(): boolean {
