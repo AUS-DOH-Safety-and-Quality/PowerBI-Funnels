@@ -42,8 +42,8 @@ class dataObject {
     let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.data_type.value;
     let multiplier: number = multiplier_raw ? <number>multiplier_raw.values[0] : inputSettings.funnel.multiplier.value;
     let flag_direction: string = outlier_direction_raw ? <string>outlier_direction_raw.values[0] : inputSettings.outliers.flag_direction.value;
-    let ylimit_u: number = y_axis_upper_limit_raw ? <number>y_axis_upper_limit_raw.values[0] : inputSettings.axis.ylimit_u.value;
-    let ylimit_l: number = y_axis_lower_limit_raw ? <number>y_axis_lower_limit_raw.values[0] : inputSettings.axis.ylimit_l.value;
+    let ylimit_u: number = y_axis_upper_limit_raw ? <number>y_axis_upper_limit_raw.values[0] : inputSettings.y_axis.ylimit_u.value;
+    let ylimit_l: number = y_axis_lower_limit_raw ? <number>y_axis_lower_limit_raw.values[0] : inputSettings.y_axis.ylimit_l.value;
     let valid_ids: number[] = new Array<number>();
 
     for (let i: number = 0; i < denominator.length; i++) {

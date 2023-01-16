@@ -144,54 +144,79 @@ export class Visual implements IVisual {
   }
 
   drawXAxis(): void {
-    let xAxisPadding: number = this.plotProperties.axisLimits.x.padding;
+    let xAxisProperties = this.viewModel.axisLimits.x;
+    let xAxis: d3.Axis<d3.NumberValue>;
 
-    let xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(this.plotProperties.xScale);
+    if (xAxisProperties.ticks) {
+      xAxis = d3.axisBottom(this.plotProperties.xScale)
+    } else {
+      xAxis = d3.axisBottom(this.plotProperties.xScale).tickValues([]);
+    }
+
     this.svgObjects.xAxisGroup
         .call(xAxis)
         .attr("color", this.plotProperties.displayPlot ? "#000000" : "#FFFFFF")
         // Plots the axis at the correct height
-        .attr("transform", "translate(0, " + (this.plotProperties.height - xAxisPadding) + ")")
+        .attr("transform", "translate(0, " + (this.plotProperties.height - xAxisProperties.padding) + ")")
         .selectAll("text")
         // Rotate tick labels
         .attr("transform","rotate(-35)")
         // Right-align
         .style("text-anchor", "end")
         // Scale font
-        .style("font-size","x-small");
+        .style("font-size", xAxisProperties.tick_size)
+        .style("font-family", xAxisProperties.tick_font);
+
+    let xAxisCoordinates: DOMRect = this.svgObjects.xAxisGroup.node().getBoundingClientRect();
+    let bottomMidpoint: number = this.plotProperties.height - (this.plotProperties.height - xAxisCoordinates.bottom) / 2.5;
 
     this.svgObjects.xAxisLabels
         .attr("x",this.plotProperties.width/2)
-        .attr("y",this.plotProperties.height - xAxisPadding/10)
+        .attr("y",bottomMidpoint)
         .style("text-anchor", "middle")
-        .text(this.settings.axis.xlimit_label.value);
+        .text(xAxisProperties.label)
+        .style("font-size", xAxisProperties.label_size)
+        .style("font-family", xAxisProperties.label_font);
   }
 
   drawYAxis(): void {
-    let yAxisPadding: number = this.plotProperties.axisLimits.y.padding;
-    let prop_labels: boolean = this.viewModel.inputData
-      ? this.viewModel.inputData.data_type === "PR" && this.viewModel.inputData.multiplier === 100
-      : null;
+    let yAxisProperties = this.viewModel.axisLimits.y;
+    let yAxis: d3.Axis<d3.NumberValue>;
 
-    let yAxis: d3.Axis<d3.NumberValue>
-      = d3.axisLeft(this.plotProperties.yScale)
-          .tickFormat(d => {
-            // If axis displayed on % scale, then disable axis values > 100%
-            return prop_labels ? (<number>d).toFixed(2) + "%" : <string><unknown>d;
-          });
+    if (yAxisProperties.ticks) {
+      let prop_labels: boolean = this.viewModel.inputData
+        ? this.viewModel.inputData.data_type === "PR" && this.viewModel.inputData.multiplier === 100
+        : null;
+      yAxis = d3.axisLeft(this.plotProperties.yScale) .tickFormat(d => {
+        // If axis displayed on % scale, then disable axis values > 100%
+        return prop_labels ? (<number>d).toFixed(2) + "%" : <string><unknown>d;
+      });
+    } else {
+      yAxis = d3.axisLeft(this.plotProperties.yScale).tickValues([]);
+    }
 
     // Draw axes on plot
     this.svgObjects.yAxisGroup
         .call(yAxis)
         .attr("color", this.plotProperties.displayPlot ? "#000000" : "#FFFFFF")
-        .attr("transform", "translate(" +  yAxisPadding + ",0)");
+        .attr("transform", "translate(" +  yAxisProperties.padding + ",0)")
+        // Scale font
+        .style("font-size", yAxisProperties.tick_size)
+        .style("font-family", yAxisProperties.tick_font);
 
-    this.svgObjects.yAxisLabels
-        .attr("x",yAxisPadding)
+    let yAxisCoordinates: DOMRect = this.svgObjects.yAxisGroup.node().getBoundingClientRect();
+    let leftMidpoint: number = yAxisCoordinates.x * 0.7;
+
+    this.svgObjects
+        .yAxisLabels
+        .attr("x",leftMidpoint)
         .attr("y",this.plotProperties.height/2)
-        .attr("transform","rotate(-90," + yAxisPadding/3 +"," + this.plotProperties.height/2 +")")
-        .text(this.settings.axis.ylimit_label.value)
-        .style("text-anchor", "end");
+        .attr("transform","rotate(-90," + leftMidpoint +"," + this.plotProperties.height/2 +")")
+        .text(this.settings.y_axis.ylimit_label.value)
+        .text(yAxisProperties.label)
+        .style("text-anchor", "middle")
+        .style("font-size", yAxisProperties.label_size)
+        .style("font-family", yAxisProperties.label_font);
   }
 
   addContextMenu(): void {
@@ -402,8 +427,8 @@ export class Visual implements IVisual {
                           .merge(<any>this.svgSelections.lineSelection);
     lineMerged.classed('line', true);
 
-    let yLowerLimit = this.plotProperties.axisLimits.y.lower;
-    let yUpperLimit = this.plotProperties.axisLimits.y.upper;
+    let yLowerLimit = this.viewModel.axisLimits.y.lower;
+    let yUpperLimit = this.viewModel.axisLimits.y.upper;
 
     lineMerged.attr("d", d => {
       return d3.line<lineData>()
