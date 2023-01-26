@@ -8,7 +8,9 @@ class dataObject {
   numerator: number[];
   denominator: number[];
   highlights: powerbi.PrimitiveValue[];
-  data_type: string;
+  anyHighlights: boolean;
+  percentLabels: boolean;
+  chart_type: string;
   multiplier: number;
   flag_direction: string;
   categories: powerbi.DataViewCategoryColumn;
@@ -20,7 +22,7 @@ class dataObject {
       this.id = <number[]>null;
       this.numerator = <number[]>null;
       this.denominator = <number[]>null;
-      this.data_type = <string>null;
+      this.chart_type = <string>null;
       this.multiplier = <number>null;
       this.flag_direction = <string>null;
       this.categories = <powerbi.DataViewCategoryColumn>null;
@@ -39,7 +41,7 @@ class dataObject {
     let y_axis_lower_limit_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.ylimit_l)[0];
 
     let numerator: number[] = <number[]>numerator_raw.values;
-    let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.data_type.value;
+    let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.chart_type.value;
     let multiplier: number = multiplier_raw ? <number>multiplier_raw.values[0] : inputSettings.funnel.multiplier.value;
     let flag_direction: string = outlier_direction_raw ? <string>outlier_direction_raw.values[0] : inputSettings.outliers.flag_direction.value;
     let ylimit_u: number = y_axis_upper_limit_raw ? <number>y_axis_upper_limit_raw.values[0] : inputSettings.y_axis.ylimit_u.value;
@@ -55,8 +57,10 @@ class dataObject {
     this.numerator = extractValues(numerator, valid_ids);
     this.denominator = extractValues(denominator, valid_ids);
     this.highlights = numerator_raw.highlights;
-    this.data_type = data_type;
-    this.multiplier = (data_type === "PR" && multiplier == 1) ? 100 : multiplier;
+    this.anyHighlights = this.highlights ? true : false
+    this.percentLabels = (data_type === "PR") && (multiplier === 1 || multiplier === 100);
+    this.chart_type = data_type;
+    this.multiplier = multiplier;
     this.flag_direction = flag_direction.toLowerCase();
     this.ylimit_u = ylimit_u;
     this.ylimit_l = ylimit_l;

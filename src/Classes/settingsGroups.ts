@@ -8,37 +8,29 @@ class settingsPair<T> {
   }
 }
 
-class axispadSettings {
-  x: {
-    padding: settingsPair<number>,
-    end_padding: settingsPair<number>
-  };
-  y: {
-    padding: settingsPair<number>,
-    end_padding: settingsPair<number>
-  };
+class canvasSettings {
+  lower_padding: settingsPair<number>;
+  upper_padding: settingsPair<number>;
+  left_padding: settingsPair<number>;
+  right_padding: settingsPair<number>;
 
   constructor() {
-    this.x = {
-      padding: new settingsPair(50),
-      end_padding: new settingsPair(10)
-    };
-    this.y = {
-      padding: new settingsPair(50),
-      end_padding: new settingsPair(10)
-    };
+    this.lower_padding = new settingsPair(50);
+    this.upper_padding = new settingsPair(10);
+    this.left_padding = new settingsPair(50);
+    this.right_padding = new settingsPair(10);
   };
 };
 
 class funnelSettings {
-  data_type: settingsPair<string>;
+  chart_type: settingsPair<string>;
   od_adjust: settingsPair<string>;
   multiplier: settingsPair<number>;
   transformation: settingsPair<string>;
   alt_target: settingsPair<number>;
 
   constructor() {
-    this.data_type = new settingsPair("PR");
+    this.chart_type = new settingsPair("PR");
     this.od_adjust = new settingsPair("no");
     this.multiplier = new settingsPair(1);
     this.transformation = new settingsPair("none");
@@ -91,44 +83,56 @@ class lineSettings {
 }
 
 class xAxisSettings {
+  xlimit_colour: settingsPair<string>;
   xlimit_ticks: settingsPair<boolean>;
   xlimit_tick_font: settingsPair<string>;
   xlimit_tick_size: settingsPair<string>;
+  xlimit_tick_colour: settingsPair<string>;
   xlimit_label: settingsPair<string>;
   xlimit_label_font: settingsPair<string>;
   xlimit_label_size: settingsPair<string>;
+  xlimit_label_colour: settingsPair<string>;
   xlimit_l: settingsPair<number>;
   xlimit_u: settingsPair<number>;
 
   constructor() {
+    this.xlimit_colour = new settingsPair("#000000");
     this.xlimit_ticks = new settingsPair(true);
     this.xlimit_tick_font = new settingsPair("'Arial', sans-serif");
     this.xlimit_tick_size = new settingsPair("x-small");
+    this.xlimit_tick_colour = new settingsPair("#000000");
     this.xlimit_label = new settingsPair<string>(null);
     this.xlimit_label_font = new settingsPair("'Arial', sans-serif");
     this.xlimit_label_size = new settingsPair("medium");
+    this.xlimit_label_colour = new settingsPair("#000000");
     this.xlimit_l = new settingsPair<number>(null);
     this.xlimit_u = new settingsPair<number>(null);
   };
 }
 
 class yAxisSettings {
+  ylimit_colour: settingsPair<string>;
   ylimit_ticks: settingsPair<boolean>;
   ylimit_tick_font: settingsPair<string>;
   ylimit_tick_size: settingsPair<string>;
+  ylimit_tick_colour: settingsPair<string>;
   ylimit_label: settingsPair<string>;
   ylimit_label_font: settingsPair<string>;
   ylimit_label_size: settingsPair<string>;
+  ylimit_label_colour: settingsPair<string>;
   ylimit_l: settingsPair<number>;
   ylimit_u: settingsPair<number>;
 
   constructor() {
+    this.ylimit_colour = new settingsPair("#000000");
     this.ylimit_ticks = new settingsPair(true);
     this.ylimit_tick_font = new settingsPair("'Arial', sans-serif");
     this.ylimit_tick_size = new settingsPair("x-small");
+    this.ylimit_tick_colour = new settingsPair("#000000");
     this.ylimit_label = new settingsPair<string>(null);
     this.ylimit_label_font = new settingsPair("'Arial', sans-serif");
     this.ylimit_label_size = new settingsPair("medium");
+    this.ylimit_label_colour = new settingsPair("#000000");
     this.ylimit_l = new settingsPair<number>(null);
     this.ylimit_u = new settingsPair<number>(null);
   };
@@ -150,12 +154,21 @@ class outliersSettings {
   };
 }
 
+let settingsInData: Record<string, string> = {
+  "chart_type" : "spc",
+  "multiplier" : "spc",
+  "flag_direction" : "outliers",
+  "ylimit_l" : "y_axis",
+  "ylimit_u" : "y_axis"
+}
+
 export {
-  axispadSettings,
+  canvasSettings,
   funnelSettings,
   scatterSettings,
   lineSettings,
   xAxisSettings,
   yAxisSettings,
-  outliersSettings
+  outliersSettings,
+  settingsInData
 }

@@ -9,36 +9,30 @@ import initialiseChartObject from "../Chart Types/initialiseChartObject"
 import dataObject from "./dataObject";
 import limitData from "./limitData";
 import lineData from "./lineData"
-import axisLimits from "./axisLimits"
-import scatterDotsObject from "./scatterDotsObject"
+import plotPropertiesClass from "./plotProperties";
+import plotData from "./plotData"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
 import buildTooltip from "../Functions/buildTooltip"
-
-type nestReturnT = {
-  key: string;
-  values: any;
-  value: undefined;
-}
 
 class viewModelObject {
   inputData: dataObject;
   inputSettings: settingsObject;
   chartBase: chartObject;
   calculatedLimits: limitData[];
-  scatterDots: scatterDotsObject[];
+  plotPoints: plotData[];
   groupedLines: [string, lineData[]][];
-  axisLimits: axisLimits;
-  anyHighlights: boolean;
+  plotProperties: plotPropertiesClass;
+  firstRun: boolean;
 
-  getScatterData(host: IVisualHost): scatterDotsObject[] {
-    let plotPoints = new Array<scatterDotsObject>();
+  getScatterData(host: IVisualHost): plotData[] {
+    let plotPoints = new Array<plotData>();
     let transform_text: string = this.inputSettings.funnel.transformation.value;
     let transform: (x: number) => number = getTransformation(transform_text);
     let target: number = this.chartBase.getTarget({ transformed: false });
     let multiplier: number = this.inputData.multiplier;
-    let data_type: string = this.inputData.data_type;
+    let data_type: string = this.inputData.chart_type;
     let flag_two_sigma: boolean = this.inputSettings.outliers.two_sigma.value;
     let flag_three_sigma: boolean = this.inputSettings.outliers.three_sigma.value;
     let flag_direction: string = this.inputData.flag_direction;
@@ -66,10 +60,8 @@ class viewModelObject {
       }
 
       plotPoints.push({
-        category: category,
-        numerator: numerator,
-        denominator: denominator,
-        ratio: transform(ratio * multiplier),
+        x: denominator,
+        value: transform(ratio * multiplier),
         colour: dot_colour,
         identity: host.createSelectionIdBuilder()
                       .withCategory(this.inputData.categories, this.inputData.id[i])
@@ -99,22 +91,6 @@ class viewModelObject {
 
     let target: number = this.chartBase.getTarget({ transformed: false });
     let alt_target: number = this.inputSettings.funnel.alt_target.value;
-    let colours = {
-      ll99: this.inputSettings.lines.colour_99.value,
-      ll95: this.inputSettings.lines.colour_95.value,
-      ul95: this.inputSettings.lines.colour_95.value,
-      ul99: this.inputSettings.lines.colour_99.value,
-      target: this.inputSettings.lines.colour_target.value,
-      alt_target: this.inputSettings.lines.colour_alt_target.value
-    }
-    let widths = {
-      ll99: this.inputSettings.lines.width_99.value,
-      ll95: this.inputSettings.lines.width_95.value,
-      ul95: this.inputSettings.lines.width_95.value,
-      ul99: this.inputSettings.lines.width_99.value,
-      target: this.inputSettings.lines.width_target.value,
-      alt_target: this.inputSettings.lines.width_alt_target.value
-    }
 
     let labels: string[] = ["ll99", "ll95", "ul95", "ul99", "target", "alt_target"];
 
@@ -123,60 +99,57 @@ class viewModelObject {
       limits.target = target;
       limits.alt_target = alt_target;
       labels.forEach(label => {
-        if(!(limits[label] === null)) {
           formattedLines.push({
             x: limits.denominator,
-            group: label,
-            line_value: transform(limits[label] * multiplier),
-            colour: colours[label],
-            width: widths[label]
-          });
-        }
+            line_value: limits[label] ? transform(limits[label] * multiplier) : null,
+            group: label
+          })
       })
     })
     return d3.groups(formattedLines, d => d.group);
   }
 
-  constructor(args: { options: VisualUpdateOptions;
-                      inputSettings: settingsObject;
-                      host: IVisualHost; }) {
-    let dv: powerbi.DataView[] = args.options.dataViews;
-    if (checkInvalidDataView(dv)) {
+  update(args: { options: VisualUpdateOptions;
+                  host: IVisualHost; }) {
+    if (checkInvalidDataView(args.options.dataViews)) {
       this.inputData = <dataObject>null;
-      this.inputSettings = args.inputSettings;
+      this.inputSettings = <settingsObject>null;
       this.chartBase = null;
       this.calculatedLimits = null;
-      this.scatterDots = <scatterDotsObject[]>null;
+      this.plotPoints = <plotData[]>null;
       this.groupedLines = <[string, lineData[]][]>null;
-      this.axisLimits = null;
-      this.anyHighlights = null;
+      this.plotProperties = <plotPropertiesClass>null;
       return;
     }
 
-    this.inputData = new dataObject(dv[0].categorical, args.inputSettings);
-    console.log("Updated data")
+    let dv: powerbi.DataView[] = args.options.dataViews;
 
-    this.inputSettings = args.inputSettings;
+    if (this.firstRun) {
+      this.inputSettings = new settingsObject();
+    }
+    this.inputSettings.update(args.options.dataViews[0].metadata.objects);
 
-    this.anyHighlights = this.inputData.highlights ? true : false;
+    this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
 
     this.chartBase = initialiseChartObject({ inputData: this.inputData,
                                              inputSettings: this.inputSettings });
-    console.log("Initialised chart")
 
     this.calculatedLimits = this.chartBase.getLimits();
-    console.log("Calculated limits")
 
-    this.axisLimits = new axisLimits({ inputData: this.inputData,
-                                       inputSettings: this.inputSettings,
-                                       calculatedLimits: this.calculatedLimits });
-    console.log("Initialised axis limits")
-
-    this.scatterDots = this.getScatterData(args.host);
-    console.log("Initialised scatter data")
-
+    this.plotPoints = this.getScatterData(args.host);
     this.groupedLines = this.getGroupedLines();
-    console.log("Grouped lines")
+
+    if (this.firstRun) {
+      this.plotProperties = new plotPropertiesClass();
+    }
+    this.plotProperties.update({
+      options: args.options,
+      plotPoints: this.plotPoints,
+      calculatedLimits: this.calculatedLimits,
+      inputData: this.inputData,
+      inputSettings: this.inputSettings
+    })
+    this.firstRun = false;
   }
 };
 

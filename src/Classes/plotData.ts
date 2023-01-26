@@ -1,12 +1,10 @@
 import powerbi from "powerbi-visuals-api";
-import ISelectionId = powerbi.visuals.ISelectionId;
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+import ISelectionId = powerbi.visuals.ISelectionId;
 
-class scatterDotsObject {
-  category: string;
-  numerator: number;
-  denominator: number;
-  ratio: number;
+class plotData {
+  x: number;
+  value: number;
   colour: string;
   // ISelectionId allows the visual to report the selection choice to PowerBI
   identity: ISelectionId;
@@ -16,4 +14,4 @@ class scatterDotsObject {
   tooltip: VisualTooltipDataItem[];
 };
 
-export default scatterDotsObject;
+export default plotData;
