@@ -46,8 +46,8 @@
         "funnel" : {
             "displayName": "Data Settings",
             "properties": {
-                "data_type": {
-                    "displayName": "Data Type",
+                "chart_type": {
+                    "displayName": "Chart Type",
                     "type" : {
                         "enumeration" : [
                           {
@@ -170,6 +170,27 @@
                           }
                       }
                   }
+              }
+            }
+        },
+        "canvas": {
+            "displayName": "Canvas Settings",
+            "properties": {
+              "lower_padding":{
+                "displayName": "Padding Below Plot (pixels):",
+                "type": { "numeric": true }
+              },
+              "upper_padding":{
+                "displayName": "Padding Above Plot (pixels):",
+                "type": { "numeric": true }
+              },
+              "left_padding":{
+                "displayName": "Padding Left of Plot (pixels):",
+                "type": { "numeric": true }
+              },
+              "right_padding":{
+                "displayName": "Padding Right of Plot (pixels):",
+                "type": { "numeric": true }
               }
             }
         },
@@ -354,7 +375,17 @@
         "x_axis": {
           "displayName": "X-Axis Settings",
           "properties": {
-              "xlimit_ticks": {
+            "xlimit_colour":{
+                "displayName": "Axis Colour",
+                "type": {
+                    "fill": {
+                        "solid": {
+                            "color": true
+                        }
+                    }
+                }
+            },
+            "xlimit_ticks": {
                   "displayName": "Draw Ticks",
                   "type" : { "bool" : true }
               },
@@ -434,6 +465,16 @@
                         "value" : "xx-large"
                       }
                     ]
+                  }
+              },
+              "xlimit_tick_colour":{
+                  "displayName": "Tick Font Colour",
+                  "type": {
+                      "fill": {
+                          "solid": {
+                              "color": true
+                          }
+                      }
                   }
               },
               "xlimit_label": {
@@ -520,6 +561,16 @@
                     ]
                   }
               },
+              "xlimit_label_colour":{
+                  "displayName": "Label Font Colour",
+                  "type": {
+                      "fill": {
+                          "solid": {
+                              "color": true
+                          }
+                      }
+                  }
+              },
               "xlimit_l": {
                   "displayName": "Lower Limit",
                   "type": {
@@ -537,7 +588,17 @@
       "y_axis": {
           "displayName": "Y-Axis Settings",
           "properties": {
-              "ylimit_ticks": {
+            "ylimit_colour":{
+              "displayName": "Axis Colour",
+              "type": {
+                  "fill": {
+                      "solid": {
+                          "color": true
+                      }
+                  }
+              }
+          },
+          "ylimit_ticks": {
                   "displayName": "Draw Ticks",
                   "type" : { "bool" : true }
               },
@@ -617,6 +678,16 @@
                         "value" : "xx-large"
                       }
                     ]
+                  }
+              },
+              "ylimit_tick_colour":{
+                  "displayName": "Tick Font Colour",
+                  "type": {
+                      "fill": {
+                          "solid": {
+                              "color": true
+                          }
+                      }
                   }
               },
               "ylimit_label": {
@@ -701,6 +772,16 @@
                         "value" : "xx-large"
                       }
                     ]
+                  }
+              },
+              "ylimit_label_colour":{
+                  "displayName": "Label Font Colour",
+                  "type": {
+                      "fill": {
+                          "solid": {
+                              "color": true
+                          }
+                      }
                   }
               },
               "ylimit_l": {

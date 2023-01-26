@@ -13,7 +13,7 @@ const allCharts = {
 
 function initialiseChartObject(args: { inputData: dataObject,
                                        inputSettings: settingsObject}): chartObject {
-  let data_type: string = args.inputData.data_type as keyof typeof allCharts;
+  let data_type: string = args.inputData.chart_type as keyof typeof allCharts;
   return new allCharts[data_type](args);
 }
 

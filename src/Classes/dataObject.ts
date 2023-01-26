@@ -9,7 +9,8 @@ class dataObject {
   denominator: number[];
   highlights: powerbi.PrimitiveValue[];
   anyHighlights: boolean;
-  data_type: string;
+  percentLabels: boolean;
+  chart_type: string;
   multiplier: number;
   flag_direction: string;
   categories: powerbi.DataViewCategoryColumn;
@@ -21,7 +22,7 @@ class dataObject {
       this.id = <number[]>null;
       this.numerator = <number[]>null;
       this.denominator = <number[]>null;
-      this.data_type = <string>null;
+      this.chart_type = <string>null;
       this.multiplier = <number>null;
       this.flag_direction = <string>null;
       this.categories = <powerbi.DataViewCategoryColumn>null;
@@ -57,8 +58,9 @@ class dataObject {
     this.denominator = extractValues(denominator, valid_ids);
     this.highlights = numerator_raw.highlights;
     this.anyHighlights = this.highlights ? true : false
-    this.data_type = data_type;
-    this.multiplier = (data_type === "PR" && multiplier == 1) ? 100 : multiplier;
+    this.percentLabels = (data_type === "PR") && (multiplier === 1 || multiplier === 100);
+    this.chart_type = data_type;
+    this.multiplier = multiplier;
     this.flag_direction = flag_direction.toLowerCase();
     this.ylimit_u = ylimit_u;
     this.ylimit_l = ylimit_l;

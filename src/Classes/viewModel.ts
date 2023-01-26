@@ -9,7 +9,7 @@ import initialiseChartObject from "../Chart Types/initialiseChartObject"
 import dataObject from "./dataObject";
 import limitData from "./limitData";
 import lineData from "./lineData"
-import axisLimits from "./axisLimits"
+import plotPropertiesClass from "./plotProperties";
 import plotData from "./plotData"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
@@ -23,8 +23,7 @@ class viewModelObject {
   calculatedLimits: limitData[];
   plotPoints: plotData[];
   groupedLines: [string, lineData[]][];
-  axisLimits: axisLimits;
-  anyHighlights: boolean;
+  plotProperties: plotPropertiesClass;
   firstRun: boolean;
 
   getScatterData(host: IVisualHost): plotData[] {
@@ -33,7 +32,7 @@ class viewModelObject {
     let transform: (x: number) => number = getTransformation(transform_text);
     let target: number = this.chartBase.getTarget({ transformed: false });
     let multiplier: number = this.inputData.multiplier;
-    let data_type: string = this.inputData.data_type;
+    let data_type: string = this.inputData.chart_type;
     let flag_two_sigma: boolean = this.inputSettings.outliers.two_sigma.value;
     let flag_three_sigma: boolean = this.inputSettings.outliers.three_sigma.value;
     let flag_direction: string = this.inputData.flag_direction;
@@ -119,8 +118,7 @@ class viewModelObject {
       this.calculatedLimits = null;
       this.plotPoints = <plotData[]>null;
       this.groupedLines = <[string, lineData[]][]>null;
-      this.axisLimits = null;
-      this.anyHighlights = null;
+      this.plotProperties = <plotPropertiesClass>null;
       return;
     }
 
@@ -132,29 +130,26 @@ class viewModelObject {
     this.inputSettings.update(args.options.dataViews[0].metadata.objects);
 
     this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
-    console.log("Updated data")
-
-
-    this.anyHighlights = this.inputData.highlights ? true : false;
 
     this.chartBase = initialiseChartObject({ inputData: this.inputData,
                                              inputSettings: this.inputSettings });
-    console.log("Initialised chart")
 
     this.calculatedLimits = this.chartBase.getLimits();
-    console.log("Calculated limits")
-
-    this.axisLimits = new axisLimits({ inputData: this.inputData,
-                                       inputSettings: this.inputSettings,
-                                       calculatedLimits: this.calculatedLimits });
-    console.log("Initialised axis limits")
 
     this.plotPoints = this.getScatterData(args.host);
-    console.log("Initialised scatter data")
-
     this.groupedLines = this.getGroupedLines();
+
+    if (this.firstRun) {
+      this.plotProperties = new plotPropertiesClass();
+    }
+    this.plotProperties.update({
+      options: args.options,
+      plotPoints: this.plotPoints,
+      calculatedLimits: this.calculatedLimits,
+      inputData: this.inputData,
+      inputSettings: this.inputSettings
+    })
     this.firstRun = false;
-    console.log("Grouped lines")
   }
 };
 

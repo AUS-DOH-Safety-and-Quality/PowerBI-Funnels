@@ -2,7 +2,7 @@ import powerbi from "powerbi-visuals-api";
 import dataObject from "./dataObject";
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 import {
-  axispadSettings,
+  canvasSettings,
   funnelSettings,
   outliersSettings,
   scatterSettings,
@@ -13,7 +13,7 @@ import {
 } from "./settingsGroups"
 
 class settingsObject {
-  axispad: axispadSettings;
+  canvas: canvasSettings;
   funnel: funnelSettings;
   scatter: scatterSettings;
   lines: lineSettings;
@@ -75,7 +75,7 @@ class settingsObject {
   }
 
   constructor() {
-    this.axispad = new axispadSettings();
+    this.canvas = new canvasSettings();
     this.funnel = new funnelSettings();
     this.scatter = new scatterSettings();
     this.lines = new lineSettings();

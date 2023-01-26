@@ -18,12 +18,11 @@ import * as d3 from "d3";
 import svgObjectClass from "./Classes/svgObjectClass"
 import svgSelectionClass from "./Classes/svgSelectionClass"
 import checkIDSelected from "./Functions/checkIDSelected";
-import settingsObject from "./Classes/settingsObject";
 import viewModelObject from "./Classes/viewModel"
 import plotData from "./Classes/plotData"
 import lineData from "./Classes/lineData"
-import plotPropertiesClass from "./Classes/plotProperties"
 import getAesthetic from "./Functions/getAesthetic"
+import { axisProperties } from "./Classes/plotProperties";
 
 type SelectionAny = d3.Selection<any, any, any, any>;
 type mergedSVGObjects = { dotsMerged: SelectionAny,
@@ -39,9 +38,6 @@ export class Visual implements IVisual {
   private selectionManager: ISelectionManager;
   // Service for notifying external clients (export to powerpoint/pdf) of rendering status
   private events: IVisualEventService;
-
-  private plotProperties: plotPropertiesClass;
-
 
   constructor(options: VisualConstructorOptions) {
     console.log("start constructor");
@@ -77,16 +73,8 @@ export class Visual implements IVisual {
     this.svgSelections.update({ svgObjects: this.svgObjects,
                                 viewModel: this.viewModel});
 
-    this.plotProperties = new plotPropertiesClass({
-      options: options,
-      viewModel: this.viewModel,
-      inputSettings: this.viewModel.inputSettings
-    });
-    console.log("Updated plot properties");
-
-    // Dynamically scale chart to use all available space
-    this.svg.attr("width", this.plotProperties.width)
-            .attr("height", this.plotProperties.height);
+    this.svg.attr("width", this.viewModel.plotProperties.width)
+            .attr("height", this.viewModel.plotProperties.height);
 
 
     this.initTooltipTracking();
@@ -144,20 +132,34 @@ export class Visual implements IVisual {
   }
 
   drawXAxis(): void {
-    let xAxisProperties = this.viewModel.axisLimits.x;
+    let xAxisProperties: axisProperties = this.viewModel.plotProperties.xAxis;
     let xAxis: d3.Axis<d3.NumberValue>;
 
-    if (xAxisProperties.ticks) {
-      xAxis = d3.axisBottom(this.plotProperties.xScale)
+    if (this.viewModel.plotPoints.length > 0) {
+      if (xAxisProperties.ticks) {
+        /*
+        xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale).tickFormat(d => {
+          return this.viewModel.tickLabels.map(d => d.x).includes(<number>d)
+            ? this.viewModel.tickLabels[<number>d].label
+            : "";
+        })
+        */
+        xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale)
+      } else {
+        xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale).tickValues([]);
+      }
     } else {
-      xAxis = d3.axisBottom(this.plotProperties.xScale).tickValues([]);
+      xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale);
     }
 
-    this.svgObjects.xAxisGroup
+    let axisHeight: number = this.viewModel.plotProperties.height - this.viewModel.plotProperties.yAxis.end_padding;
+
+    this.svgObjects
+        .xAxisGroup
         .call(xAxis)
-        .attr("color", this.plotProperties.displayPlot ? "#000000" : "#FFFFFF")
+        .attr("color", this.viewModel.plotPoints.length > 0 ? xAxisProperties.colour : "#FFFFFF")
         // Plots the axis at the correct height
-        .attr("transform", "translate(0, " + (this.plotProperties.height - xAxisProperties.padding) + ")")
+        .attr("transform", "translate(0, " + axisHeight + ")")
         .selectAll("text")
         // Rotate tick labels
         .attr("transform","rotate(-35)")
@@ -165,58 +167,75 @@ export class Visual implements IVisual {
         .style("text-anchor", "end")
         // Scale font
         .style("font-size", xAxisProperties.tick_size)
-        .style("font-family", xAxisProperties.tick_font);
+        .style("font-family", xAxisProperties.tick_font)
+        .style("fill", xAxisProperties.tick_colour);
 
-    let xAxisCoordinates: DOMRect = this.svgObjects.xAxisGroup.node().getBoundingClientRect();
-    let bottomMidpoint: number = this.plotProperties.height - (this.plotProperties.height - xAxisCoordinates.bottom) / 2.5;
+    let xAxisCoordinates: DOMRect = this.svgObjects.xAxisGroup.node().getBoundingClientRect() as DOMRect;
 
-    this.svgObjects.xAxisLabels
-        .attr("x",this.plotProperties.width/2)
-        .attr("y",bottomMidpoint)
+    // Update padding and re-draw axis if large tick values rendered outside of plot
+    let tickBelowPlotAmount: number = xAxisCoordinates.bottom - this.viewModel.plotProperties.height;
+    let tickLeftofPlotAmount: number = xAxisCoordinates.left;
+    if (tickBelowPlotAmount > 0 || tickLeftofPlotAmount < 0) {
+      this.viewModel.plotProperties.yAxis.end_padding += tickBelowPlotAmount;
+      this.viewModel.plotProperties.xAxis.start_padding += Math.abs(tickLeftofPlotAmount);
+      this.viewModel.plotProperties.initialiseScale();
+      this.drawXAxis();
+    }
+
+    let bottomMidpoint: number = this.viewModel.plotProperties.height - (this.viewModel.plotProperties.height - xAxisCoordinates.bottom) / 2.5;
+
+    this.svgObjects
+        .xAxisLabels
+        .attr("x",this.viewModel.plotProperties.width/2)
+        .attr("y", bottomMidpoint)
         .style("text-anchor", "middle")
         .text(xAxisProperties.label)
         .style("font-size", xAxisProperties.label_size)
-        .style("font-family", xAxisProperties.label_font);
+        .style("font-family", xAxisProperties.label_font)
+        .style("fill", xAxisProperties.label_colour);
   }
 
   drawYAxis(): void {
-    let yAxisProperties = this.viewModel.axisLimits.y;
+    let yAxisProperties: axisProperties = this.viewModel.plotProperties.yAxis;
     let yAxis: d3.Axis<d3.NumberValue>;
 
     if (yAxisProperties.ticks) {
-      let prop_labels: boolean = this.viewModel.inputData
-        ? this.viewModel.inputData.data_type === "PR" && this.viewModel.inputData.multiplier === 100
-        : null;
-      yAxis = d3.axisLeft(this.plotProperties.yScale) .tickFormat(d => {
-        // If axis displayed on % scale, then disable axis values > 100%
-        return prop_labels ? (<number>d).toFixed(2) + "%" : <string><unknown>d;
-      });
+      yAxis = d3.axisLeft(this.viewModel.plotProperties.yScale).tickFormat(
+        d => {
+          return this.viewModel.inputData.percentLabels
+            ? (<number>d * 100).toFixed(2) + "%"
+            : (<number>d).toFixed(2);
+        }
+      );
     } else {
-      yAxis = d3.axisLeft(this.plotProperties.yScale).tickValues([]);
+      yAxis = d3.axisLeft(this.viewModel.plotProperties.yScale).tickValues([]);
     }
 
     // Draw axes on plot
-    this.svgObjects.yAxisGroup
+    this.svgObjects
+        .yAxisGroup
         .call(yAxis)
-        .attr("color", this.plotProperties.displayPlot ? "#000000" : "#FFFFFF")
-        .attr("transform", "translate(" +  yAxisProperties.padding + ",0)")
+        .attr("color", this.viewModel.plotPoints.length > 0 ? yAxisProperties.colour : "#FFFFFF")
+        .attr("transform", "translate(" + this.viewModel.plotProperties.xAxis.start_padding + ",0)")
+        .selectAll("text")
         // Scale font
         .style("font-size", yAxisProperties.tick_size)
-        .style("font-family", yAxisProperties.tick_font);
+        .style("font-family", yAxisProperties.tick_font)
+        .style("fill", yAxisProperties.tick_colour);
 
-    let yAxisCoordinates: DOMRect = this.svgObjects.yAxisGroup.node().getBoundingClientRect();
+    let yAxisCoordinates: DOMRect = this.svgObjects.yAxisGroup.node().getBoundingClientRect() as DOMRect;
     let leftMidpoint: number = yAxisCoordinates.x * 0.7;
 
     this.svgObjects
         .yAxisLabels
         .attr("x",leftMidpoint)
-        .attr("y",this.plotProperties.height/2)
-        .attr("transform","rotate(-90," + leftMidpoint +"," + this.plotProperties.height/2 +")")
-        .text(this.viewModel.inputSettings.y_axis.ylimit_label.value)
+        .attr("y",this.viewModel.plotProperties.height/2)
+        .attr("transform","rotate(-90," + leftMidpoint +"," + this.viewModel.plotProperties.height/2 +")")
         .text(yAxisProperties.label)
         .style("text-anchor", "middle")
         .style("font-size", yAxisProperties.label_size)
-        .style("font-family", yAxisProperties.label_font);
+        .style("font-family", yAxisProperties.label_font)
+        .style("fill", yAxisProperties.label_colour);
   }
 
   addContextMenu(): void {
@@ -232,71 +251,62 @@ export class Visual implements IVisual {
   }
 
   initTooltipTracking(): void {
-    let height: number = this.plotProperties.height - this.viewModel.inputSettings.axispad.x.padding.value;
-    this.svgSelections.tooltipLineSelection = this.svgObjects.tooltipLineGroup
-                                      .selectAll(".ttip-line")
-                                      .data(this.viewModel.plotPoints);
-    let xAxisLine = this.svgSelections.tooltipLineSelection
+    let xAxisLine = this.svgSelections
+                        .tooltipLineSelection
                         .enter()
                         .append("rect")
                         .merge(<any>this.svgSelections.tooltipLineSelection);
     xAxisLine.classed("ttip-line", true);
     xAxisLine.attr("stroke-width", "1px")
-              .attr("width", ".5px")
-              .attr("height", height)
-              .style("fill-opacity", 0);
+            .attr("width", ".5px")
+            .attr("height", this.viewModel.plotProperties.height)
+            .style("fill-opacity", 0);
 
-    this.svgSelections.listeningRectSelection = this.svgObjects.listeningRect
-                                      .selectAll(".obs-sel")
-                                      .data(this.viewModel.plotPoints);
-
-    let listenMerged = this.svgSelections.listeningRectSelection
+    let tooltipMerged = this.svgSelections
+                            .listeningRectSelection
                             .enter()
                             .append("rect")
                             .merge(<any>this.svgSelections.listeningRectSelection)
-    listenMerged.classed("obs-sel", true);
+    tooltipMerged.classed("obs-sel", true);
 
-    listenMerged.style("fill","transparent")
-                .attr("width", this.plotProperties.width)
-                .attr("height", height);
-    if (this.plotProperties.displayPlot) {
-      listenMerged.on("mousemove", (event) => {
-        let xval: number = this.plotProperties.xScale.invert(event.pageX);
-
-        let x_dist: number[] = this.viewModel
-                                    .plotPoints
-                                    .map(d => d.x)
-                                    .map(d => Math.abs(d - xval));
-        let minInd: number = d3.leastIndex(x_dist,(a,b) => a-b);
-
-        let scaled_x: number = this.plotProperties.xScale(this.viewModel.plotPoints[minInd].x)
-        let scaled_y: number = this.plotProperties.yScale(this.viewModel.plotPoints[minInd].value)
+    tooltipMerged.style("fill","transparent")
+                 .attr("width", this.viewModel.plotProperties.width)
+                 .attr("height", this.viewModel.plotProperties.height);
+    if (this.viewModel.plotPoints.length > 0) {
+      tooltipMerged.on("mousemove", (event) => {
+        let xValue: number = this.viewModel.plotProperties.xScale.invert(event.pageX);
+        let xRange: number[] = this.viewModel.plotPoints.map(d => d.x);
+        let nearestDenominator: number = d3.bisectLeft(
+          xRange,
+          xValue,
+          0,
+          xRange.length - 1
+        );
+        let scaled_x: number = this.viewModel.plotProperties.xScale(nearestDenominator)
+        let scaled_y: number = this.viewModel.plotProperties.yScale(this.viewModel.plotPoints[nearestDenominator].value)
 
         this.host.tooltipService.show({
-          dataItems: this.viewModel.plotPoints[minInd].tooltip,
-          identities: [this.viewModel.plotPoints[minInd].identity],
+          dataItems: this.viewModel.plotPoints[nearestDenominator].tooltip,
+          identities: [this.viewModel.plotPoints[nearestDenominator].identity],
           coordinates: [scaled_x, scaled_y],
           isTouchEvent: false
         });
-        xAxisLine.style("fill-opacity", 1)
-                  .attr("transform", "translate(" + scaled_x + ",0)");
-      });
+        xAxisLine.style("fill-opacity", 1).attr("transform", "translate(" + scaled_x + ",0)");
+    });
 
-      listenMerged.on("mouseleave", () => {
-        this.host.tooltipService.hide({
+    tooltipMerged.on("mouseleave", () => {
+      this.host.tooltipService.hide({
           immediately: true,
           isTouchEvent: false
-        });
-        xAxisLine.style("fill-opacity", 0);
       });
+      xAxisLine.style("fill-opacity", 0);
+    });
     } else {
-      listenMerged.on("mousemove", () => {})
-      listenMerged.on("mouseleave", () => {})
+      tooltipMerged.on("mousemove", () => {});
+      tooltipMerged.on("mouseleave", () => {});
     }
-
-    this.svgSelections.listeningRectSelection.exit().remove()
-    listenMerged.exit().remove()
     xAxisLine.exit().remove()
+    tooltipMerged.exit().remove()
   }
 
   drawDots(): void {
@@ -314,8 +324,8 @@ export class Visual implements IVisual {
     this.plottingMerged
         .dotsMerged
         .filter(d => (d.value != null))
-        .attr("cy", d => this.plotProperties.yScale(d.value))
-        .attr("cx", d => this.plotProperties.xScale(d.x))
+        .attr("cy", d => this.viewModel.plotProperties.yScale(d.value))
+        .attr("cx", d => this.viewModel.plotProperties.xScale(d.x))
         .attr("r", dot_size)
         .style("fill", d => d.colour);
 
@@ -385,13 +395,13 @@ export class Visual implements IVisual {
                           .merge(<any>this.svgSelections.lineSelection);
     this.plottingMerged.linesMerged.classed('line', true);
 
-    let yLowerLimit = this.viewModel.axisLimits.y.lower;
-    let yUpperLimit = this.viewModel.axisLimits.y.upper;
+    let yLowerLimit = this.viewModel.plotProperties.yAxis.lower;
+    let yUpperLimit = this.viewModel.plotProperties.yAxis.upper;
 
     this.plottingMerged.linesMerged.attr("d", d => {
       return d3.line<lineData>()
-                .x(d => this.plotProperties.xScale(d.x))
-                .y(d => this.plotProperties.yScale(d.line_value))
+                .x(d => this.viewModel.plotProperties.xScale(d.x))
+                .y(d => this.viewModel.plotProperties.yScale(d.line_value))
                 .defined(function(d) { return d.line_value !== null && d.line_value > yLowerLimit && d.line_value < yUpperLimit; })
                 (d[1])
     })
