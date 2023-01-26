@@ -39,6 +39,7 @@ export class Visual implements IVisual {
   private selectionManager: ISelectionManager;
   // Service for notifying external clients (export to powerpoint/pdf) of rendering status
   private events: IVisualEventService;
+  private refreshingAxis: boolean;
 
   constructor(options: VisualConstructorOptions) {
     console.log("start constructor");
@@ -218,12 +219,15 @@ export class Visual implements IVisual {
     // Update padding and re-draw axis if large tick values rendered outside of plot
     let tickBelowPlotAmount: number = xAxisCoordinates.bottom - this.viewModel.plotProperties.height;
     let tickLeftofPlotAmount: number = xAxisCoordinates.left;
-    if (tickBelowPlotAmount > 0 || tickLeftofPlotAmount < 0) {
-      this.viewModel.plotProperties.yAxis.end_padding += tickBelowPlotAmount;
-      this.viewModel.plotProperties.xAxis.start_padding += Math.abs(tickLeftofPlotAmount);
-      this.viewModel.plotProperties.initialiseScale();
-      this.drawXAxis();
+    if ((tickBelowPlotAmount > 0 || tickLeftofPlotAmount < 0)) {
+      if (!(this.refreshingAxis)) {
+        this.refreshingAxis = true
+        this.viewModel.plotProperties.yAxis.end_padding += tickBelowPlotAmount;
+        this.viewModel.plotProperties.initialiseScale();
+        this.drawXAxis();
+      }
     }
+    this.refreshingAxis = false
 
     let bottomMidpoint: number = this.viewModel.plotProperties.height - (this.viewModel.plotProperties.height - xAxisCoordinates.bottom) / 2.5;
 
