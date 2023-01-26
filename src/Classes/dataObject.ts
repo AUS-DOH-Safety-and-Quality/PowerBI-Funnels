@@ -8,6 +8,7 @@ class dataObject {
   numerator: number[];
   denominator: number[];
   highlights: powerbi.PrimitiveValue[];
+  anyHighlights: boolean;
   data_type: string;
   multiplier: number;
   flag_direction: string;
@@ -55,6 +56,7 @@ class dataObject {
     this.numerator = extractValues(numerator, valid_ids);
     this.denominator = extractValues(denominator, valid_ids);
     this.highlights = numerator_raw.highlights;
+    this.anyHighlights = this.highlights ? true : false
     this.data_type = data_type;
     this.multiplier = (data_type === "PR" && multiplier == 1) ? 100 : multiplier;
     this.flag_direction = flag_direction.toLowerCase();

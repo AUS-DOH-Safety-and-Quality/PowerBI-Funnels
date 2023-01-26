@@ -21,7 +21,7 @@ class viewModelObject {
   inputSettings: settingsObject;
   chartBase: chartObject;
   calculatedLimits: limitData[];
-  scatterDots: plotData[];
+  plotPoints: plotData[];
   groupedLines: [string, lineData[]][];
   axisLimits: axisLimits;
   anyHighlights: boolean;
@@ -118,7 +118,7 @@ class viewModelObject {
       this.inputSettings = args.inputSettings;
       this.chartBase = null;
       this.calculatedLimits = null;
-      this.scatterDots = <plotData[]>null;
+      this.plotPoints = <plotData[]>null;
       this.groupedLines = <[string, lineData[]][]>null;
       this.axisLimits = null;
       this.anyHighlights = null;
@@ -144,7 +144,7 @@ class viewModelObject {
                                        calculatedLimits: this.calculatedLimits });
     console.log("Initialised axis limits")
 
-    this.scatterDots = this.getScatterData(args.host);
+    this.plotPoints = this.getScatterData(args.host);
     console.log("Initialised scatter data")
 
     this.groupedLines = this.getGroupedLines();

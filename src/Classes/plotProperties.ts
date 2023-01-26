@@ -20,8 +20,8 @@ class plotPropertiesClass {
     this.width = args.options.viewport.width;
     this.height = args.options.viewport.height;
 
-    this.displayPlot = args.viewModel.scatterDots
-      ? args.viewModel.scatterDots.length > 1
+    this.displayPlot = args.viewModel.plotPoints
+      ? args.viewModel.plotPoints.length > 1
       : null;
 
     let currentLimits: axisLimits = args.viewModel.axisLimits;
