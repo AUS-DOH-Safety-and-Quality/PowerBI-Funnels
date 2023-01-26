@@ -10,7 +10,7 @@ import dataObject from "./dataObject";
 import limitData from "./limitData";
 import lineData from "./lineData"
 import axisLimits from "./axisLimits"
-import scatterDotsObject from "./scatterDotsObject"
+import plotData from "./plotData"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
@@ -27,13 +27,13 @@ class viewModelObject {
   inputSettings: settingsObject;
   chartBase: chartObject;
   calculatedLimits: limitData[];
-  scatterDots: scatterDotsObject[];
+  scatterDots: plotData[];
   groupedLines: [string, lineData[]][];
   axisLimits: axisLimits;
   anyHighlights: boolean;
 
-  getScatterData(host: IVisualHost): scatterDotsObject[] {
-    let plotPoints = new Array<scatterDotsObject>();
+  getScatterData(host: IVisualHost): plotData[] {
+    let plotPoints = new Array<plotData>();
     let transform_text: string = this.inputSettings.funnel.transformation.value;
     let transform: (x: number) => number = getTransformation(transform_text);
     let target: number = this.chartBase.getTarget({ transformed: false });
@@ -66,10 +66,8 @@ class viewModelObject {
       }
 
       plotPoints.push({
-        category: category,
-        numerator: numerator,
-        denominator: denominator,
-        ratio: transform(ratio * multiplier),
+        x: denominator,
+        value: transform(ratio * multiplier),
         colour: dot_colour,
         identity: host.createSelectionIdBuilder()
                       .withCategory(this.inputData.categories, this.inputData.id[i])
@@ -146,7 +144,7 @@ class viewModelObject {
       this.inputSettings = args.inputSettings;
       this.chartBase = null;
       this.calculatedLimits = null;
-      this.scatterDots = <scatterDotsObject[]>null;
+      this.scatterDots = <plotData[]>null;
       this.groupedLines = <[string, lineData[]][]>null;
       this.axisLimits = null;
       this.anyHighlights = null;

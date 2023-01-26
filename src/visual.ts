@@ -19,7 +19,7 @@ import svgSelectionClass from "./Classes/svgSelectionClass"
 import checkIDSelected from "./Functions/checkIDSelected";
 import settingsObject from "./Classes/settingsObject";
 import viewModelObject from "./Classes/viewModel"
-import scatterDotsObject from "./Classes/scatterDotsObject"
+import plotData from "./Classes/plotData"
 import lineData from "./Classes/lineData"
 import plotPropertiesClass from "./Classes/plotProperties"
 import getGroupKeys from "./Functions/getGroupKeys"
@@ -222,7 +222,7 @@ export class Visual implements IVisual {
   addContextMenu(): void {
     this.svg.on('contextmenu', (event) => {
       const eventTarget: EventTarget = event.target;
-      let dataPoint: scatterDotsObject = <scatterDotsObject>(d3.select(<d3.BaseType>eventTarget).datum());
+      let dataPoint: plotData = <plotData>(d3.select(<d3.BaseType>eventTarget).datum());
       this.selectionManager.showContextMenu(dataPoint ? dataPoint.identity : {}, {
         x: event.clientX,
         y: event.clientY
@@ -265,12 +265,12 @@ export class Visual implements IVisual {
 
         let x_dist: number[] = this.viewModel
                                     .scatterDots
-                                    .map(d => d.denominator)
+                                    .map(d => d.x)
                                     .map(d => Math.abs(d - xval));
         let minInd: number = d3.leastIndex(x_dist,(a,b) => a-b);
 
-        let scaled_x: number = this.plotProperties.xScale(this.viewModel.scatterDots[minInd].denominator)
-        let scaled_y: number = this.plotProperties.yScale(this.viewModel.scatterDots[minInd].ratio)
+        let scaled_x: number = this.plotProperties.xScale(this.viewModel.scatterDots[minInd].x)
+        let scaled_y: number = this.plotProperties.yScale(this.viewModel.scatterDots[minInd].value)
 
         this.host.tooltipService.show({
           dataItems: this.viewModel.scatterDots[minInd].tooltip,
@@ -318,8 +318,8 @@ export class Visual implements IVisual {
 
     MergedDotObject.classed("dot", true);
 
-    MergedDotObject.attr("cy", d => this.plotProperties.yScale(d.ratio))
-                    .attr("cx", d => this.plotProperties.xScale(d.denominator))
+    MergedDotObject.attr("cy", d => this.plotProperties.yScale(d.value))
+                    .attr("cx", d => this.plotProperties.xScale(d.x))
                     .attr("r", dot_size)
                     // Fill each dot with the colour in each DataPoint
                     .style("fill", d => d.colour);
