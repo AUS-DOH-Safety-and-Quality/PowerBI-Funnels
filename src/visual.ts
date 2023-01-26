@@ -40,7 +40,6 @@ export class Visual implements IVisual {
   // Service for notifying external clients (export to powerpoint/pdf) of rendering status
   private events: IVisualEventService;
 
-  private settings: settingsObject;
   private plotProperties: plotPropertiesClass;
 
 
@@ -53,13 +52,13 @@ export class Visual implements IVisual {
 
     this.svgObjects = new svgObjectClass(this.svg);
     this.svgSelections = new svgSelectionClass();
+    this.viewModel = new viewModelObject();
+    this.viewModel.firstRun = true;
 
     // Request a new selectionManager tied to the visual
     this.selectionManager = this.host.createSelectionManager();
 
     this.plottingMerged = { dotsMerged: null, linesMerged: null };
-
-    this.settings = new settingsObject();
 
     // Update dot highlighting on initialisation
     this.selectionManager.registerOnSelectCallback(() => {
@@ -70,16 +69,9 @@ export class Visual implements IVisual {
 
   public update(options: VisualUpdateOptions) {
     console.log("start update");
-    // Update settings object with user-specified values (if present)
-    this.settings.updateSettings(options.dataViews[0].metadata.objects);
-    console.log("Updated settings:", this.settings);
+    this.viewModel.update({ options: options,
+                            host: this.host });
 
-    // Insert the viewModel object containing the user-input data
-    //   This function contains the construction of the funnel
-    //   control limits
-    this.viewModel = new viewModelObject({ options: options,
-                                           inputSettings: this.settings,
-                                           host: this.host });
     console.log("Calculated limits");
 
     this.svgSelections.update({ svgObjects: this.svgObjects,
@@ -88,7 +80,7 @@ export class Visual implements IVisual {
     this.plotProperties = new plotPropertiesClass({
       options: options,
       viewModel: this.viewModel,
-      inputSettings: this.settings
+      inputSettings: this.viewModel.inputSettings
     });
     console.log("Updated plot properties");
 
@@ -125,7 +117,7 @@ export class Visual implements IVisual {
       let properties: VisualObjectInstance[] = [];
       properties.push({
         objectName: propertyGroupName,
-        properties: this.settings.returnValues(propertyGroupName, this.viewModel.inputData),
+        properties: this.viewModel.inputSettings.returnValues(propertyGroupName, this.viewModel.inputData),
         selector: null
       });
       return properties;
@@ -135,8 +127,8 @@ export class Visual implements IVisual {
     if (!this.svgSelections.dotSelection || !this.selectionManager.getSelectionIds()) {
       return;
     }
-    let opacitySelected: number = this.settings.scatter.opacity.value;
-    let opacityUnselected: number = this.settings.scatter.opacity_unselected.value;
+    let opacitySelected: number = this.viewModel.inputSettings.scatter.opacity.value;
+    let opacityUnselected: number = this.viewModel.inputSettings.scatter.opacity_unselected.value;
 
     if (!this.selectionManager.getSelectionIds().length) {
       this.svgSelections.dotSelection.style("fill-opacity", d => opacitySelected);
@@ -220,7 +212,7 @@ export class Visual implements IVisual {
         .attr("x",leftMidpoint)
         .attr("y",this.plotProperties.height/2)
         .attr("transform","rotate(-90," + leftMidpoint +"," + this.plotProperties.height/2 +")")
-        .text(this.settings.y_axis.ylimit_label.value)
+        .text(this.viewModel.inputSettings.y_axis.ylimit_label.value)
         .text(yAxisProperties.label)
         .style("text-anchor", "middle")
         .style("font-size", yAxisProperties.label_size)
@@ -240,7 +232,7 @@ export class Visual implements IVisual {
   }
 
   initTooltipTracking(): void {
-    let height: number = this.plotProperties.height - this.settings.axispad.x.padding.value;
+    let height: number = this.plotProperties.height - this.viewModel.inputSettings.axispad.x.padding.value;
     this.svgSelections.tooltipLineSelection = this.svgObjects.tooltipLineGroup
                                       .selectAll(".ttip-line")
                                       .data(this.viewModel.plotPoints);
@@ -404,9 +396,9 @@ export class Visual implements IVisual {
                 (d[1])
     })
     this.plottingMerged.linesMerged.attr("fill", "none")
-              .attr("stroke", d => getAesthetic(d[0], "lines", "colour", this.settings))
-              .attr("stroke-width", d => getAesthetic(d[0], "lines", "width", this.settings))
-              .attr("stroke-dasharray", d => getAesthetic(d[0], "lines", "type", this.settings));
+              .attr("stroke", d => getAesthetic(d[0], "lines", "colour", this.viewModel.inputSettings))
+              .attr("stroke-width", d => getAesthetic(d[0], "lines", "width", this.viewModel.inputSettings))
+              .attr("stroke-dasharray", d => getAesthetic(d[0], "lines", "type", this.viewModel.inputSettings));
 
     this.svgSelections.lineSelection.exit().remove();
     this.plottingMerged.linesMerged.exit().remove();

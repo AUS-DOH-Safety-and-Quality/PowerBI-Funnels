@@ -31,14 +31,14 @@ class axispadSettings {
 };
 
 class funnelSettings {
-  data_type: settingsPair<string>;
+  chart_type: settingsPair<string>;
   od_adjust: settingsPair<string>;
   multiplier: settingsPair<number>;
   transformation: settingsPair<string>;
   alt_target: settingsPair<number>;
 
   constructor() {
-    this.data_type = new settingsPair("PR");
+    this.chart_type = new settingsPair("PR");
     this.od_adjust = new settingsPair("no");
     this.multiplier = new settingsPair(1);
     this.transformation = new settingsPair("none");
@@ -150,6 +150,14 @@ class outliersSettings {
   };
 }
 
+let settingsInData: Record<string, string> = {
+  "chart_type" : "spc",
+  "multiplier" : "spc",
+  "flag_direction" : "outliers",
+  "ylimit_l" : "y_axis",
+  "ylimit_u" : "y_axis"
+}
+
 export {
   axispadSettings,
   funnelSettings,
@@ -157,5 +165,6 @@ export {
   lineSettings,
   xAxisSettings,
   yAxisSettings,
-  outliersSettings
+  outliersSettings,
+  settingsInData
 }

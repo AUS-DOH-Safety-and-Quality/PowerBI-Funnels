@@ -40,7 +40,7 @@ class dataObject {
     let y_axis_lower_limit_raw: powerbi.DataViewValueColumn = inputView.values.filter(d => d.source.roles.ylimit_l)[0];
 
     let numerator: number[] = <number[]>numerator_raw.values;
-    let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.data_type.value;
+    let data_type: string = data_type_raw ? <string>data_type_raw.values[0] : inputSettings.funnel.chart_type.value;
     let multiplier: number = multiplier_raw ? <number>multiplier_raw.values[0] : inputSettings.funnel.multiplier.value;
     let flag_direction: string = outlier_direction_raw ? <string>outlier_direction_raw.values[0] : inputSettings.outliers.flag_direction.value;
     let ylimit_u: number = y_axis_upper_limit_raw ? <number>y_axis_upper_limit_raw.values[0] : inputSettings.y_axis.ylimit_u.value;

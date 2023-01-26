@@ -25,6 +25,7 @@ class viewModelObject {
   groupedLines: [string, lineData[]][];
   axisLimits: axisLimits;
   anyHighlights: boolean;
+  firstRun: boolean;
 
   getScatterData(host: IVisualHost): plotData[] {
     let plotPoints = new Array<plotData>();
@@ -109,13 +110,11 @@ class viewModelObject {
     return d3.groups(formattedLines, d => d.group);
   }
 
-  constructor(args: { options: VisualUpdateOptions;
-                      inputSettings: settingsObject;
-                      host: IVisualHost; }) {
-    let dv: powerbi.DataView[] = args.options.dataViews;
-    if (checkInvalidDataView(dv)) {
+  update(args: { options: VisualUpdateOptions;
+                  host: IVisualHost; }) {
+    if (checkInvalidDataView(args.options.dataViews)) {
       this.inputData = <dataObject>null;
-      this.inputSettings = args.inputSettings;
+      this.inputSettings = <settingsObject>null;
       this.chartBase = null;
       this.calculatedLimits = null;
       this.plotPoints = <plotData[]>null;
@@ -125,10 +124,16 @@ class viewModelObject {
       return;
     }
 
-    this.inputData = new dataObject(dv[0].categorical, args.inputSettings);
+    let dv: powerbi.DataView[] = args.options.dataViews;
+
+    if (this.firstRun) {
+      this.inputSettings = new settingsObject();
+    }
+    this.inputSettings.update(args.options.dataViews[0].metadata.objects);
+
+    this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
     console.log("Updated data")
 
-    this.inputSettings = args.inputSettings;
 
     this.anyHighlights = this.inputData.highlights ? true : false;
 
@@ -148,6 +153,7 @@ class viewModelObject {
     console.log("Initialised scatter data")
 
     this.groupedLines = this.getGroupedLines();
+    this.firstRun = false;
     console.log("Grouped lines")
   }
 };
