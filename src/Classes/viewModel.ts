@@ -16,12 +16,6 @@ import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
 import buildTooltip from "../Functions/buildTooltip"
 
-type nestReturnT = {
-  key: string;
-  values: any;
-  value: undefined;
-}
-
 class viewModelObject {
   inputData: dataObject;
   inputSettings: settingsObject;
@@ -97,22 +91,6 @@ class viewModelObject {
 
     let target: number = this.chartBase.getTarget({ transformed: false });
     let alt_target: number = this.inputSettings.funnel.alt_target.value;
-    let colours = {
-      ll99: this.inputSettings.lines.colour_99.value,
-      ll95: this.inputSettings.lines.colour_95.value,
-      ul95: this.inputSettings.lines.colour_95.value,
-      ul99: this.inputSettings.lines.colour_99.value,
-      target: this.inputSettings.lines.colour_target.value,
-      alt_target: this.inputSettings.lines.colour_alt_target.value
-    }
-    let widths = {
-      ll99: this.inputSettings.lines.width_99.value,
-      ll95: this.inputSettings.lines.width_95.value,
-      ul95: this.inputSettings.lines.width_95.value,
-      ul99: this.inputSettings.lines.width_99.value,
-      target: this.inputSettings.lines.width_target.value,
-      alt_target: this.inputSettings.lines.width_alt_target.value
-    }
 
     let labels: string[] = ["ll99", "ll95", "ul95", "ul99", "target", "alt_target"];
 
@@ -121,15 +99,11 @@ class viewModelObject {
       limits.target = target;
       limits.alt_target = alt_target;
       labels.forEach(label => {
-        if(!(limits[label] === null)) {
           formattedLines.push({
             x: limits.denominator,
-            group: label,
-            line_value: transform(limits[label] * multiplier),
-            colour: colours[label],
-            width: widths[label]
-          });
-        }
+            line_value: limits[label] ? transform(limits[label] * multiplier) : null,
+            group: label
+          })
       })
     })
     return d3.groups(formattedLines, d => d.group);

@@ -24,6 +24,7 @@ import lineData from "./Classes/lineData"
 import plotPropertiesClass from "./Classes/plotProperties"
 import getGroupKeys from "./Functions/getGroupKeys"
 import { groupKeysT } from "./Functions/getGroupKeys"
+import getAesthetic from "./Functions/getAesthetic"
 
 type SelectionSVG = d3.Selection<SVGElement, any, any, any>;
 
@@ -402,21 +403,7 @@ export class Visual implements IVisual {
   }
 
   drawLines(): void {
-    let keyAesthetics: groupKeysT[] = getGroupKeys(this.settings);
-    console.log("keys: ", keyAesthetics)
-
-    let line_color = d3.scaleOrdinal()
-                        .domain(keyAesthetics.map(d => d.group))
-                        .range(keyAesthetics.map(d => d.colour));
-
-    let line_width = d3.scaleOrdinal()
-                        .domain(keyAesthetics.map(d => d.group))
-                        .range(keyAesthetics.map(d => d.width));
-
-    let line_type = d3.scaleOrdinal()
-                        .domain(keyAesthetics.map(d => d.group))
-                        .range(keyAesthetics.map(d => d.type));
-
+    console.log("lines: ", this.viewModel.groupedLines)
     this.svgSelections.lineSelection = this.svgObjects.lineGroup
                               .selectAll(".line")
                               .data(this.viewModel.groupedLines);
@@ -438,9 +425,9 @@ export class Visual implements IVisual {
                 (d[1])
     })
     lineMerged.attr("fill", "none")
-              .attr("stroke", d => <string>line_color(d[0]))
-              .attr("stroke-width", d => <number>line_width(d[0]))
-              .attr("stroke-dasharray", d => <string>line_type(d[0]));
+              .attr("stroke", d => getAesthetic(d[0], "lines", "colour", this.settings))
+              .attr("stroke-width", d => getAesthetic(d[0], "lines", "width", this.settings))
+              .attr("stroke-dasharray", d => getAesthetic(d[0], "lines", "type", this.settings));
 
     lineMerged.exit().remove();
     this.svgSelections.lineSelection.exit().remove();
