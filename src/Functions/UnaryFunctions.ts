@@ -1,11 +1,13 @@
 import * as math from '@stdlib/math/base/special';
 
-function broadcast_unary(fun: (x: number) => number) {
-  return function<T extends number | number[]>(y: T): T {
-    if (typeof y === "number") {
-      return fun(y) as T;
-    } else if (Array.isArray(y)) {
-      return y.map(d => fun(d)) as T;
+type ReturnT<InputT, BaseT> = InputT extends Array<any> ? BaseT[] : BaseT;
+
+function broadcast_unary<ScalarInputT, ScalarReturnT>(fun: (x: ScalarInputT) => ScalarReturnT) {
+  return function<T extends ScalarInputT | ScalarInputT[]>(y: T): ReturnT<T, ScalarReturnT> {
+    if (Array.isArray(y)) {
+      return (y as ScalarInputT[]).map((d: ScalarInputT) => fun(d)) as ReturnT<T, ScalarReturnT>;
+    } else {
+      return fun(y as Extract<T, ScalarInputT>) as ReturnT<T, ScalarReturnT>;
     }
   };
 }
@@ -14,8 +16,8 @@ const sqrt = broadcast_unary(math.sqrt);
 const exp = broadcast_unary(math.exp);
 const log = broadcast_unary(Math.log);
 const asin = broadcast_unary(Math.asin);
-const square = broadcast_unary((x) => math.pow(x, 2));
-const inv = broadcast_unary((x) => 1.0 / x);
+const square = broadcast_unary((x: number): number => math.pow(x, 2));
+const inv = broadcast_unary((x: number): number => 1.0 / x);
 
 export {
   sqrt,
@@ -25,3 +27,5 @@ export {
   asin,
   log
 };
+
+export default broadcast_unary;
