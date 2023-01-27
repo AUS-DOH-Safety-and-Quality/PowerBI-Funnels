@@ -155,8 +155,8 @@ class outliersSettings {
 }
 
 let settingsInData: Record<string, string> = {
-  "chart_type" : "spc",
-  "multiplier" : "spc",
+  "chart_type" : "funnel",
+  "multiplier" : "funnel",
   "flag_direction" : "outliers",
   "ylimit_l" : "y_axis",
   "ylimit_u" : "y_axis"

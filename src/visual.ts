@@ -9,7 +9,6 @@ import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructor
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
-import VisualObjectInstance = powerbi.VisualObjectInstance;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import ISelectionId = powerbi.visuals.ISelectionId;
@@ -17,7 +16,6 @@ import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import * as d3 from "d3";
 import svgObjectClass from "./Classes/svgObjectClass"
 import svgSelectionClass from "./Classes/svgSelectionClass"
-import checkIDSelected from "./Functions/checkIDSelected";
 import viewModelObject from "./Classes/viewModel"
 import plotData from "./Classes/plotData"
 import lineData from "./Classes/lineData"
@@ -75,29 +73,30 @@ export class Visual implements IVisual {
       console.log("viewModel start")
       this.viewModel.update({ options: options,
                               host: this.host });
+      if (!(this.viewModel.inputData === null)) {
+        console.log("svgSelections start")
+        this.svgSelections.update({ svgObjects: this.svgObjects,
+                                    viewModel: this.viewModel});
 
-      console.log("svgSelections start")
-      this.svgSelections.update({ svgObjects: this.svgObjects,
-                                  viewModel: this.viewModel});
+        console.log("svg scale start")
+        this.svg.attr("width", this.viewModel.plotProperties.width)
+                .attr("height", this.viewModel.plotProperties.height);
 
-      console.log("svg scale start")
-      this.svg.attr("width", this.viewModel.plotProperties.width)
-              .attr("height", this.viewModel.plotProperties.height);
+        console.log("TooltipTracking start")
+        this.initTooltipTracking();
 
-      console.log("TooltipTracking start")
-      this.initTooltipTracking();
+        console.log("Draw axes start")
+        this.drawXAxis();
+        this.drawYAxis();
 
-      console.log("Draw axes start")
-      this.drawXAxis();
-      this.drawYAxis();
+        console.log("Draw Lines start")
+        this.drawLines();
 
-      console.log("Draw Lines start")
-      this.drawLines();
+        console.log("Draw dots start")
+        this.drawDots();
 
-      console.log("Draw dots start")
-      this.drawDots();
-
-      this.addContextMenu();
+        this.addContextMenu();
+      }
       this.events.renderingFinished(options);
       console.log("Update finished")
     } catch (caught_error) {

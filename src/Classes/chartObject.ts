@@ -52,7 +52,8 @@ class chartObject {
   getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
     let seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
     if (par.plottingDenominators) {
-      let dummyArray: dataObject = new dataObject();
+      let dummyArray: dataObject = JSON.parse(JSON.stringify(this.inputData))
+      dummyArray.numerator = null
       dummyArray.denominator = par.plottingDenominators;
       return seFun(dummyArray);
     } else {

@@ -1,20 +1,30 @@
 {
     "supportsHighlight": true,
+    "sorting": {
+        "implicit": {
+            "clauses": [
+                {
+                    "role": "key",
+                    "direction": 1
+                }
+            ]
+        }
+    },
     "dataRoles": [
         {
-            "displayName": "Groups",
-            "name": "group",
-            "kind": "Grouping"
-        },
-        {
             "displayName": "Numerator",
-            "name": "numerator",
+            "name": "numerators",
             "kind": "Measure"
         },
         {
             "displayName": "Denominator",
-            "name": "denominator",
+            "name": "denominators",
             "kind": "Measure"
+        },
+        {
+          "displayName": "Groups",
+          "name": "key",
+          "kind": "Grouping"
         },
         {
             "displayName": "Optional: Chart Type",
@@ -803,13 +813,13 @@
         {
             "conditions": [
                 {
-                    "group": {
+                    "key": {
                         "max": 1
                     },
-                    "numerator": {
+                    "numerators": {
                         "max": 1
                     },
-                    "denominator": {
+                    "denominators": {
                         "max": 1
                     },
                     "chart_type": {
@@ -820,13 +830,19 @@
                     },
                     "flag_direction": {
                         "max": 1
+                    },
+                    "ylimit_u": {
+                        "max": 1
+                    },
+                    "ylimit_l": {
+                        "max": 1
                     }
                 }
             ],
             "categorical": {
                 "categories": {
                     "for": {
-                        "in": "group"
+                        "in": "key"
                     },
                     "dataReductionAlgorithm": {
                         "top": {}
@@ -836,12 +852,12 @@
                     "select": [
                         {
                             "for": {
-                                "in": "numerator"
+                                "in": "numerators"
                             }
                         },
                         {
                             "for": {
-                                "in": "denominator"
+                                "in": "denominators"
                             }
                         },
                         {
