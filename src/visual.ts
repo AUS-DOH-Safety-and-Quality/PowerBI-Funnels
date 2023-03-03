@@ -247,7 +247,7 @@ export class Visual implements IVisual {
       yAxis = d3.axisLeft(this.viewModel.plotProperties.yScale).tickFormat(
         d => {
           return this.viewModel.inputData.percentLabels
-            ? (<number>d * 100).toFixed(2) + "%"
+            ? (<number>d).toFixed(2) + "%"
             : (<number>d).toFixed(2);
         }
       );

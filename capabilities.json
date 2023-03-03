@@ -33,7 +33,7 @@
         },
         {
             "displayName": "Optional: Multiplier",
-            "name": "chart_multiplier",
+            "name": "multiplier",
             "kind": "Measure"
         },
         {
@@ -825,7 +825,7 @@
                     "chart_type": {
                         "max": 1
                     },
-                    "chart_multiplier": {
+                    "multiplier": {
                         "max": 1
                     },
                     "flag_direction": {
@@ -867,7 +867,7 @@
                         },
                         {
                             "for": {
-                                "in": "chart_multiplier"
+                                "in": "multiplier"
                             }
                         },
                         {
