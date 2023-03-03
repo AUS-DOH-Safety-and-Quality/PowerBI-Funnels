@@ -20,8 +20,8 @@ function checkInvalidDataView(inputDV: powerbi.DataView[]): boolean {
     return flag2;
   }
   let flag3: boolean =
-    !inputDV[0].categorical.values[0].source.roles.numerator
-    || !inputDV[0].categorical.values[1].source.roles.denominator
+    !inputDV[0].categorical.values[0].source.roles.numerators
+    || !inputDV[0].categorical.values[1].source.roles.denominators
 
   if (flag3) {
     return flag3;
