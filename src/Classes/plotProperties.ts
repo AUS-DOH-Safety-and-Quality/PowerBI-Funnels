@@ -17,6 +17,7 @@ type axisProperties = {
   tick_size: string,
   tick_font: string,
   tick_colour: string,
+  tick_count: number,
   label: string,
   label_size: string,
   label_font: string,
@@ -92,6 +93,8 @@ class plotPropertiesClass {
 
       let xTickSize: string = args.inputSettings.x_axis.xlimit_tick_size.value;
       let yTickSize: string = args.inputSettings.y_axis.ylimit_tick_size.value;
+      let xTicksCount: number = args.inputSettings.x_axis.xlimit_tick_count.value;
+      let yTicksCount: number = args.inputSettings.y_axis.ylimit_tick_count.value;
 
       this.xAxis = {
         lower: xLowerInput ? xLowerInput : 0,
@@ -99,10 +102,11 @@ class plotPropertiesClass {
         start_padding: args.inputSettings.canvas.left_padding.value + fontSizeMap[xTickSize] + xLabelPadding,
         end_padding: args.inputSettings.canvas.right_padding.value,
         colour: args.inputSettings.x_axis.xlimit_colour.value,
-        ticks: args.inputSettings.x_axis.xlimit_ticks.value,
+        ticks: (xTicksCount !== null) ? (xTicksCount > 0) : args.inputSettings.x_axis.xlimit_ticks.value,
         tick_size: xTickSize,
         tick_font: args.inputSettings.x_axis.xlimit_tick_font.value,
         tick_colour: args.inputSettings.x_axis.xlimit_tick_colour.value,
+        tick_count: args.inputSettings.x_axis.xlimit_tick_count.value,
         label: args.inputSettings.x_axis.xlimit_label.value,
         label_size: args.inputSettings.x_axis.xlimit_label_size.value,
         label_font: args.inputSettings.x_axis.xlimit_label_font.value,
@@ -115,10 +119,11 @@ class plotPropertiesClass {
         start_padding: args.inputSettings.canvas.upper_padding.value,
         end_padding: args.inputSettings.canvas.lower_padding.value + fontSizeMap[yTickSize] + yLabelPadding,
         colour: args.inputSettings.y_axis.ylimit_colour.value,
-        ticks: args.inputSettings.y_axis.ylimit_ticks.value,
+        ticks: (yTicksCount !== null) ? (yTicksCount > 0) : args.inputSettings.y_axis.ylimit_ticks.value,
         tick_size: yTickSize,
         tick_font: args.inputSettings.y_axis.ylimit_tick_font.value,
         tick_colour: args.inputSettings.y_axis.ylimit_tick_colour.value,
+        tick_count: args.inputSettings.y_axis.ylimit_tick_count.value,
         label: args.inputSettings.y_axis.ylimit_label.value,
         label_size: args.inputSettings.y_axis.ylimit_label_size.value,
         label_font: args.inputSettings.y_axis.ylimit_label_font.value,

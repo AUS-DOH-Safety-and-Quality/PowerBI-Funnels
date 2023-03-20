@@ -174,18 +174,15 @@ export class Visual implements IVisual {
 
   drawXAxis(): void {
     let xAxisProperties: axisProperties = this.viewModel.plotProperties.xAxis;
+    console.log(xAxisProperties)
     let xAxis: d3.Axis<d3.NumberValue>;
 
     if (this.viewModel.plotPoints.length > 0) {
-      if (xAxisProperties.ticks) {
-        /*
-        xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale).tickFormat(d => {
-          return this.viewModel.tickLabels.map(d => d.x).includes(<number>d)
-            ? this.viewModel.tickLabels[<number>d].label
-            : "";
-        })
-        */
+      if (xAxisProperties.ticks === true) {
         xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale)
+        if (xAxisProperties.tick_count) {
+          xAxis.ticks(xAxisProperties.tick_count)
+        }
       } else {
         xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale).tickValues([]);
       }
@@ -242,13 +239,19 @@ export class Visual implements IVisual {
   drawYAxis(): void {
     let yAxisProperties: axisProperties = this.viewModel.plotProperties.yAxis;
     let yAxis: d3.Axis<d3.NumberValue>;
+    let sig_figs: number = this.viewModel.inputSettings.funnel.sig_figs.value;
 
     if (yAxisProperties.ticks) {
-      yAxis = d3.axisLeft(this.viewModel.plotProperties.yScale).tickFormat(
+      yAxis = d3.axisLeft(this.viewModel.plotProperties.yScale);
+
+      if (yAxisProperties.tick_count) {
+        yAxis.ticks(yAxisProperties.tick_count)
+      }
+      yAxis.tickFormat(
         d => {
           return this.viewModel.inputData.percentLabels
-            ? (<number>d * (this.viewModel.inputData.multiplier === 100 ? 1 : this.viewModel.inputData.multiplier)).toFixed(2) + "%"
-            : (<number>d).toFixed(2);
+            ? (<number>d * (this.viewModel.inputData.multiplier === 100 ? 1 : this.viewModel.inputData.multiplier)).toFixed(sig_figs) + "%"
+            : (<number>d).toFixed(sig_figs);
         }
       );
     } else {

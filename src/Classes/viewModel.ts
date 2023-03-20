@@ -78,7 +78,8 @@ class viewModelObject {
           data_type: data_type,
           multiplier: multiplier,
           two_sigma_outlier: two_sigma_outlier,
-          three_sigma_outlier: three_sigma_outlier
+          three_sigma_outlier: three_sigma_outlier,
+          sig_figs: this.inputSettings.funnel.sig_figs.value
         })
       })
     }

@@ -100,6 +100,12 @@
                         "numeric": true
                     }
                 },
+                "sig_figs": {
+                    "displayName": "Decimals to Report:",
+                    "type": {
+                        "numeric": true
+                    }
+                },
                 "transformation": {
                     "displayName": "Transformation",
                     "type" : {
@@ -487,6 +493,12 @@
                       }
                   }
               },
+              "xlimit_tick_count": {
+                  "displayName": "Maximum Ticks",
+                  "type": {
+                      "numeric": true
+                  }
+              },
               "xlimit_label": {
                   "displayName": "Label",
                   "type": {
@@ -698,6 +710,12 @@
                               "color": true
                           }
                       }
+                  }
+              },
+              "ylimit_tick_count": {
+                  "displayName": "Maximum Ticks",
+                  "type": {
+                      "numeric": true
                   }
               },
               "ylimit_label": {

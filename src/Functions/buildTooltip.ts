@@ -13,7 +13,8 @@ type tooltipArgs = {
   data_type: string,
   multiplier: number,
   two_sigma_outlier: boolean,
-  three_sigma_outlier: boolean
+  three_sigma_outlier: boolean,
+  sig_figs: number
 }
 
 function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
@@ -34,27 +35,27 @@ function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
   });
   tooltip.push({
     displayName: "Numerator",
-    value: (args.numerator).toFixed(2)
+    value: (args.numerator).toFixed(args.sig_figs)
   })
   tooltip.push({
     displayName: "Denominator",
-    value: (args.denominator).toFixed(2)
+    value: (args.denominator).toFixed(args.sig_figs)
   })
   tooltip.push({
     displayName: "Ratio",
-    value: prop_labels ? ratio.toFixed(2) + "%" : ratio.toFixed(4)
+    value: prop_labels ? ratio.toFixed(args.sig_figs) + "%" : ratio.toFixed(args.sig_figs)
   })
   tooltip.push({
     displayName: "Upper 99% Limit",
-    value: prop_labels ? ul99.toFixed(2) + "%" : ul99.toFixed(4)
+    value: prop_labels ? ul99.toFixed(args.sig_figs) + "%" : ul99.toFixed(args.sig_figs)
   })
   tooltip.push({
     displayName: "Centerline",
-    value: prop_labels ? target.toFixed(2) + "%" : target.toFixed(4)
+    value: prop_labels ? target.toFixed(args.sig_figs) + "%" : target.toFixed(args.sig_figs)
   })
   tooltip.push({
     displayName: "Lower 99% Limit",
-    value: prop_labels ? ll99.toFixed(2) + "%" : ll99.toFixed(4)
+    value: prop_labels ? ll99.toFixed(args.sig_figs) + "%" : ll99.toFixed(args.sig_figs)
   })
 
   if (args.transform_text !== "none") {

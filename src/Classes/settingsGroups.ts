@@ -26,6 +26,7 @@ class funnelSettings {
   chart_type: settingsPair<string>;
   od_adjust: settingsPair<string>;
   multiplier: settingsPair<number>;
+  sig_figs: settingsPair<number>;
   transformation: settingsPair<string>;
   alt_target: settingsPair<number>;
 
@@ -33,6 +34,7 @@ class funnelSettings {
     this.chart_type = new settingsPair("PR");
     this.od_adjust = new settingsPair("no");
     this.multiplier = new settingsPair(1);
+    this.sig_figs = new settingsPair(2);
     this.transformation = new settingsPair("none");
     this.alt_target = new settingsPair(<number>null);
   }
@@ -88,6 +90,7 @@ class xAxisSettings {
   xlimit_tick_font: settingsPair<string>;
   xlimit_tick_size: settingsPair<string>;
   xlimit_tick_colour: settingsPair<string>;
+  xlimit_tick_count: settingsPair<number>;
   xlimit_label: settingsPair<string>;
   xlimit_label_font: settingsPair<string>;
   xlimit_label_size: settingsPair<string>;
@@ -101,6 +104,7 @@ class xAxisSettings {
     this.xlimit_tick_font = new settingsPair("'Arial', sans-serif");
     this.xlimit_tick_size = new settingsPair("x-small");
     this.xlimit_tick_colour = new settingsPair("#000000");
+    this.xlimit_tick_count = new settingsPair<number>(null);
     this.xlimit_label = new settingsPair<string>(null);
     this.xlimit_label_font = new settingsPair("'Arial', sans-serif");
     this.xlimit_label_size = new settingsPair("medium");
@@ -116,6 +120,7 @@ class yAxisSettings {
   ylimit_tick_font: settingsPair<string>;
   ylimit_tick_size: settingsPair<string>;
   ylimit_tick_colour: settingsPair<string>;
+  ylimit_tick_count: settingsPair<number>;
   ylimit_label: settingsPair<string>;
   ylimit_label_font: settingsPair<string>;
   ylimit_label_size: settingsPair<string>;
@@ -129,6 +134,7 @@ class yAxisSettings {
     this.ylimit_tick_font = new settingsPair("'Arial', sans-serif");
     this.ylimit_tick_size = new settingsPair("x-small");
     this.ylimit_tick_colour = new settingsPair("#000000");
+    this.ylimit_tick_count = new settingsPair<number>(null);
     this.ylimit_label = new settingsPair<string>(null);
     this.ylimit_label_font = new settingsPair("'Arial', sans-serif");
     this.ylimit_label_size = new settingsPair("medium");
