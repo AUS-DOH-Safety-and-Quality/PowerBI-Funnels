@@ -493,6 +493,12 @@
                       }
                   }
               },
+              "xlimit_tick_count": {
+                  "displayName": "Maximum Ticks",
+                  "type": {
+                      "numeric": true
+                  }
+              },
               "xlimit_label": {
                   "displayName": "Label",
                   "type": {
@@ -704,6 +710,12 @@
                               "color": true
                           }
                       }
+                  }
+              },
+              "ylimit_tick_count": {
+                  "displayName": "Maximum Ticks",
+                  "type": {
+                      "numeric": true
                   }
               },
               "ylimit_label": {
