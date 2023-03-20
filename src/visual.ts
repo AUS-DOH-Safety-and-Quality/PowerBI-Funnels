@@ -242,13 +242,14 @@ export class Visual implements IVisual {
   drawYAxis(): void {
     let yAxisProperties: axisProperties = this.viewModel.plotProperties.yAxis;
     let yAxis: d3.Axis<d3.NumberValue>;
+    let sig_figs: number = this.viewModel.inputSettings.funnel.sig_figs.value;
 
     if (yAxisProperties.ticks) {
       yAxis = d3.axisLeft(this.viewModel.plotProperties.yScale).tickFormat(
         d => {
           return this.viewModel.inputData.percentLabels
-            ? (<number>d * (this.viewModel.inputData.multiplier === 100 ? 1 : this.viewModel.inputData.multiplier)).toFixed(2) + "%"
-            : (<number>d).toFixed(2);
+            ? (<number>d * (this.viewModel.inputData.multiplier === 100 ? 1 : this.viewModel.inputData.multiplier)).toFixed(sig_figs) + "%"
+            : (<number>d).toFixed(sig_figs);
         }
       );
     } else {

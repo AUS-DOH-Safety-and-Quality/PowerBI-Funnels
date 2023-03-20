@@ -26,6 +26,7 @@ class funnelSettings {
   chart_type: settingsPair<string>;
   od_adjust: settingsPair<string>;
   multiplier: settingsPair<number>;
+  sig_figs: settingsPair<number>;
   transformation: settingsPair<string>;
   alt_target: settingsPair<number>;
 
@@ -33,6 +34,7 @@ class funnelSettings {
     this.chart_type = new settingsPair("PR");
     this.od_adjust = new settingsPair("no");
     this.multiplier = new settingsPair(1);
+    this.sig_figs = new settingsPair(2);
     this.transformation = new settingsPair("none");
     this.alt_target = new settingsPair(<number>null);
   }
