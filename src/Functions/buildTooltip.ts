@@ -27,6 +27,11 @@ function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
   let target: number = args.transform(args.target * multiplier);
 
   let prop_labels: boolean = (args.data_type === "PR" && args.multiplier === 100);
+  let valueLabel: Record<string, string> = {
+    "PR" : "Proportion",
+    "SR" : "Standardised Ratio",
+    "RC" : "Rate"
+  }
 
   let tooltip: VisualTooltipDataItem[] = new Array<VisualTooltipDataItem>();
   tooltip.push({
@@ -34,16 +39,16 @@ function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
     value: args.group
   });
   tooltip.push({
+    displayName: valueLabel[args.data_type],
+    value: prop_labels ? ratio.toFixed(args.sig_figs) + "%" : ratio.toFixed(args.sig_figs)
+  })
+  tooltip.push({
     displayName: "Numerator",
     value: (args.numerator).toFixed(args.sig_figs)
   })
   tooltip.push({
     displayName: "Denominator",
     value: (args.denominator).toFixed(args.sig_figs)
-  })
-  tooltip.push({
-    displayName: "Ratio",
-    value: prop_labels ? ratio.toFixed(args.sig_figs) + "%" : ratio.toFixed(args.sig_figs)
   })
   tooltip.push({
     displayName: "Upper 99% Limit",
