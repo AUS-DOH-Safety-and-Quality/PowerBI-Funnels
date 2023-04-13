@@ -40,6 +40,7 @@ class viewModelObject {
     let three_sigma_colour: string = this.inputSettings.outliers.three_sigma_colour.value;
 
     for (let i: number = 0; i < this.inputData.id.length; i++) {
+      let original_index: number = this.inputData.id[i];
       let numerator: number = this.inputData.numerator[i];
       let denominator: number = this.inputData.denominator[i];
       let ratio: number = (numerator / denominator);
@@ -48,9 +49,9 @@ class viewModelObject {
       let dot_colour: string = this.inputSettings.scatter.colour.value;
       let two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
       let three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
-      let category: string = (typeof this.inputData.categories.values[i] === "number") ?
-                              (this.inputData.categories.values[i]).toString() :
-                              <string>(this.inputData.categories.values[i]);
+      let category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
+                              (this.inputData.categories.values[original_index]).toString() :
+                              <string>(this.inputData.categories.values[original_index]);
       if (two_sigma_outlier) {
         dot_colour = two_sigma_colour;
       }
@@ -64,7 +65,7 @@ class viewModelObject {
         value: transform(ratio * multiplier),
         colour: dot_colour,
         identity: host.createSelectionIdBuilder()
-                      .withCategory(this.inputData.categories, this.inputData.id[i])
+                      .withCategory(this.inputData.categories, original_index)
                       .createSelectionId(),
         highlighted: this.inputData.highlights ? (this.inputData.highlights[i] ? true : false) : false,
         tooltip: buildTooltip({
