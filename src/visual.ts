@@ -108,14 +108,8 @@ export class Visual implements IVisual {
   }
 
   // Function to render the properties specified in capabilities.json to the properties pane
-  public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions):
-    VisualObjectInstanceEnumeration {
-      let propertyGroupName: string = options.objectName;
-      return [{
-        objectName: propertyGroupName,
-        properties: this.viewModel.inputSettings.returnValues(propertyGroupName, this.viewModel.inputData),
-        selector: null
-      }];
+  public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
+    return this.viewModel.inputSettings.createSettingsEntry(options.objectName, this.viewModel);
   }
 
   initTooltipTracking(): void {
