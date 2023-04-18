@@ -55,80 +55,89 @@ class plotPropertiesClass {
     // Get the width and height of plotting space
     this.width = args.options.viewport.width;
     this.height = args.options.viewport.height;
-      this.displayPlot = args.plotPoints
-        ? args.plotPoints.length > 1
-        : null;
+    this.displayPlot = args.plotPoints
+      ? args.plotPoints.length > 1
+      : null;
 
+
+    // Axis & label padding is based on the browser default font size of 16px,
+    //    so need to scale accordingly if a different font size is used
+    let browserFontSize: number = Number(window.getComputedStyle(document.body).getPropertyValue('font-size').match(/\d+/)[0]);
+    let fontScaling: number = browserFontSize / 16;
+
+    // Map the default pixel sizes for each text label, based on browser default so scaled
+    // https://careerkarma.com/blog/css-font-size/
+    let fontSizeMap = {
+      "xx-small" : 9 * fontScaling,
+      "x-small" : 10 * fontScaling,
+      "small" : 13 * fontScaling,
+      "medium" : 16 * fontScaling,
+      "large" : 18 * fontScaling,
+      "x-large" : 24 * fontScaling,
+      "xx-large" : 32 * fontScaling
+    };
+
+    // Only scale padding for label if a label is actually present
+    let xLabelSize: string = args.inputSettings.x_axis.xlimit_label_size.value;
+    let xLabelPadding: number = args.inputSettings.x_axis.xlimit_label.value ? fontSizeMap[xLabelSize] : 0;
+    let yLabelSize: string = args.inputSettings.y_axis.ylimit_label_size.value;
+    let yLabelPadding: number = args.inputSettings.y_axis.ylimit_label.value ? fontSizeMap[yLabelSize] : 0;
+
+    let xTickSize: string = args.inputSettings.x_axis.xlimit_tick_size.value;
+    let yTickSize: string = args.inputSettings.y_axis.ylimit_tick_size.value;
+    let xTicksCount: number = args.inputSettings.x_axis.xlimit_tick_count.value;
+    let yTicksCount: number = args.inputSettings.y_axis.ylimit_tick_count.value;
+
+
+    let xLowerLimit: number = args.inputSettings.x_axis.xlimit_l.value;
+    let xUpperLimit: number = args.inputSettings.x_axis.xlimit_u.value;
+
+    if (args.inputData) {
+      xUpperLimit = xUpperLimit ? xUpperLimit : d3.max(args.inputData.denominator) * 1.1;
+    }
+
+    this.xAxis = {
+      lower: xLowerLimit ? xLowerLimit : 0,
+      upper: xUpperLimit,
+      start_padding: args.inputSettings.canvas.left_padding.value + fontSizeMap[xTickSize] + xLabelPadding,
+      end_padding: args.inputSettings.canvas.right_padding.value,
+      colour: args.inputSettings.x_axis.xlimit_colour.value,
+      ticks: (xTicksCount !== null) ? (xTicksCount > 0) : args.inputSettings.x_axis.xlimit_ticks.value,
+      tick_size: xTickSize,
+      tick_font: args.inputSettings.x_axis.xlimit_tick_font.value,
+      tick_colour: args.inputSettings.x_axis.xlimit_tick_colour.value,
+      tick_count: args.inputSettings.x_axis.xlimit_tick_count.value,
+      label: args.inputSettings.x_axis.xlimit_label.value,
+      label_size: args.inputSettings.x_axis.xlimit_label_size.value,
+      label_font: args.inputSettings.x_axis.xlimit_label_font.value,
+      label_colour: args.inputSettings.x_axis.xlimit_label_colour.value
+    };
+
+    let yLowerLimit: number = args.inputData ? args.inputData.ylimit_l : args.inputSettings.y_axis.ylimit_l.value;
+    let yUpperLimit: number = args.inputData ? args.inputData.ylimit_u : args.inputSettings.y_axis.ylimit_u.value;
+
+    if (args.inputData) {
+      let multiplier: number = args.inputData.multiplier
       let maxRatio: number = d3.max(divide(args.inputData.numerator, args.inputData.denominator));
-      let multiplier: number = args.inputData.multiplier;
+      yUpperLimit = yUpperLimit ? yUpperLimit : maxRatio * multiplier
+    }
 
-      let xLowerInput: number = args.inputSettings.x_axis.xlimit_l.value;
-      let xUpperInput: number = args.inputSettings.x_axis.xlimit_u.value;
-      let yLowerInput: number = args.inputData.ylimit_l;
-      let yUpperInput: number = args.inputData.ylimit_u;
-
-      // Axis & label padding is based on the browser default font size of 16px,
-      //    so need to scale accordingly if a different font size is used
-      let browserFontSize: number = Number(window.getComputedStyle(document.body).getPropertyValue('font-size').match(/\d+/)[0]);
-      let fontScaling: number = browserFontSize / 16;
-
-      // Map the default pixel sizes for each text label, based on browser default
-      //    so scaled
-      // https://careerkarma.com/blog/css-font-size/
-      let fontSizeMap = {
-        "xx-small" : 9 * fontScaling,
-        "x-small" : 10 * fontScaling,
-        "small" : 13 * fontScaling,
-        "medium" : 16 * fontScaling,
-        "large" : 18 * fontScaling,
-        "x-large" : 24 * fontScaling,
-        "xx-large" : 32 * fontScaling
-      };
-
-      // Only scale padding for label if a label is actually present
-      let xLabelSize: string = args.inputSettings.x_axis.xlimit_label_size.value;
-      let xLabelPadding: number = args.inputSettings.x_axis.xlimit_label.value ? fontSizeMap[xLabelSize] : 0;
-      let yLabelSize: string = args.inputSettings.y_axis.ylimit_label_size.value;
-      let yLabelPadding: number = args.inputSettings.y_axis.ylimit_label.value ? fontSizeMap[yLabelSize] : 0;
-
-      let xTickSize: string = args.inputSettings.x_axis.xlimit_tick_size.value;
-      let yTickSize: string = args.inputSettings.y_axis.ylimit_tick_size.value;
-      let xTicksCount: number = args.inputSettings.x_axis.xlimit_tick_count.value;
-      let yTicksCount: number = args.inputSettings.y_axis.ylimit_tick_count.value;
-
-      this.xAxis = {
-        lower: xLowerInput ? xLowerInput : 0,
-        upper: xUpperInput ? xUpperInput : d3.max(args.inputData.denominator) * 1.1,
-        start_padding: args.inputSettings.canvas.left_padding.value + fontSizeMap[xTickSize] + xLabelPadding,
-        end_padding: args.inputSettings.canvas.right_padding.value,
-        colour: args.inputSettings.x_axis.xlimit_colour.value,
-        ticks: (xTicksCount !== null) ? (xTicksCount > 0) : args.inputSettings.x_axis.xlimit_ticks.value,
-        tick_size: xTickSize,
-        tick_font: args.inputSettings.x_axis.xlimit_tick_font.value,
-        tick_colour: args.inputSettings.x_axis.xlimit_tick_colour.value,
-        tick_count: args.inputSettings.x_axis.xlimit_tick_count.value,
-        label: args.inputSettings.x_axis.xlimit_label.value,
-        label_size: args.inputSettings.x_axis.xlimit_label_size.value,
-        label_font: args.inputSettings.x_axis.xlimit_label_font.value,
-        label_colour: args.inputSettings.x_axis.xlimit_label_colour.value
-      };
-
-      this.yAxis = {
-        lower: yLowerInput ? yLowerInput : 0,
-        upper: yUpperInput ? yUpperInput : maxRatio * multiplier,
-        start_padding: args.inputSettings.canvas.upper_padding.value,
-        end_padding: args.inputSettings.canvas.lower_padding.value + fontSizeMap[yTickSize] + yLabelPadding,
-        colour: args.inputSettings.y_axis.ylimit_colour.value,
-        ticks: (yTicksCount !== null) ? (yTicksCount > 0) : args.inputSettings.y_axis.ylimit_ticks.value,
-        tick_size: yTickSize,
-        tick_font: args.inputSettings.y_axis.ylimit_tick_font.value,
-        tick_colour: args.inputSettings.y_axis.ylimit_tick_colour.value,
-        tick_count: args.inputSettings.y_axis.ylimit_tick_count.value,
-        label: args.inputSettings.y_axis.ylimit_label.value,
-        label_size: args.inputSettings.y_axis.ylimit_label_size.value,
-        label_font: args.inputSettings.y_axis.ylimit_label_font.value,
-        label_colour: args.inputSettings.y_axis.ylimit_label_colour.value
-      };
+    this.yAxis = {
+      lower: yLowerLimit ? yLowerLimit : 0,
+      upper: yUpperLimit,
+      start_padding: args.inputSettings.canvas.upper_padding.value,
+      end_padding: args.inputSettings.canvas.lower_padding.value + fontSizeMap[yTickSize] + yLabelPadding,
+      colour: args.inputSettings.y_axis.ylimit_colour.value,
+      ticks: (yTicksCount !== null) ? (yTicksCount > 0) : args.inputSettings.y_axis.ylimit_ticks.value,
+      tick_size: yTickSize,
+      tick_font: args.inputSettings.y_axis.ylimit_tick_font.value,
+      tick_colour: args.inputSettings.y_axis.ylimit_tick_colour.value,
+      tick_count: args.inputSettings.y_axis.ylimit_tick_count.value,
+      label: args.inputSettings.y_axis.ylimit_label.value,
+      label_size: args.inputSettings.y_axis.ylimit_label_size.value,
+      label_font: args.inputSettings.y_axis.ylimit_label_font.value,
+      label_colour: args.inputSettings.y_axis.ylimit_label_colour.value
+    };
     this.initialiseScale();
   }
 }

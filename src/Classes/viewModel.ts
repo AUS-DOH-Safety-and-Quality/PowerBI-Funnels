@@ -113,33 +113,30 @@ class viewModelObject {
 
   update(args: { options: VisualUpdateOptions;
                   host: IVisualHost; }) {
-    if (checkInvalidDataView(args.options.dataViews)) {
-      this.inputData = <dataObject>null;
-      this.inputSettings = <settingsObject>null;
-      this.chartBase = null;
-      this.calculatedLimits = null;
-      this.plotPoints = <plotData[]>null;
-      this.groupedLines = <[string, lineData[]][]>null;
-      this.plotProperties = <plotPropertiesClass>null;
-      return;
-    }
-
-    let dv: powerbi.DataView[] = args.options.dataViews;
-
     if (this.firstRun) {
       this.inputSettings = new settingsObject();
     }
     this.inputSettings.update(args.options.dataViews[0].metadata.objects);
 
-    this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
+    if (checkInvalidDataView(args.options.dataViews)) {
+      this.inputData = <dataObject>null;
+      this.chartBase = null;
+      this.calculatedLimits = null;
+      this.plotPoints = <plotData[]>null;
+      this.groupedLines = <[string, lineData[]][]>null;
+    } else {
+      let dv: powerbi.DataView[] = args.options.dataViews;
 
-    this.chartBase = initialiseChartObject({ inputData: this.inputData,
-                                             inputSettings: this.inputSettings });
+      this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
 
-    this.calculatedLimits = this.chartBase.getLimits();
+      this.chartBase = initialiseChartObject({ inputData: this.inputData,
+                                               inputSettings: this.inputSettings });
 
-    this.plotPoints = this.getScatterData(args.host);
-    this.groupedLines = this.getGroupedLines();
+      this.calculatedLimits = this.chartBase.getLimits();
+
+      this.plotPoints = this.getScatterData(args.host);
+      this.groupedLines = this.getGroupedLines();
+    }
 
     if (this.firstRun) {
       this.plotProperties = new plotPropertiesClass();
@@ -152,6 +149,17 @@ class viewModelObject {
       inputSettings: this.inputSettings
     })
     this.firstRun = false;
+  }
+
+  constructor() {
+    this.inputData = <dataObject>null;
+    this.inputSettings = <settingsObject>null;
+    this.chartBase = null;
+    this.calculatedLimits = null;
+    this.plotPoints = <plotData[]>null;
+    this.groupedLines = <[string, lineData[]][]>null;
+    this.plotProperties = <plotPropertiesClass>null;
+    this.firstRun = true
   }
 };
 

@@ -36,7 +36,6 @@ let rcY = function(inputData: dataObject): number[] {
 }
 
 let rcLimit = function(args: limitArguments): number {
-  //console.log("args: ", args)
   let target: number = args.target_transformed;
   let q: number = args.q;
   let SE: number = args.SE;
