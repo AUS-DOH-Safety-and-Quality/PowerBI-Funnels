@@ -6,19 +6,24 @@ import extractSetting from "./extractSetting";
 
 function extractConditionalFormatting(inputView: DataViewCategorical, name: string, inputSettings: settingsObject): Record<string, string | number>[] {
   let inputCategories: DataViewCategoryColumn = (inputView.categories as DataViewCategoryColumn[])[0];
-  let inputObjects = (inputCategories.objects as powerbi.DataViewObjects[]);
   let staticSettings = inputSettings[name as keyof typeof inputSettings];
   let settingNames = Object.getOwnPropertyNames(staticSettings)
-  return inputObjects.map(inputObject => {
-    return Object.fromEntries(
-      settingNames.map(settingName => {
-        return [
-          settingName,
-          extractSetting(inputObject, name, settingName, staticSettings[settingName].value)
-        ]
-      })
+
+  let rtn: Record<string, string | number>[] = new Array<Record<string, string | number>>();
+  for (let i: number = 0; i < inputCategories.values.length; i++) {
+    rtn.push(
+      Object.fromEntries(
+        settingNames.map(settingName => {
+          return [
+            settingName,
+            extractSetting(inputCategories.objects ? inputCategories.objects[i] : null,
+                            name, settingName, staticSettings[settingName].value)
+          ]
+        })
+      )
     )
-  })
+  }
+  return rtn
 }
 
 export default extractConditionalFormatting
