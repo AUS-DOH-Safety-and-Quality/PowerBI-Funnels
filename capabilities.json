@@ -858,54 +858,24 @@
                 }
             ],
             "categorical": {
-                "categories": {
-                    "for": {
-                        "in": "key"
-                    },
-                    "dataReductionAlgorithm": {
-                        "top": {}
-                    }
-                },
-                "values": {
+              "categories": {
+                  "for": { "in": "key" },
+                  "dataReductionAlgorithm": {
+                      "top": {}
+                  }
+              },
+              "values": {
                     "select": [
-                        {
-                            "for": {
-                                "in": "numerators"
-                            }
-                        },
-                        {
-                            "for": {
-                                "in": "denominators"
-                            }
-                        },
-                        {
-                            "for": {
-                                "in": "chart_type"
-                            }
-                        },
-                        {
-                            "for": {
-                                "in": "multiplier"
-                            }
-                        },
-                        {
-                            "for": {
-                                "in": "flag_direction"
-                            }
-                        },
-                        {
-                            "for": {
-                                "in": "ylimit_u"
-                            }
-                        },
-                        {
-                            "for": {
-                                "in": "ylimit_l"
-                            }
-                        }
+                      { "bind": { "to": "numerators" } },
+                      { "bind": { "to": "denominators" } },
+                      { "bind": { "to": "chart_type" } },
+                      { "bind": { "to": "multiplier" } },
+                      { "bind": { "to": "flag_direction" } },
+                      { "bind": { "to": "ylimit_u" } },
+                      { "bind": { "to": "ylimit_l" } }
                     ]
-                }
-            }
+              }
+          }
         }
     ]
 }

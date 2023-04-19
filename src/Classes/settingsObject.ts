@@ -16,6 +16,7 @@ import {
   settingsInData
 } from "./settingsGroups"
 import viewModelObject from "./viewModel";
+import extractSetting from "../Functions/extractSetting";
 
 class settingsObject {
   canvas: canvasSettings;
@@ -39,15 +40,8 @@ class settingsObject {
       // use those to extract and update the relevant values
       let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroup]);
       settingNames.forEach(settingName => {
-        type MethodTypes = Pick<typeof dataViewObjects, 'getFillColor' | 'getValue'>;
-        let methodName: string = settingName.includes("colour") ? "getFillColor" : "getValue";
-        this[settingGroup][settingName].value = dataViewObjects[methodName as keyof MethodTypes](
-          inputObjects, {
-            objectName: settingGroup,
-            propertyName: settingName
-          },
-          this[settingGroup][settingName].default
-        )
+        this[settingGroup][settingName].value = extractSetting(inputObjects, settingGroup, settingName,
+                                                                this[settingGroup][settingName].default)
       })
     })
   }
@@ -84,7 +78,8 @@ class settingsObject {
         objectName: settingGroupName,
         properties: properties,
         propertyInstanceKind: {
-          colour: VisualEnumerationInstanceKinds.ConstantOrRule
+          colour: VisualEnumerationInstanceKinds.ConstantOrRule,
+          size: VisualEnumerationInstanceKinds.ConstantOrRule
         },
         selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals)
       });
