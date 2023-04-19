@@ -27,7 +27,6 @@ class viewModelObject {
   firstRun: boolean;
 
   getScatterData(host: IVisualHost): plotData[] {
-    console.log("settings - scatter",this.inputSettings)
     let plotPoints = new Array<plotData>();
     let transform_text: string = this.inputSettings.funnel.transformation.value;
     let transform: (x: number) => number = getTransformation(transform_text);
@@ -69,7 +68,6 @@ class viewModelObject {
                       .withCategory(this.inputData.categories, original_index)
                       .createSelectionId(),
         highlighted: this.inputData.highlights ? (this.inputData.highlights[i] ? true : false) : false,
-        category: category,
         tooltip: buildTooltip({
           group: category,
           numerator: numerator,
