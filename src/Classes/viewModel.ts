@@ -46,7 +46,7 @@ class viewModelObject {
       let ratio: number = (numerator / denominator);
       let limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominator === denominator && d.ll99 !== null && d.ul99 !== null);
       let limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominator === denominator)[0];
-      let dot_colour: string = this.inputSettings.scatter.colour.value;
+      let dot_colour: string = this.inputData.scatter_formatting[i].colour as string;
       let two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
       let three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
       let category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
@@ -126,6 +126,7 @@ class viewModelObject {
       this.groupedLines = <[string, lineData[]][]>null;
     } else {
       let dv: powerbi.DataView[] = args.options.dataViews;
+      console.log("input dv: ", dv)
 
       this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
 

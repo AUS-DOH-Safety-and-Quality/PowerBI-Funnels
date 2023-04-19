@@ -1,6 +1,10 @@
 import powerbi from "powerbi-visuals-api";
+import DataViewPropertyValue = powerbi.DataViewPropertyValue
+import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
+import VisualObjectInstance = powerbi.VisualObjectInstance
+import VisualEnumerationInstanceKinds = powerbi.VisualEnumerationInstanceKinds;
 import dataObject from "./dataObject";
-import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
+import { dataViewObjects, dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import {
   canvasSettings,
   funnelSettings,
@@ -11,6 +15,8 @@ import {
   yAxisSettings,
   settingsInData
 } from "./settingsGroups"
+import viewModelObject from "./viewModel";
+import extractSetting from "../Functions/extractSetting";
 
 class settingsObject {
   canvas: canvasSettings;
@@ -34,15 +40,8 @@ class settingsObject {
       // use those to extract and update the relevant values
       let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroup]);
       settingNames.forEach(settingName => {
-        type MethodTypes = Pick<typeof dataViewObjects, 'getFillColor' | 'getValue'>;
-        let methodName: string = settingName.includes("colour") ? "getFillColor" : "getValue";
-        this[settingGroup][settingName].value = dataViewObjects[methodName as keyof MethodTypes](
-          inputObjects, {
-            objectName: settingGroup,
-            propertyName: settingName
-          },
-          this[settingGroup][settingName].default
-        )
+        this[settingGroup][settingName].value = extractSetting(inputObjects, settingGroup, settingName,
+                                                                this[settingGroup][settingName].default)
       })
     })
   }
@@ -55,14 +54,15 @@ class settingsObject {
    * @param inputData
    * @returns An object where each element is the value for a given setting in the named group
    */
-  returnValues(settingGroupName: string, inputData: dataObject) {
+  createSettingsEntry(settingGroupName: string, viewModel: viewModelObject): VisualObjectInstanceEnumeration {
     let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroupName]);
+    let inputData: dataObject = viewModel.inputData
     let firstSettingObject = {
       [settingNames[0]]: this.settingsInData.includes(settingNames[0])
         ? inputData[settingNames[0] as keyof dataObject]
         : this[settingGroupName][settingNames[0]].value
     };
-    return settingNames.reduce((previousSetting, currentSetting) => {
+    let properties: Record<string, DataViewPropertyValue> = settingNames.reduce((previousSetting, currentSetting) => {
       return {
         ...previousSetting,
         ...{
@@ -72,6 +72,26 @@ class settingsObject {
         }
       }
     }, firstSettingObject);
+    let rtn: VisualObjectInstanceEnumeration = new Array<VisualObjectInstance>();
+    if (settingGroupName === "scatter") {
+      rtn.push({
+        objectName: settingGroupName,
+        properties: properties,
+        propertyInstanceKind: {
+          colour: VisualEnumerationInstanceKinds.ConstantOrRule,
+          size: VisualEnumerationInstanceKinds.ConstantOrRule
+        },
+        selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals)
+      });
+    } else {
+      rtn.push({
+        objectName: settingGroupName,
+        properties: properties,
+        selector: null
+      });
+    }
+    console.log("rtn: ", rtn);
+    return rtn;
   }
 
   constructor() {

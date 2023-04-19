@@ -4,6 +4,7 @@ import checkValidInput from "../Functions/checkValidInput"
 import settingsObject from "./settingsObject"
 import plotKey from "./plotKey"
 import extractDataColumn from "../Functions/extractDataColumn"
+import extractConditionalFormatting from "../Functions/extractConditionalFormatting"
 
 class dataObject {
   id: number[];
@@ -18,7 +19,8 @@ class dataObject {
   flag_direction: string;
   categories: powerbi.DataViewCategoryColumn;
   ylimit_u: number;
-  ylimit_l: number
+  ylimit_l: number;
+  scatter_formatting: Record<string, string | number>[];
 
   constructor(inputView: powerbi.DataViewCategorical, inputSettings: settingsObject) {
     let numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
@@ -30,6 +32,8 @@ class dataObject {
     let ylimit_u: number = extractDataColumn<number>(inputView, "ylimit_u", inputSettings);
     let ylimit_l: number = extractDataColumn<number>(inputView, "ylimit_l", inputSettings);
 
+    let scatter_cond = extractConditionalFormatting(inputView, "scatter", inputSettings)
+    console.log("scatter: ", scatter_cond)
     let valid_indexes: number[] = new Array<number>();
 
     for (let i: number = 0; i < denominators.length; i++) {
@@ -37,6 +41,7 @@ class dataObject {
         valid_indexes.push(i);
       }
     }
+
     this.id = valid_indexes;
     this.numerator = extractValues(numerators, valid_indexes);
     this.denominator = extractValues(denominators, valid_indexes);
@@ -49,6 +54,7 @@ class dataObject {
     this.ylimit_u = ylimit_u;
     this.ylimit_l = ylimit_l;
     this.categories = inputView.categories[0];
+    this.scatter_formatting = extractValues(scatter_cond, valid_indexes)
   }
 }
 
