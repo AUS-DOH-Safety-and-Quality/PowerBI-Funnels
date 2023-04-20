@@ -5,6 +5,7 @@ import settingsObject from "./settingsObject"
 import plotKey from "./plotKey"
 import extractDataColumn from "../Functions/extractDataColumn"
 import extractConditionalFormatting from "../Functions/extractConditionalFormatting"
+import { conditionalFormattingTypes } from "../Classes/settingsGroups";
 
 class dataObject {
   id: number[];
@@ -20,7 +21,7 @@ class dataObject {
   categories: powerbi.DataViewCategoryColumn;
   ylimit_u: number;
   ylimit_l: number;
-  scatter_formatting: Record<string, string | number>[];
+  scatter_formatting: conditionalFormattingTypes["scatter"][];
 
   constructor(inputView: powerbi.DataViewCategorical, inputSettings: settingsObject) {
     let numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
@@ -32,7 +33,7 @@ class dataObject {
     let ylimit_u: number = extractDataColumn<number>(inputView, "ylimit_u", inputSettings);
     let ylimit_l: number = extractDataColumn<number>(inputView, "ylimit_l", inputSettings);
 
-    let scatter_cond = extractConditionalFormatting(inputView, "scatter", inputSettings)
+    let scatter_cond = extractConditionalFormatting<conditionalFormattingTypes["scatter"]>(inputView, "scatter", inputSettings)
     console.log("scatter: ", scatter_cond)
     let valid_indexes: number[] = new Array<number>();
 
