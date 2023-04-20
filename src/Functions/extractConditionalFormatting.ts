@@ -17,7 +17,7 @@ function extractConditionalFormatting(inputView: DataViewCategorical, name: stri
           return [
             settingName,
             extractSetting(inputCategories.objects ? inputCategories.objects[i] : null,
-                            name, settingName, staticSettings[settingName].value)
+                            name, settingName, staticSettings[settingName].default)
           ]
         })
       )

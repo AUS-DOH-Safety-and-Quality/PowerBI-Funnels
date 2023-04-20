@@ -168,6 +168,24 @@ let settingsInData: Record<string, string> = {
   "ylimit_u" : "y_axis"
 }
 
+type conditionalFormattingTypes = {
+  scatter: {
+    size: number,
+    colour: string,
+    opacity: number,
+    opacity_unselected: number
+  };
+}
+
+let supportsConditionalFormatting: conditionalFormattingTypes = {
+  scatter: {
+    size: null,
+    colour: null,
+    opacity: null,
+    opacity_unselected: null
+  }
+};
+
 export {
   canvasSettings,
   funnelSettings,
@@ -176,5 +194,6 @@ export {
   xAxisSettings,
   yAxisSettings,
   outliersSettings,
-  settingsInData
+  settingsInData,
+  supportsConditionalFormatting
 }

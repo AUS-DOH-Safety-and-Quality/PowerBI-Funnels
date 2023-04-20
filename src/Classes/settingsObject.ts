@@ -3,8 +3,10 @@ import DataViewPropertyValue = powerbi.DataViewPropertyValue
 import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 import VisualObjectInstance = powerbi.VisualObjectInstance
 import VisualEnumerationInstanceKinds = powerbi.VisualEnumerationInstanceKinds;
+import ConstantOrRule = VisualEnumerationInstanceKinds.ConstantOrRule
 import dataObject from "./dataObject";
 import { dataViewObjects, dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
+import createDataViewWildcardSelector = dataViewWildcard.createDataViewWildcardSelector
 import {
   canvasSettings,
   funnelSettings,
@@ -13,10 +15,12 @@ import {
   lineSettings,
   xAxisSettings,
   yAxisSettings,
-  settingsInData
+  settingsInData,
+  supportsConditionalFormatting
 } from "./settingsGroups"
 import viewModelObject from "./viewModel";
 import extractSetting from "../Functions/extractSetting";
+import extractConditionalFormatting from "../Functions/extractConditionalFormatting";
 
 class settingsObject {
   canvas: canvasSettings;
@@ -30,18 +34,24 @@ class settingsObject {
   // so that the correct value can be rendered to the settings pane
   settingsInData: string[];
 
-  update(inputObjects: powerbi.DataViewObjects): void {
+  update(inputView: powerbi.DataView): void {
+    let inputObjects: powerbi.DataViewObjects = inputView.metadata.objects;
     // Get the names of all classes in settingsObject which have values to be updated
     let allSettingGroups: string[] = Object.getOwnPropertyNames(this)
                                            .filter(groupName => !(["settingsInData"].includes(groupName)));
-
+    let conditionalFormattingGroups: string[] = Object.keys(supportsConditionalFormatting);
     allSettingGroups.forEach(settingGroup => {
+      let condFormatting = conditionalFormattingGroups.includes(settingGroup)
+                            ? extractConditionalFormatting(inputView.categorical, settingGroup, this)[0]
+                            : null;
       // Get the names of all settings in a given class and
       // use those to extract and update the relevant values
       let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroup]);
       settingNames.forEach(settingName => {
-        this[settingGroup][settingName].value = extractSetting(inputObjects, settingGroup, settingName,
-                                                                this[settingGroup][settingName].default)
+        this[settingGroup][settingName].value
+          = condFormatting ? condFormatting[settingName]
+                           : extractSetting(inputObjects, settingGroup, settingName,
+                                            this[settingGroup][settingName].default)
       })
     })
   }
@@ -57,41 +67,28 @@ class settingsObject {
   createSettingsEntry(settingGroupName: string, viewModel: viewModelObject): VisualObjectInstanceEnumeration {
     let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroupName]);
     let inputData: dataObject = viewModel.inputData
-    let firstSettingObject = {
-      [settingNames[0]]: this.settingsInData.includes(settingNames[0])
-        ? inputData[settingNames[0] as keyof dataObject]
-        : this[settingGroupName][settingNames[0]].value
-    };
-    let properties: Record<string, DataViewPropertyValue> = settingNames.reduce((previousSetting, currentSetting) => {
-      return {
-        ...previousSetting,
-        ...{
-          [currentSetting]: this.settingsInData.includes(currentSetting)
-            ? inputData[currentSetting as keyof dataObject]
-            : this[settingGroupName][currentSetting].value
-        }
-      }
-    }, firstSettingObject);
-    let rtn: VisualObjectInstanceEnumeration = new Array<VisualObjectInstance>();
-    if (settingGroupName === "scatter") {
-      rtn.push({
-        objectName: settingGroupName,
-        properties: properties,
-        propertyInstanceKind: {
-          colour: VisualEnumerationInstanceKinds.ConstantOrRule,
-          size: VisualEnumerationInstanceKinds.ConstantOrRule
-        },
-        selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals)
-      });
-    } else {
-      rtn.push({
-        objectName: settingGroupName,
-        properties: properties,
-        selector: null
-      });
-    }
-    console.log("rtn: ", rtn);
-    return rtn;
+
+    let properties: Record<string, DataViewPropertyValue> = Object.fromEntries(
+      settingNames.map(settingName => {
+        let settingValue: DataViewPropertyValue = this.settingsInData.includes(settingName)
+                                                    ? inputData[settingName as keyof dataObject]
+                                                    : this[settingGroupName][settingName].value
+        return [settingName, settingValue]
+      })
+    )
+
+    let propertyInstanceKind = supportsConditionalFormatting[settingGroupName]
+                                ? Object.fromEntries(Object.keys(supportsConditionalFormatting[settingGroupName]).map(setting => [setting, ConstantOrRule]))
+                                : null
+    let selector = supportsConditionalFormatting[settingGroupName]
+                    ? createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals)
+                    : null
+    return [{
+      objectName: settingGroupName,
+      properties: properties,
+      propertyInstanceKind: propertyInstanceKind,
+      selector: selector
+    }];
   }
 
   constructor() {

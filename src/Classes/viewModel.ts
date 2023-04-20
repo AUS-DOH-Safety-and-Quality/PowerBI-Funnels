@@ -116,7 +116,7 @@ class viewModelObject {
     if (this.firstRun) {
       this.inputSettings = new settingsObject();
     }
-    this.inputSettings.update(args.options.dataViews[0].metadata.objects);
+    this.inputSettings.update(args.options.dataViews[0]);
 
     if (checkInvalidDataView(args.options.dataViews)) {
       this.inputData = <dataObject>null;
