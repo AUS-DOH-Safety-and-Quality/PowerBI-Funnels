@@ -194,6 +194,7 @@ export {
   xAxisSettings,
   yAxisSettings,
   outliersSettings,
+  conditionalFormattingTypes,
   settingsInData,
   supportsConditionalFormatting
 }

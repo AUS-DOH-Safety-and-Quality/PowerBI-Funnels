@@ -1,12 +1,9 @@
 import powerbi from "powerbi-visuals-api";
 import DataViewPropertyValue = powerbi.DataViewPropertyValue
 import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
-import VisualObjectInstance = powerbi.VisualObjectInstance
 import VisualEnumerationInstanceKinds = powerbi.VisualEnumerationInstanceKinds;
-import ConstantOrRule = VisualEnumerationInstanceKinds.ConstantOrRule
 import dataObject from "./dataObject";
-import { dataViewObjects, dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
-import createDataViewWildcardSelector = dataViewWildcard.createDataViewWildcardSelector
+import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import {
   canvasSettings,
   funnelSettings,
@@ -78,10 +75,10 @@ class settingsObject {
     )
 
     let propertyInstanceKind = supportsConditionalFormatting[settingGroupName]
-                                ? Object.fromEntries(Object.keys(supportsConditionalFormatting[settingGroupName]).map(setting => [setting, ConstantOrRule]))
+                                ? Object.fromEntries(Object.keys(supportsConditionalFormatting[settingGroupName]).map(setting => [setting, VisualEnumerationInstanceKinds.ConstantOrRule]))
                                 : null
     let selector = supportsConditionalFormatting[settingGroupName]
-                    ? createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals)
+                    ? dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals)
                     : null
     return [{
       objectName: settingGroupName,

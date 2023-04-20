@@ -3,13 +3,16 @@ import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import DataViewCategorical = powerbi.DataViewCategorical;
 import settingsObject from "../Classes/settingsObject";
 import extractSetting from "./extractSetting";
+import { conditionalFormattingTypes } from "../Classes/settingsGroups";
 
-function extractConditionalFormatting(inputView: DataViewCategorical, name: string, inputSettings: settingsObject): Record<string, string | number>[] {
+type AllSettingsTypes = conditionalFormattingTypes["scatter"]
+
+function extractConditionalFormatting<SettingsT extends AllSettingsTypes>(inputView: DataViewCategorical, name: string, inputSettings: settingsObject): SettingsT[] {
   let inputCategories: DataViewCategoryColumn = (inputView.categories as DataViewCategoryColumn[])[0];
   let staticSettings = inputSettings[name as keyof typeof inputSettings];
   let settingNames = Object.getOwnPropertyNames(staticSettings)
 
-  let rtn: Record<string, string | number>[] = new Array<Record<string, string | number>>();
+  let rtn: SettingsT[] = new Array<SettingsT>();
   for (let i: number = 0; i < inputCategories.values.length; i++) {
     rtn.push(
       Object.fromEntries(
@@ -20,7 +23,7 @@ function extractConditionalFormatting(inputView: DataViewCategorical, name: stri
                             name, settingName, staticSettings[settingName].default)
           ]
         })
-      )
+      ) as SettingsT
     )
   }
   return rtn

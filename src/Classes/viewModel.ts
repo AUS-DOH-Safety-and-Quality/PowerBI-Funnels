@@ -15,6 +15,7 @@ import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
 import buildTooltip from "../Functions/buildTooltip"
+import { conditionalFormattingTypes } from "../Classes/settingsGroups";
 
 class viewModelObject {
   inputData: dataObject;
@@ -46,24 +47,24 @@ class viewModelObject {
       let ratio: number = (numerator / denominator);
       let limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominator === denominator && d.ll99 !== null && d.ul99 !== null);
       let limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominator === denominator)[0];
-      let dot_colour: string = this.inputData.scatter_formatting[i].colour as string;
+      let aesthetics: conditionalFormattingTypes["scatter"] = this.inputData.scatter_formatting[i]
       let two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
       let three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
       let category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
                               (this.inputData.categories.values[original_index]).toString() :
                               <string>(this.inputData.categories.values[original_index]);
       if (two_sigma_outlier) {
-        dot_colour = two_sigma_colour;
+        aesthetics.colour = two_sigma_colour;
       }
 
       if (three_sigma_outlier) {
-        dot_colour = three_sigma_colour
+        aesthetics.colour = three_sigma_colour
       }
 
       plotPoints.push({
         x: denominator,
         value: transform(ratio * multiplier),
-        colour: dot_colour,
+        aesthetics: aesthetics,
         identity: host.createSelectionIdBuilder()
                       .withCategory(this.inputData.categories, original_index)
                       .createSelectionId(),

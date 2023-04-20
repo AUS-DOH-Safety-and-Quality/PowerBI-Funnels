@@ -313,8 +313,6 @@ export class Visual implements IVisual {
   }
 
   drawDots(): void {
-    let dot_size: number = this.viewModel.inputSettings.scatter.size.value;
-
     // Update the datapoints if data is refreshed
     this.plottingMerged.dotsMerged = this.svgSelections
                                           .dotSelection
@@ -326,11 +324,11 @@ export class Visual implements IVisual {
 
     this.plottingMerged
         .dotsMerged
-        .filter(d => (d.value != null))
-        .attr("cy", d => this.viewModel.plotProperties.yScale(d.value))
-        .attr("cx", d => this.viewModel.plotProperties.xScale(d.x))
-        .attr("r", dot_size)
-        .style("fill", d => this.viewModel.plotProperties.displayPlot ? d.colour : "#FFFFFF");
+        .filter((d: plotData) => (d.value != null))
+        .attr("cy", (d: plotData) => this.viewModel.plotProperties.yScale(d.value))
+        .attr("cx", (d: plotData) => this.viewModel.plotProperties.xScale(d.x))
+        .attr("r", (d: plotData) => d.aesthetics.size)
+        .style("fill", (d: plotData) => this.viewModel.plotProperties.displayPlot ? d.aesthetics.colour : "#FFFFFF");
 
     // Change opacity (highlighting) with selections in other plots
     // Specify actions to take when clicking on dots
@@ -417,7 +415,7 @@ export class Visual implements IVisual {
           return currentSelectionId.includes(dot.identity);
         });
         let currentPointHighlighted: boolean = dot.highlighted;
-        return (currentPointSelected || currentPointHighlighted) ? opacityFull : opacityReduced;
+        return (currentPointSelected || currentPointHighlighted) ? dot.aesthetics.opacity : dot.aesthetics.opacity_unselected;
       })
     }
   }
