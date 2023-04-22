@@ -249,7 +249,7 @@ export class Visual implements IVisual {
         yAxis.tickFormat(
           d => {
             return this.viewModel.inputData.percentLabels
-              ? (<number>d * (this.viewModel.inputData.multiplier === 100 ? 1 : this.viewModel.inputData.multiplier)).toFixed(sig_figs) + "%"
+              ? (<number>d * (this.viewModel.inputSettings.funnel.multiplier.value === 100 ? 1 : this.viewModel.inputSettings.funnel.multiplier.value)).toFixed(sig_figs) + "%"
               : (<number>d).toFixed(sig_figs);
           }
         );

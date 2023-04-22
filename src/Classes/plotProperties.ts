@@ -88,7 +88,6 @@ class plotPropertiesClass {
     let xTicksCount: number = args.inputSettings.x_axis.xlimit_tick_count.value;
     let yTicksCount: number = args.inputSettings.y_axis.ylimit_tick_count.value;
 
-
     let xLowerLimit: number = args.inputSettings.x_axis.xlimit_l.value;
     let xUpperLimit: number = args.inputSettings.x_axis.xlimit_u.value;
 
@@ -113,11 +112,11 @@ class plotPropertiesClass {
       label_colour: args.inputSettings.x_axis.xlimit_label_colour.value
     };
 
-    let yLowerLimit: number = args.inputData ? args.inputData.ylimit_l : args.inputSettings.y_axis.ylimit_l.value;
-    let yUpperLimit: number = args.inputData ? args.inputData.ylimit_u : args.inputSettings.y_axis.ylimit_u.value;
+    let yLowerLimit: number = args.inputSettings.y_axis.ylimit_l.value;
+    let yUpperLimit: number = args.inputSettings.y_axis.ylimit_u.value;
 
     if (args.inputData) {
-      let multiplier: number = args.inputData.multiplier
+      let multiplier: number = args.inputSettings.funnel.multiplier.value
       let maxRatio: number = d3.max(divide(args.inputData.numerator, args.inputData.denominator));
       yUpperLimit = yUpperLimit ? yUpperLimit : maxRatio * multiplier
     }

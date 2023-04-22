@@ -12,8 +12,7 @@ import {
   lineSettings,
   xAxisSettings,
   yAxisSettings,
-  settingsInData,
-  supportsConditionalFormatting
+  AllSettingsTypes
 } from "./settingsGroups"
 import viewModelObject from "./viewModel";
 import extractSetting from "../Functions/extractSetting";
@@ -29,16 +28,13 @@ class settingsObject {
   outliers: outliersSettings;
   // Specify the names of settings which can be provided as data
   // so that the correct value can be rendered to the settings pane
-  settingsInData: string[];
 
   update(inputView: powerbi.DataView): void {
     let inputObjects: powerbi.DataViewObjects = inputView.metadata.objects;
     // Get the names of all classes in settingsObject which have values to be updated
-    let allSettingGroups: string[] = Object.getOwnPropertyNames(this)
-                                           .filter(groupName => !(["settingsInData"].includes(groupName)));
-    let conditionalFormattingGroups: string[] = Object.keys(supportsConditionalFormatting);
+    let allSettingGroups: string[] = Object.getOwnPropertyNames(this);
     allSettingGroups.forEach(settingGroup => {
-      let condFormatting = conditionalFormattingGroups.includes(settingGroup)
+      let condFormatting: AllSettingsTypes = inputView.categorical.categories
                             ? extractConditionalFormatting(inputView.categorical, settingGroup, this)[0]
                             : null;
       // Get the names of all settings in a given class and
@@ -63,28 +59,18 @@ class settingsObject {
    */
   createSettingsEntry(settingGroupName: string, viewModel: viewModelObject): VisualObjectInstanceEnumeration {
     let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroupName]);
-    let inputData: dataObject = viewModel.inputData
 
     let properties: Record<string, DataViewPropertyValue> = Object.fromEntries(
       settingNames.map(settingName => {
-        let settingValue: DataViewPropertyValue = this.settingsInData.includes(settingName)
-                                                    ? inputData[settingName as keyof dataObject]
-                                                    : this[settingGroupName][settingName].value
+        let settingValue: DataViewPropertyValue = this[settingGroupName][settingName].value
         return [settingName, settingValue]
       })
     )
-
-    let propertyInstanceKind = supportsConditionalFormatting[settingGroupName]
-                                ? Object.fromEntries(Object.keys(supportsConditionalFormatting[settingGroupName]).map(setting => [setting, VisualEnumerationInstanceKinds.ConstantOrRule]))
-                                : null
-    let selector = supportsConditionalFormatting[settingGroupName]
-                    ? dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals)
-                    : null
     return [{
       objectName: settingGroupName,
       properties: properties,
-      propertyInstanceKind: propertyInstanceKind,
-      selector: selector
+      propertyInstanceKind: Object.fromEntries(settingNames.map(setting => [setting, VisualEnumerationInstanceKinds.ConstantOrRule])),
+      selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals)
     }];
   }
 
@@ -96,7 +82,6 @@ class settingsObject {
     this.x_axis = new xAxisSettings();
     this.y_axis = new yAxisSettings();
     this.outliers = new outliersSettings();
-    this.settingsInData = Object.keys(settingsInData);
   }
 }
 

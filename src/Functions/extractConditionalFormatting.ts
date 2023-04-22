@@ -2,10 +2,11 @@ import powerbi from "powerbi-visuals-api"
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import DataViewCategorical = powerbi.DataViewCategorical;
 import settingsObject from "../Classes/settingsObject";
+import {
+  AllSettingsTypes
+} from "../Classes/settingsGroups"
 import extractSetting from "./extractSetting";
-import { conditionalFormattingTypes } from "../Classes/settingsGroups";
 
-type AllSettingsTypes = conditionalFormattingTypes["scatter"]
 
 function extractConditionalFormatting<SettingsT extends AllSettingsTypes>(inputView: DataViewCategorical, name: string, inputSettings: settingsObject): SettingsT[] {
   let inputCategories: DataViewCategoryColumn = (inputView.categories as DataViewCategoryColumn[])[0];
