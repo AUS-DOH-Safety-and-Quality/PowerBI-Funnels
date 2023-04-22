@@ -5,7 +5,7 @@ import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import chartObject from "./chartObject"
 import settingsObject from "./settingsObject";
 import checkInvalidDataView from "../Functions/checkInvalidDataView"
-import initialiseChartObject from "../Chart Types/initialiseChartObject"
+import * as chartObjects from "../Chart Types"
 import dataObject from "./dataObject";
 import limitData from "./limitData";
 import lineData from "./lineData"
@@ -15,7 +15,7 @@ import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
 import buildTooltip from "../Functions/buildTooltip"
-import { conditionalFormattingTypes } from "../Classes/settingsGroups";
+import { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
 
 class viewModelObject {
   inputData: dataObject;
@@ -32,11 +32,11 @@ class viewModelObject {
     let transform_text: string = this.inputSettings.funnel.transformation.value;
     let transform: (x: number) => number = getTransformation(transform_text);
     let target: number = this.chartBase.getTarget({ transformed: false });
-    let multiplier: number = this.inputData.multiplier;
-    let data_type: string = this.inputData.chart_type;
+    let multiplier: number = this.inputSettings.funnel.multiplier.value;
+    let data_type: string = this.inputSettings.funnel.chart_type.value;
     let flag_two_sigma: boolean = this.inputSettings.outliers.two_sigma.value;
     let flag_three_sigma: boolean = this.inputSettings.outliers.three_sigma.value;
-    let flag_direction: string = this.inputData.flag_direction;
+    let flag_direction: string = this.inputSettings.outliers.flag_direction.value;
     let two_sigma_colour: string = this.inputSettings.outliers.two_sigma_colour.value;
     let three_sigma_colour: string = this.inputSettings.outliers.three_sigma_colour.value;
 
@@ -47,7 +47,7 @@ class viewModelObject {
       let ratio: number = (numerator / denominator);
       let limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominator === denominator && d.ll99 !== null && d.ul99 !== null);
       let limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominator === denominator)[0];
-      let aesthetics: conditionalFormattingTypes["scatter"] = this.inputData.scatter_formatting[i]
+      let aesthetics: SettingsBaseTypedT<scatterSettings> = this.inputData.scatter_formatting[i]
       let two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
       let three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
       let category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
@@ -89,7 +89,7 @@ class viewModelObject {
   };
 
   getGroupedLines(): [string, lineData[]][] {
-    let multiplier: number = this.inputData.multiplier;
+    let multiplier: number = this.inputSettings.funnel.multiplier.value;
     let transform: (x: number) => number = getTransformation(this.inputSettings.funnel.transformation.value);
 
     let target: number = this.chartBase.getTarget({ transformed: false });
@@ -127,12 +127,13 @@ class viewModelObject {
       this.groupedLines = <[string, lineData[]][]>null;
     } else {
       let dv: powerbi.DataView[] = args.options.dataViews;
+      let chart_type: string = this.inputSettings.funnel.chart_type.value
       console.log("input dv: ", dv)
 
       this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
 
-      this.chartBase = initialiseChartObject({ inputData: this.inputData,
-                                               inputSettings: this.inputSettings });
+      this.chartBase = new chartObjects[chart_type]({ inputData: this.inputData,
+                                                      inputSettings: this.inputSettings });
 
       this.calculatedLimits = this.chartBase.getLimits();
 

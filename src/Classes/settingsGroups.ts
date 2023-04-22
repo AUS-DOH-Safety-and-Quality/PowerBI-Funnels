@@ -8,6 +8,10 @@ class settingsPair<T> {
   }
 }
 
+type SettingsBaseTypedT<T extends object> = {
+  [K in keyof T]: T[K] extends settingsPair<any> ? T[K]['default'] : T[K];
+}
+
 class canvasSettings {
   lower_padding: settingsPair<number>;
   upper_padding: settingsPair<number>;
@@ -160,31 +164,10 @@ class outliersSettings {
   };
 }
 
-let settingsInData: Record<string, string> = {
-  "chart_type" : "funnel",
-  "multiplier" : "funnel",
-  "flag_direction" : "outliers",
-  "ylimit_l" : "y_axis",
-  "ylimit_u" : "y_axis"
-}
-
-type conditionalFormattingTypes = {
-  scatter: {
-    size: number,
-    colour: string,
-    opacity: number,
-    opacity_unselected: number
-  };
-}
-
-let supportsConditionalFormatting: conditionalFormattingTypes = {
-  scatter: {
-    size: null,
-    colour: null,
-    opacity: null,
-    opacity_unselected: null
-  }
-};
+type AllSettingsTypes = SettingsBaseTypedT<canvasSettings> | SettingsBaseTypedT<funnelSettings> |
+                        SettingsBaseTypedT<outliersSettings> | SettingsBaseTypedT<scatterSettings> |
+                        SettingsBaseTypedT<lineSettings> | SettingsBaseTypedT<xAxisSettings> |
+                        SettingsBaseTypedT<yAxisSettings>;
 
 export {
   canvasSettings,
@@ -194,7 +177,6 @@ export {
   xAxisSettings,
   yAxisSettings,
   outliersSettings,
-  conditionalFormattingTypes,
-  settingsInData,
-  supportsConditionalFormatting
+  SettingsBaseTypedT,
+  AllSettingsTypes
 }

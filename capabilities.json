@@ -25,31 +25,6 @@
           "displayName": "Groups",
           "name": "key",
           "kind": "Grouping"
-        },
-        {
-            "displayName": "Optional: Chart Type",
-            "name": "chart_type",
-            "kind": "Measure"
-        },
-        {
-            "displayName": "Optional: Multiplier",
-            "name": "multiplier",
-            "kind": "Measure"
-        },
-        {
-            "displayName": "Optional: Outlier Direction",
-            "name": "flag_direction",
-            "kind": "Measure"
-        },
-        {
-            "displayName": "Optional: Y-Axis Upper Limit",
-            "name": "ylimit_u",
-            "kind": "Measure"
-        },
-        {
-            "displayName": "Optional: Y-Axis Lower Limit",
-            "name": "ylimit_l",
-            "kind": "Measure"
         }
     ],
     "objects": {
@@ -831,30 +806,9 @@
         {
             "conditions": [
                 {
-                    "key": {
-                        "max": 1
-                    },
-                    "numerators": {
-                        "max": 1
-                    },
-                    "denominators": {
-                        "max": 1
-                    },
-                    "chart_type": {
-                        "max": 1
-                    },
-                    "multiplier": {
-                        "max": 1
-                    },
-                    "flag_direction": {
-                        "max": 1
-                    },
-                    "ylimit_u": {
-                        "max": 1
-                    },
-                    "ylimit_l": {
-                        "max": 1
-                    }
+                  "key": { "max": 1 },
+                  "numerators": { "max": 1 },
+                  "denominators": { "max": 1 }
                 }
             ],
             "categorical": {
@@ -867,12 +821,7 @@
               "values": {
                     "select": [
                       { "bind": { "to": "numerators" } },
-                      { "bind": { "to": "denominators" } },
-                      { "bind": { "to": "chart_type" } },
-                      { "bind": { "to": "multiplier" } },
-                      { "bind": { "to": "flag_direction" } },
-                      { "bind": { "to": "ylimit_u" } },
-                      { "bind": { "to": "ylimit_l" } }
+                      { "bind": { "to": "denominators" } }
                     ]
               }
           }

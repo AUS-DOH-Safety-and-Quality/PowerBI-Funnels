@@ -8,7 +8,6 @@ import ValueTypeDescriptor = powerbi.ValueTypeDescriptor;
 import settingsObject from "../Classes/settingsObject";
 import dateFormat from "../Classes/dateFormat";
 import dateToFormattedString from "./dateToFormattedString";
-import { settingsInData } from "../Classes/settingsGroups"
 
 type TargetT = number[] | string[] | number | string;
 
@@ -44,11 +43,7 @@ function extractDataColumn<T extends TargetT>(inputView: DataViewCategorical,
     columnRaw = (inputView.values as DataViewValueColumns).filter(viewColumn => {
       return viewColumn.source.roles ? viewColumn.source.roles[name] : false;
     })[0];
-    if (Object.keys(settingsInData).includes(name) && inputSettings) {
-      return (columnRaw ? columnRaw.values[0] : inputSettings[settingsInData[name]][name].value) as T
-    } else {
-      return (columnRaw ? columnRaw.values : null) as T;
-    }
+    return (columnRaw ? columnRaw.values : null) as T;
   }
 }
 
