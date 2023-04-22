@@ -5,7 +5,7 @@ import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import chartObject from "./chartObject"
 import settingsObject from "./settingsObject";
 import checkInvalidDataView from "../Functions/checkInvalidDataView"
-import initialiseChartObject from "../Chart Types/initialiseChartObject"
+import * as chartObjects from "../Chart Types"
 import dataObject from "./dataObject";
 import limitData from "./limitData";
 import lineData from "./lineData"
@@ -127,12 +127,13 @@ class viewModelObject {
       this.groupedLines = <[string, lineData[]][]>null;
     } else {
       let dv: powerbi.DataView[] = args.options.dataViews;
+      let chart_type: string = this.inputSettings.funnel.chart_type.value
       console.log("input dv: ", dv)
 
       this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
 
-      this.chartBase = initialiseChartObject({ inputData: this.inputData,
-                                               inputSettings: this.inputSettings });
+      this.chartBase = new chartObjects[chart_type]({ inputData: this.inputData,
+                                                      inputSettings: this.inputSettings });
 
       this.calculatedLimits = this.chartBase.getLimits();
 
