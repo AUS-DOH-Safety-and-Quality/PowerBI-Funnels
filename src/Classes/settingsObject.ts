@@ -2,7 +2,6 @@ import powerbi from "powerbi-visuals-api";
 import DataViewPropertyValue = powerbi.DataViewPropertyValue
 import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 import VisualEnumerationInstanceKinds = powerbi.VisualEnumerationInstanceKinds;
-import dataObject from "./dataObject";
 import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import {
   canvasSettings,
@@ -14,7 +13,6 @@ import {
   yAxisSettings,
   AllSettingsTypes
 } from "./settingsGroups"
-import viewModelObject from "./viewModel";
 import extractSetting from "../Functions/extractSetting";
 import extractConditionalFormatting from "../Functions/extractConditionalFormatting";
 
@@ -57,7 +55,7 @@ class settingsObject {
    * @param inputData
    * @returns An object where each element is the value for a given setting in the named group
    */
-  createSettingsEntry(settingGroupName: string, viewModel: viewModelObject): VisualObjectInstanceEnumeration {
+  createSettingsEntry(settingGroupName: string): VisualObjectInstanceEnumeration {
     let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroupName]);
 
     let properties: Record<string, DataViewPropertyValue> = Object.fromEntries(
