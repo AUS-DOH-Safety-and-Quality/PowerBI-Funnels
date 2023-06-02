@@ -77,13 +77,12 @@ class chartObject {
   };
 
   getTau2Bool(): boolean {
-    if (this.inputSettings.funnel.od_adjust.value === "yes") {
-      return true;
-    } else if (this.inputSettings.funnel.od_adjust.value === "no") {
-      return false;
-    } else if (this.inputSettings.funnel.od_adjust.value === "auto") {
-      return true;
-    }
+    let tauReturn: Record<string, boolean> = {
+      "yes" : true,
+      "no"  : false,
+      "auto": true
+    };
+    return tauReturn[this.inputSettings.funnel.od_adjust.value];
   };
 
   getSingleLimit(par: { odAdjust: boolean, inputArgs: limitArguments }): number {

@@ -132,7 +132,7 @@ class viewModelObject {
 
       this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
 
-      this.chartBase = new chartObjects[chart_type]({ inputData: this.inputData,
+      this.chartBase = new chartObjects[chart_type as keyof typeof chartObjects]({ inputData: this.inputData,
                                                       inputSettings: this.inputSettings });
 
       this.calculatedLimits = this.chartBase.getLimits();

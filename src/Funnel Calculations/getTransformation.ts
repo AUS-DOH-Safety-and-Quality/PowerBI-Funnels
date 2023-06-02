@@ -8,6 +8,8 @@ function getTransformation(setting_name: string): (x: number) => number {
     return function(x: number): number { return Math.log10(x+1); };
   } else if (setting_name == "sqrt") {
     return Math.sqrt;
+  } else {
+    return function(x: number): number { return x; };
   }
 }
 

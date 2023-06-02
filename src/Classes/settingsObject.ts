@@ -17,6 +17,7 @@ import extractSetting from "../Functions/extractSetting";
 import extractConditionalFormatting from "../Functions/extractConditionalFormatting";
 
 class settingsObject {
+  [key: string] : any;
   canvas: canvasSettings;
   funnel: funnelSettings;
   scatter: scatterSettings;
@@ -40,7 +41,7 @@ class settingsObject {
       let settingNames: string[] = Object.getOwnPropertyNames(this[settingGroup]);
       settingNames.forEach(settingName => {
         this[settingGroup][settingName].value
-          = condFormatting ? condFormatting[settingName]
+          = condFormatting ? condFormatting[settingName as keyof AllSettingsTypes]
                            : extractSetting(inputObjects, settingGroup, settingName,
                                             this[settingGroup][settingName].default)
       })
