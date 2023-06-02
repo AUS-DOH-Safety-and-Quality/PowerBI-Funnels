@@ -67,7 +67,7 @@ class plotPropertiesClass {
 
     // Map the default pixel sizes for each text label, based on browser default so scaled
     // https://careerkarma.com/blog/css-font-size/
-    let fontSizeMap = {
+    let fontSizeMap: Record<string, number> = {
       "xx-small" : 9 * fontScaling,
       "x-small" : 10 * fontScaling,
       "small" : 13 * fontScaling,

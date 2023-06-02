@@ -1,4 +1,5 @@
 class limitData {
+  [key: string]: number;
   denominator: number;
   ll99: number;
   ll95: number;
