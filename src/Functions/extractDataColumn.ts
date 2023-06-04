@@ -5,15 +5,13 @@ import DataViewCategorical = powerbi.DataViewCategorical;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import PrimitiveValue = powerbi.PrimitiveValue;
 import ValueTypeDescriptor = powerbi.ValueTypeDescriptor;
-import settingsObject from "../Classes/settingsObject";
 import dateFormat from "../Classes/dateFormat";
 import dateToFormattedString from "./dateToFormattedString";
 
 type TargetT = number[] | string[] | number | string;
 
 function extractDataColumn<T extends TargetT>(inputView: DataViewCategorical,
-                                              name: string,
-                                              inputSettings?: settingsObject): T {
+                                              name: string): T {
   let columnRaw: DataViewValueColumn;
   if (name === "key" || name === "group") {
     const columnRawTmp: DataViewValueColumn[] = (inputView.categories as DataViewCategoryColumn[]).filter(viewColumn => {
