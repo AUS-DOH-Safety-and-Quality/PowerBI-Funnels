@@ -62,12 +62,12 @@ class plotPropertiesClass {
 
     // Axis & label padding is based on the browser default font size of 16px,
     //    so need to scale accordingly if a different font size is used
-    let browserFontSize: number = Number(window.getComputedStyle(document.body).getPropertyValue('font-size').match(/\d+/)[0]);
-    let fontScaling: number = browserFontSize / 16;
+    const browserFontSize: number = Number(window.getComputedStyle(document.body).getPropertyValue('font-size').match(/\d+/)[0]);
+    const fontScaling: number = browserFontSize / 16;
 
     // Map the default pixel sizes for each text label, based on browser default so scaled
     // https://careerkarma.com/blog/css-font-size/
-    let fontSizeMap: Record<string, number> = {
+    const fontSizeMap: Record<string, number> = {
       "xx-small" : 9 * fontScaling,
       "x-small" : 10 * fontScaling,
       "small" : 13 * fontScaling,
@@ -78,17 +78,17 @@ class plotPropertiesClass {
     };
 
     // Only scale padding for label if a label is actually present
-    let xLabelSize: string = args.inputSettings.x_axis.xlimit_label_size.value;
-    let xLabelPadding: number = args.inputSettings.x_axis.xlimit_label.value ? fontSizeMap[xLabelSize] : 0;
-    let yLabelSize: string = args.inputSettings.y_axis.ylimit_label_size.value;
-    let yLabelPadding: number = args.inputSettings.y_axis.ylimit_label.value ? fontSizeMap[yLabelSize] : 0;
+    const xLabelSize: string = args.inputSettings.x_axis.xlimit_label_size.value;
+    const xLabelPadding: number = args.inputSettings.x_axis.xlimit_label.value ? fontSizeMap[xLabelSize] : 0;
+    const yLabelSize: string = args.inputSettings.y_axis.ylimit_label_size.value;
+    const yLabelPadding: number = args.inputSettings.y_axis.ylimit_label.value ? fontSizeMap[yLabelSize] : 0;
 
-    let xTickSize: string = args.inputSettings.x_axis.xlimit_tick_size.value;
-    let yTickSize: string = args.inputSettings.y_axis.ylimit_tick_size.value;
-    let xTicksCount: number = args.inputSettings.x_axis.xlimit_tick_count.value;
-    let yTicksCount: number = args.inputSettings.y_axis.ylimit_tick_count.value;
+    const xTickSize: string = args.inputSettings.x_axis.xlimit_tick_size.value;
+    const yTickSize: string = args.inputSettings.y_axis.ylimit_tick_size.value;
+    const xTicksCount: number = args.inputSettings.x_axis.xlimit_tick_count.value;
+    const yTicksCount: number = args.inputSettings.y_axis.ylimit_tick_count.value;
 
-    let xLowerLimit: number = args.inputSettings.x_axis.xlimit_l.value;
+    const xLowerLimit: number = args.inputSettings.x_axis.xlimit_l.value;
     let xUpperLimit: number = args.inputSettings.x_axis.xlimit_u.value;
 
     if (args.inputData) {
@@ -112,12 +112,12 @@ class plotPropertiesClass {
       label_colour: args.inputSettings.x_axis.xlimit_label_colour.value
     };
 
-    let yLowerLimit: number = args.inputSettings.y_axis.ylimit_l.value;
+    const yLowerLimit: number = args.inputSettings.y_axis.ylimit_l.value;
     let yUpperLimit: number = args.inputSettings.y_axis.ylimit_u.value;
 
     if (args.inputData) {
-      let multiplier: number = args.inputSettings.funnel.multiplier.value
-      let maxRatio: number = d3.max(divide(args.inputData.numerator, args.inputData.denominator));
+      const multiplier: number = args.inputSettings.funnel.multiplier.value
+      const maxRatio: number = d3.max(divide(args.inputData.numerator, args.inputData.denominator));
       yUpperLimit = yUpperLimit ? yUpperLimit : maxRatio * multiplier
     }
 

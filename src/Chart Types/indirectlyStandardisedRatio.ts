@@ -7,44 +7,44 @@ import winsorise from '../Functions/winsorise';
 import { sqrt, inv, square } from "../Functions/UnaryFunctions"
 import { multiply, divide } from "../Functions/BinaryFunctions"
 
-let smrSE = function(inputData: dataObject): number[] {
+const smrSE = function(inputData: dataObject): number[] {
   return [];
 }
 
-let smrSEOD = function(inputData: dataObject): number[] {
-  let denominator: number[] = inputData.denominator;
+const smrSEOD = function(inputData: dataObject): number[] {
+  const denominator: number[] = inputData.denominator;
   return inv(multiply(2, sqrt(denominator)));
 }
 
-let smrTarget = function(inputData: dataObject): number {
+const smrTarget = function(inputData: dataObject): number {
   return 1;
 }
 
-let smrY = function(inputData: dataObject): number[] {
-  let numerator: number[] = inputData.numerator;
-  let denominator: number[] = inputData.denominator;
+const smrY = function(inputData: dataObject): number[] {
+  const numerator: number[] = inputData.numerator;
+  const denominator: number[] = inputData.denominator;
   return sqrt(divide(numerator, denominator));
 }
 
-let smrLimitOD = function(args: limitArguments) {
-  let target: number = args.target_transformed;
-  let q: number = args.q;
-  let SE: number = args.SE;
-  let tau2: number = args.tau2;
-  let limit_transformed: number = target + q * sqrt(square(SE) + tau2);
-  let limit: number = square(limit_transformed);
+const smrLimitOD = function(args: limitArguments) {
+  const target: number = args.target_transformed;
+  const q: number = args.q;
+  const SE: number = args.SE;
+  const tau2: number = args.tau2;
+  const limit_transformed: number = target + q * sqrt(square(SE) + tau2);
+  const limit: number = square(limit_transformed);
 
   return winsorise(limit, {lower: 0})
 }
 
-let smrLimit = function(args: limitArguments) {
-  let q: number = args.q;
-  let denominator: number = args.denominator;
-  let p: number = stats.normal.cdf(q, 0, 1);
-  let is_upper: boolean = p > 0.5;
-  let offset: number = is_upper ? 1 : 0;
+const smrLimit = function(args: limitArguments) {
+  const q: number = args.q;
+  const denominator: number = args.denominator;
+  const p: number = stats.normal.cdf(q, 0, 1);
+  const is_upper: boolean = p > 0.5;
+  const offset: number = is_upper ? 1 : 0;
 
-  let limit: number = (stats.chisquare.quantile(p, 2 * (denominator + offset)) / 2.0)
+  const limit: number = (stats.chisquare.quantile(p, 2 * (denominator + offset)) / 2.0)
                         / denominator;
 
   return winsorise(limit, {lower: 0})
