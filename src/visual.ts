@@ -21,6 +21,7 @@ import plotData from "./Classes/plotData"
 import lineData from "./Classes/lineData"
 import getAesthetic from "./Functions/getAesthetic"
 import { axisProperties } from "./Classes/plotProperties";
+import between from "./Functions/between";
 
 type SelectionAny = d3.Selection<any, any, any, any>;
 type mergedSVGObjects = { dotsMerged: SelectionAny,
@@ -300,8 +301,7 @@ export class Visual implements IVisual {
       return d3.line<lineData>()
                 .x(d => this.viewModel.plotProperties.xScale(d.x))
                 .y(d => this.viewModel.plotProperties.yScale(d.line_value))
-                .defined(function(d) { return d.line_value !== null && d.line_value > yLowerLimit && d.line_value < yUpperLimit; })
-                (d[1])
+                .defined(d => d.line_value !== null && between(d.line_value, yLowerLimit, yUpperLimit))(d[1])
     })
     this.plottingMerged.linesMerged.attr("fill", "none")
               .attr("stroke", d => this.viewModel.plotProperties.displayPlot ? getAesthetic(d[0], "lines", "colour", this.viewModel.inputSettings) : "#FFFFFF")
@@ -368,8 +368,8 @@ export class Visual implements IVisual {
         })
       });
     } else {
-      this.plottingMerged.dotsMerged.on("mousemove", () => {})
-                                    .on("mouseleave", () => {});
+      this.plottingMerged.dotsMerged.on("mousemove", function() {return;})
+                                    .on("mouseleave", function() {return;});
     }
     this.updateHighlighting();
 

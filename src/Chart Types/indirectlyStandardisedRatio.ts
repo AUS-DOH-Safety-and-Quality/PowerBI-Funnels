@@ -7,18 +7,25 @@ import winsorise from '../Functions/winsorise';
 import { sqrt, inv, square } from "../Functions/UnaryFunctions"
 import { multiply, divide } from "../Functions/BinaryFunctions"
 
+
+// ESLint errors due to unused input, but needed for agnostic use with other charts
+/* eslint-disable */
 const smrSE = function(inputData: dataObject): number[] {
   return [];
 }
+/* eslint-enable */
 
 const smrSEOD = function(inputData: dataObject): number[] {
   const denominator: number[] = inputData.denominator;
   return inv(multiply(2, sqrt(denominator)));
 }
 
+// ESLint errors due to unused input, but needed for agnostic use with other charts
+/* eslint-disable */
 const smrTarget = function(inputData: dataObject): number {
   return 1;
 }
+/* eslint-enable */
 
 const smrY = function(inputData: dataObject): number[] {
   const numerator: number[] = inputData.numerator;
