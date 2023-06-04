@@ -28,29 +28,29 @@ class viewModelObject {
   firstRun: boolean;
 
   getScatterData(host: IVisualHost): plotData[] {
-    let plotPoints = new Array<plotData>();
-    let transform_text: string = this.inputSettings.funnel.transformation.value;
-    let transform: (x: number) => number = getTransformation(transform_text);
-    let target: number = this.chartBase.getTarget({ transformed: false });
-    let multiplier: number = this.inputSettings.funnel.multiplier.value;
-    let data_type: string = this.inputSettings.funnel.chart_type.value;
-    let flag_two_sigma: boolean = this.inputSettings.outliers.two_sigma.value;
-    let flag_three_sigma: boolean = this.inputSettings.outliers.three_sigma.value;
-    let flag_direction: string = this.inputSettings.outliers.flag_direction.value;
-    let two_sigma_colour: string = this.inputSettings.outliers.two_sigma_colour.value;
-    let three_sigma_colour: string = this.inputSettings.outliers.three_sigma_colour.value;
+    const plotPoints = new Array<plotData>();
+    const transform_text: string = this.inputSettings.funnel.transformation.value;
+    const transform: (x: number) => number = getTransformation(transform_text);
+    const target: number = this.chartBase.getTarget({ transformed: false });
+    const multiplier: number = this.inputSettings.funnel.multiplier.value;
+    const data_type: string = this.inputSettings.funnel.chart_type.value;
+    const flag_two_sigma: boolean = this.inputSettings.outliers.two_sigma.value;
+    const flag_three_sigma: boolean = this.inputSettings.outliers.three_sigma.value;
+    const flag_direction: string = this.inputSettings.outliers.flag_direction.value;
+    const two_sigma_colour: string = this.inputSettings.outliers.two_sigma_colour.value;
+    const three_sigma_colour: string = this.inputSettings.outliers.three_sigma_colour.value;
 
     for (let i: number = 0; i < this.inputData.id.length; i++) {
-      let original_index: number = this.inputData.id[i];
-      let numerator: number = this.inputData.numerator[i];
-      let denominator: number = this.inputData.denominator[i];
-      let ratio: number = (numerator / denominator);
-      let limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominator === denominator && d.ll99 !== null && d.ul99 !== null);
-      let limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominator === denominator)[0];
-      let aesthetics: SettingsBaseTypedT<scatterSettings> = this.inputData.scatter_formatting[i]
-      let two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
-      let three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
-      let category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
+      const original_index: number = this.inputData.id[i];
+      const numerator: number = this.inputData.numerator[i];
+      const denominator: number = this.inputData.denominator[i];
+      const ratio: number = (numerator / denominator);
+      const limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominator === denominator && d.ll99 !== null && d.ul99 !== null);
+      const limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominator === denominator)[0];
+      const aesthetics: SettingsBaseTypedT<scatterSettings> = this.inputData.scatter_formatting[i]
+      const two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
+      const three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
+      const category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
                               (this.inputData.categories.values[original_index]).toString() :
                               <string>(this.inputData.categories.values[original_index]);
       if (two_sigma_outlier) {
@@ -86,18 +86,18 @@ class viewModelObject {
       })
     }
     return plotPoints;
-  };
+  }
 
   getGroupedLines(): [string, lineData[]][] {
-    let multiplier: number = this.inputSettings.funnel.multiplier.value;
-    let transform: (x: number) => number = getTransformation(this.inputSettings.funnel.transformation.value);
+    const multiplier: number = this.inputSettings.funnel.multiplier.value;
+    const transform: (x: number) => number = getTransformation(this.inputSettings.funnel.transformation.value);
 
-    let target: number = this.chartBase.getTarget({ transformed: false });
-    let alt_target: number = this.inputSettings.funnel.alt_target.value;
+    const target: number = this.chartBase.getTarget({ transformed: false });
+    const alt_target: number = this.inputSettings.funnel.alt_target.value;
 
-    let labels: string[] = ["ll99", "ll95", "ul95", "ul99", "target", "alt_target"];
+    const labels: string[] = ["ll99", "ll95", "ul95", "ul99", "target", "alt_target"];
 
-    let formattedLines: lineData[] = new Array<lineData>();
+    const formattedLines: lineData[] = new Array<lineData>();
     this.calculatedLimits.forEach(limits => {
       limits.target = target;
       limits.alt_target = alt_target;
@@ -126,8 +126,8 @@ class viewModelObject {
       this.plotPoints = <plotData[]>null;
       this.groupedLines = <[string, lineData[]][]>null;
     } else {
-      let dv: powerbi.DataView[] = args.options.dataViews;
-      let chart_type: string = this.inputSettings.funnel.chart_type.value
+      const dv: powerbi.DataView[] = args.options.dataViews;
+      const chart_type: string = this.inputSettings.funnel.chart_type.value
       console.log("input dv: ", dv)
 
       this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
@@ -164,6 +164,6 @@ class viewModelObject {
     this.plotProperties = <plotPropertiesClass>null;
     this.firstRun = true
   }
-};
+}
 
 export default viewModelObject;

@@ -12,19 +12,19 @@ import { inv, square } from "../Functions/UnaryFunctions"
  * @returns
  */
 function getTau2(phi: number, SE: number[]): number {
-  let N: number = SE.length;
+  const N: number = SE.length;
   // Check for sufficient dispersion
   if (N * phi < N - 1) { return 0.0; }
 
   // Construct sample weights (inverse variances)
-  let w: number[] = inv(square(SE));
-  let w_sq: number[] = square(w);
-  let w_sum: number  = d3.sum(w);
-  let w_sq_sum: number = d3.sum(w_sq);
+  const w: number[] = inv(square(SE));
+  const w_sq: number[] = square(w);
+  const w_sum: number  = d3.sum(w);
+  const w_sq_sum: number = d3.sum(w_sq);
 
   // Estimate variance
-  let tau_num: number = (N * phi) - (N - 1.0);
-  let tau_denom: number = w_sum - (w_sq_sum / w_sum);
+  const tau_num: number = (N * phi) - (N - 1.0);
+  const tau_denom: number = w_sum - (w_sq_sum / w_sum);
   return tau_num / tau_denom;
 }
 

@@ -19,12 +19,12 @@ class dataObject {
   scatter_formatting: SettingsBaseTypedT<scatterSettings>[];
 
   constructor(inputView: powerbi.DataViewCategorical, inputSettings: settingsObject) {
-    let numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
-    let denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
-    let scatter_cond = extractConditionalFormatting<SettingsBaseTypedT<scatterSettings>>(inputView, "scatter", inputSettings)
+    const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
+    const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
+    const scatter_cond = extractConditionalFormatting<SettingsBaseTypedT<scatterSettings>>(inputView, "scatter", inputSettings)
 
     console.log("scatter: ", scatter_cond)
-    let valid_indexes: number[] = new Array<number>();
+    const valid_indexes: number[] = new Array<number>();
 
     for (let i: number = 0; i < denominators.length; i++) {
       if (checkValidInput(numerators[i], denominators[i], inputSettings.funnel.chart_type.value)) {

@@ -18,22 +18,22 @@ type tooltipArgs = {
 }
 
 function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
-  let numerator: number = args.numerator;
-  let denominator: number = args.denominator;
-  let multiplier: number = args.multiplier;
-  let ratio: number = args.transform((numerator / denominator) * multiplier);
-  let ul99: number = args.transform(args.limits.ul99 * multiplier);
-  let ll99: number = args.transform(args.limits.ll99 * multiplier);
-  let target: number = args.transform(args.target * multiplier);
+  const numerator: number = args.numerator;
+  const denominator: number = args.denominator;
+  const multiplier: number = args.multiplier;
+  const ratio: number = args.transform((numerator / denominator) * multiplier);
+  const ul99: number = args.transform(args.limits.ul99 * multiplier);
+  const ll99: number = args.transform(args.limits.ll99 * multiplier);
+  const target: number = args.transform(args.target * multiplier);
 
-  let prop_labels: boolean = (args.data_type === "PR" && args.multiplier === 100);
-  let valueLabel: Record<string, string> = {
+  const prop_labels: boolean = (args.data_type === "PR" && args.multiplier === 100);
+  const valueLabel: Record<string, string> = {
     "PR" : "Proportion",
     "SR" : "Standardised Ratio",
     "RC" : "Rate"
   }
 
-  let tooltip: VisualTooltipDataItem[] = new Array<VisualTooltipDataItem>();
+  const tooltip: VisualTooltipDataItem[] = new Array<VisualTooltipDataItem>();
   tooltip.push({
     displayName: "Group",
     value: args.group
@@ -70,7 +70,7 @@ function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
     })
   }
   if (args.two_sigma_outlier || args.three_sigma_outlier) {
-    let patterns: string[] = new Array<string>();
+    const patterns: string[] = new Array<string>();
     if (args.three_sigma_outlier) {
       patterns.push("Three Sigma Outlier")
     }
