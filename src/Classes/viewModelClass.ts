@@ -1,7 +1,7 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import powerbi from "powerbi-visuals-api";
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import IVisualHost = powerbi.extensibility.visual.IVisualHost;
+import type powerbi from "powerbi-visuals-api";
+type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
+type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import { chartClass, settingsClass, dataClass, type limitData, plotPropertiesClass } from "../Classes"

@@ -1,5 +1,5 @@
-import powerbi from "powerbi-visuals-api"
-import DataViewObjects = powerbi.DataViewObjects
+import type powerbi from "powerbi-visuals-api"
+type DataViewObjects = powerbi.DataViewObjects
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
 export default function extractSetting(inputObjects: DataViewObjects,

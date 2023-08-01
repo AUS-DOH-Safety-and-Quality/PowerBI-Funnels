@@ -1,4 +1,4 @@
-import powerbi from "powerbi-visuals-api";
+import type powerbi from "powerbi-visuals-api";
 import { extractValues, checkValidInput, extractDataColumn, extractConditionalFormatting } from "../Functions"
 import { type settingsClass } from "../Classes"
 import { SettingsBaseTypedT, scatterSettings } from "./settingsGroups";

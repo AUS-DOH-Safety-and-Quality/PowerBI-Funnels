@@ -1,6 +1,6 @@
 import powerbi from "powerbi-visuals-api";
-import DataViewPropertyValue = powerbi.DataViewPropertyValue
-import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
+type DataViewPropertyValue = powerbi.DataViewPropertyValue
+type VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 import VisualEnumerationInstanceKinds = powerbi.VisualEnumerationInstanceKinds;
 import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import {

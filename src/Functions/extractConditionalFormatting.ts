@@ -1,6 +1,6 @@
-import powerbi from "powerbi-visuals-api"
-import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
-import DataViewCategorical = powerbi.DataViewCategorical;
+import type powerbi from "powerbi-visuals-api"
+type DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
+type DataViewCategorical = powerbi.DataViewCategorical;
 import type { settingsClass } from "../Classes";
 import { AllSettingsTypes } from "../Classes/settingsGroups"
 import { extractSetting } from "../Functions";
