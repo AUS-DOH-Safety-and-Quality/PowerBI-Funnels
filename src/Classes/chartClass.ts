@@ -147,8 +147,8 @@ export default class chartClass {
     });
 
     const calcLimits: limitData[] = plottingDenominators.map((denom, idx) => {
-      let calcLimit: limitData;
-      calcLimit.denominator = denom;
+      let calcLimitEntries: [string, number][] = new Array<[string, number]>();
+      calcLimitEntries.push(["denominator", denom]);
       intervals.forEach(interval => {
         const functionArgs: limitArgs = {
           q: interval.quantile,
@@ -164,11 +164,11 @@ export default class chartClass {
           inputArgs: functionArgs
         });
 
-        calcLimit[interval.label] = limit
+        calcLimitEntries.push([interval.label, limit])
       });
-      calcLimit.target = target;
-      calcLimit.alt_target = alt_target;
-      return calcLimit;
+      calcLimitEntries.push(["target", target]);
+      calcLimitEntries.push(["alt_target", alt_target]);
+      return Object.fromEntries(calcLimitEntries) as limitData;
     });
 
     return calcLimits.map((d, idx) => {
