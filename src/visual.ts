@@ -13,7 +13,7 @@ import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
-import * as d3 from "d3";
+import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import svgObjectClass from "./Classes/svgObjectClass"
 import svgSelectionClass from "./Classes/svgSelectionClass"
 import viewModelObject from "./Classes/viewModel"
@@ -174,20 +174,15 @@ export class Visual implements IVisual {
 
   drawXAxis(): void {
     const xAxisProperties: axisProperties = this.viewModel.plotProperties.xAxis;
-    let xAxis: d3.Axis<d3.NumberValue>;
+    const xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(this.viewModel.plotProperties.xScale);
 
-    if (this.viewModel.plotProperties.displayPlot) {
-      if (xAxisProperties.ticks === true) {
-        xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale)
+      if (xAxisProperties.ticks) {
         if (xAxisProperties.tick_count) {
           xAxis.ticks(xAxisProperties.tick_count)
         }
       } else {
-        xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale).tickValues([]);
+        xAxis.tickValues([]);
       }
-    } else {
-      xAxis = d3.axisBottom(this.viewModel.plotProperties.xScale);
-    }
 
     const axisHeight: number = this.viewModel.plotProperties.height - this.viewModel.plotProperties.yAxis.end_padding;
 
@@ -237,12 +232,10 @@ export class Visual implements IVisual {
 
   drawYAxis(): void {
     const yAxisProperties: axisProperties = this.viewModel.plotProperties.yAxis;
-    let yAxis: d3.Axis<d3.NumberValue>;
+    const yAxis: d3.Axis<d3.NumberValue> = d3.axisLeft(this.viewModel.plotProperties.yScale);
     const sig_figs: number = this.viewModel.inputSettings.funnel.sig_figs.value;
 
     if (yAxisProperties.ticks) {
-      yAxis = d3.axisLeft(this.viewModel.plotProperties.yScale);
-
       if (yAxisProperties.tick_count) {
         yAxis.ticks(yAxisProperties.tick_count)
       }
@@ -256,7 +249,7 @@ export class Visual implements IVisual {
         );
       }
     } else {
-      yAxis = d3.axisLeft(this.viewModel.plotProperties.yScale).tickValues([]);
+      yAxis.tickValues([]);
     }
 
     // Draw axes on plot

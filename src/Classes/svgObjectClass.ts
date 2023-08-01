@@ -1,4 +1,4 @@
-import * as d3 from "d3";
+import * as d3 from "../D3 Plotting Functions/D3 Modules";
 type SelectionBase = d3.Selection<SVGGElement, unknown, null, undefined>;
 
 

@@ -1,4 +1,4 @@
-import * as d3 from "d3";
+import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import chartObject from "../Classes/chartObject"
 import dataObject from "../Classes/dataObject";
 import limitArguments from "../Classes/limitArgs";
