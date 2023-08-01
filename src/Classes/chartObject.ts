@@ -1,5 +1,4 @@
-import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import { normal_quantile, seq } from "../Functions";
+import { normal_quantile, seq, max } from "../Functions";
 import limitData from "./limitData";
 import intervalData from "./intervalData";
 import dataObject from "./dataObject";
@@ -34,7 +33,7 @@ class chartObject {
   limitFunctionOD: (x: limitArguments) => number;
 
   getPlottingDenominators(): number[] {
-    const maxDenominator: number = d3.max(this.inputData.denominator);
+    const maxDenominator: number = max(this.inputData.denominator);
     const plotDenomLower: number = 1;
     const plotDenomUpper: number = maxDenominator + maxDenominator * 0.1;
     const plotDenomStep: number = maxDenominator * 0.01;

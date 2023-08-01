@@ -1,5 +1,4 @@
-import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import { inv, square } from "../Functions"
+import { inv, square, sum } from "../Functions"
 
 /**
  * Estimate the between-unit variance to adjust control limits
@@ -19,8 +18,8 @@ function getTau2(phi: number, SE: number[]): number {
   // Construct sample weights (inverse variances)
   const w: number[] = inv(square(SE));
   const w_sq: number[] = square(w);
-  const w_sum: number  = d3.sum(w);
-  const w_sq_sum: number = d3.sum(w_sq);
+  const w_sum: number  = sum(w);
+  const w_sq_sum: number = sum(w_sq);
 
   // Estimate variance
   const tau_num: number = (N * phi) - (N - 1.0);
