@@ -1,26 +1,40 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import powerbi from "powerbi-visuals-api";
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import IVisualHost = powerbi.extensibility.visual.IVisualHost;
-import chartObject from "./chartObject"
-import settingsObject from "./settingsObject";
+import type powerbi from "powerbi-visuals-api";
+type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
+type IVisualHost = powerbi.extensibility.visual.IVisualHost;
+type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+type ISelectionId = powerbi.visuals.ISelectionId;
+import { chartClass, settingsClass, dataClass, type limitData, plotPropertiesClass } from "../Classes"
 import checkInvalidDataView from "../Functions/checkInvalidDataView"
 import * as chartObjects from "../Chart Types"
-import dataObject from "./dataObject";
-import limitData from "./limitData";
-import type { lineData } from "./lineData"
-import plotPropertiesClass from "./plotProperties";
-import type { plotData } from "./plotData"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
-import buildTooltip from "../Functions/buildTooltip"
-import { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
+import { buildTooltip } from "../Functions"
+import { SettingsBaseTypedT, scatterSettings } from "./settingsGroups";
 
-class viewModelObject {
-  inputData: dataObject;
-  inputSettings: settingsObject;
-  chartBase: chartObject;
+export type lineData = {
+  x: number;
+  line_value: number;
+  group: string;
+}
+
+export type plotData = {
+  x: number;
+  value: number;
+  aesthetics: SettingsBaseTypedT<scatterSettings>;
+  // ISelectionId allows the visual to report the selection choice to PowerBI
+  identity: ISelectionId;
+  // Flag for whether dot should be highlighted by selections in other charts
+  highlighted: boolean;
+  // Tooltip data to print
+  tooltip: VisualTooltipDataItem[];
+}
+
+export default class viewModelClass {
+  inputData: dataClass;
+  inputSettings: settingsClass;
+  chartBase: chartClass;
   calculatedLimits: limitData[];
   plotPoints: plotData[];
   groupedLines: [string, lineData[]][];
@@ -115,12 +129,12 @@ class viewModelObject {
   update(args: { options: VisualUpdateOptions;
                   host: IVisualHost; }) {
     if (this.firstRun) {
-      this.inputSettings = new settingsObject();
+      this.inputSettings = new settingsClass();
     }
     this.inputSettings.update(args.options.dataViews[0]);
 
     if (checkInvalidDataView(args.options.dataViews)) {
-      this.inputData = <dataObject>null;
+      this.inputData = <dataClass>null;
       this.chartBase = null;
       this.calculatedLimits = null;
       this.plotPoints = new Array<plotData>();
@@ -129,7 +143,7 @@ class viewModelObject {
       const dv: powerbi.DataView[] = args.options.dataViews;
       const chart_type: string = this.inputSettings.funnel.chart_type.value
 
-      this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
+      this.inputData = new dataClass(dv[0].categorical, this.inputSettings);
 
       this.chartBase = new chartObjects[chart_type as keyof typeof chartObjects]({ inputData: this.inputData,
                                                       inputSettings: this.inputSettings });
@@ -154,8 +168,8 @@ class viewModelObject {
   }
 
   constructor() {
-    this.inputData = <dataObject>null;
-    this.inputSettings = <settingsObject>null;
+    this.inputData = <dataClass>null;
+    this.inputSettings = <settingsClass>null;
     this.chartBase = null;
     this.calculatedLimits = null;
     this.plotPoints = new Array<plotData>();
@@ -164,5 +178,3 @@ class viewModelObject {
     this.firstRun = true
   }
 }
-
-export default viewModelObject;

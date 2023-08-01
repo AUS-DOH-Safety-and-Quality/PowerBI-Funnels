@@ -4,7 +4,7 @@ import type powerbi from "powerbi-visuals-api";
 type EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 type VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 import * as d3 from "./D3 Plotting Functions/D3 Modules";
-import viewModelObject from "./Classes/viewModel"
+import { viewModelClass } from "./Classes"
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, updateHighlighting, addContextMenu } from "./D3 Plotting Functions"
 
@@ -13,14 +13,14 @@ export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
 export class Visual implements powerbi.extensibility.IVisual {
   host: powerbi.extensibility.visual.IVisualHost;
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
-  viewModel: viewModelObject;
+  viewModel: viewModelClass;
   selectionManager: powerbi.extensibility.ISelectionManager;
 
   constructor(options: powerbi.extensibility.visual.VisualConstructorOptions) {
     this.svg = d3.select(options.element).append("svg");
     this.host = options.host;
 
-    this.viewModel = new viewModelObject();
+    this.viewModel = new viewModelClass();
 
     this.selectionManager = this.host.createSelectionManager();
     this.selectionManager.registerOnSelectCallback(() => {

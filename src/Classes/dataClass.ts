@@ -1,15 +1,11 @@
-import powerbi from "powerbi-visuals-api";
-import extractValues from "../Functions/extractValues"
-import checkValidInput from "../Functions/checkValidInput"
-import settingsObject from "./settingsObject"
-import plotKey from "./plotKey"
-import extractDataColumn from "../Functions/extractDataColumn"
-import extractConditionalFormatting from "../Functions/extractConditionalFormatting"
-import { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
+import type powerbi from "powerbi-visuals-api";
+import { extractValues, checkValidInput, extractDataColumn, extractConditionalFormatting } from "../Functions"
+import { type settingsClass } from "../Classes"
+import { SettingsBaseTypedT, scatterSettings } from "./settingsGroups";
 
-class dataObject {
+export default class dataClass {
   id: number[];
-  keys: plotKey[];
+  keys: { x: number, id: number, label: string }[];
   numerator: number[];
   denominator: number[];
   highlights: powerbi.PrimitiveValue[];
@@ -18,7 +14,7 @@ class dataObject {
   categories: powerbi.DataViewCategoryColumn;
   scatter_formatting: SettingsBaseTypedT<scatterSettings>[];
 
-  constructor(inputView: powerbi.DataViewCategorical, inputSettings: settingsObject) {
+  constructor(inputView: powerbi.DataViewCategorical, inputSettings: settingsClass) {
     const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
     const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
     const scatter_cond = extractConditionalFormatting<SettingsBaseTypedT<scatterSettings>>(inputView, "scatter", inputSettings)
@@ -41,5 +37,3 @@ class dataObject {
     this.scatter_formatting = extractValues(scatter_cond, valid_indexes)
   }
 }
-
-export default dataObject;

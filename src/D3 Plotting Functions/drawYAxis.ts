@@ -1,7 +1,7 @@
 import * as d3 from "./D3 Modules";
 import { abs } from "../Functions";
-import drawXAxis from "./drawXAxis";
-import type { axisProperties } from "../Classes/plotProperties";
+import { drawXAxis } from "../D3 Plotting Functions";
+import type { axisProperties } from "../Classes";
 import type { svgBaseType, Visual } from "../visual";
 
 export default function drawYAxis(selection: svgBaseType, visualObj: Visual, refresh?: boolean) {

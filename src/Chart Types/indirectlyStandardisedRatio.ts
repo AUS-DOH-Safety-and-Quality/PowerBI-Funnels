@@ -1,36 +1,33 @@
-import chartObject from "../Classes/chartObject"
-import dataObject from '../Classes/dataObject';
-import limitArguments from '../Classes/limitArgs';
-import settingsObject from '../Classes/settingsObject';
+import { chartClass, type limitArgs, type dataClass, type settingsClass } from "../Classes"
 import { chisq_quantile, normal_cdf, winsorise, sqrt,
           inv, square, multiply, divide } from '../Functions';
 
 // ESLint errors due to unused input, but needed for agnostic use with other charts
 /* eslint-disable */
-const smrSE = function(inputData: dataObject): number[] {
+const smrSE = function(inputData: dataClass): number[] {
   return [];
 }
 /* eslint-enable */
 
-const smrSEOD = function(inputData: dataObject): number[] {
+const smrSEOD = function(inputData: dataClass): number[] {
   const denominator: number[] = inputData.denominator;
   return inv(multiply(2, sqrt(denominator)));
 }
 
 // ESLint errors due to unused input, but needed for agnostic use with other charts
 /* eslint-disable */
-const smrTarget = function(inputData: dataObject): number {
+const smrTarget = function(inputData: dataClass): number {
   return 1;
 }
 /* eslint-enable */
 
-const smrY = function(inputData: dataObject): number[] {
+const smrY = function(inputData: dataClass): number[] {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
   return sqrt(divide(numerator, denominator));
 }
 
-const smrLimitOD = function(args: limitArguments) {
+const smrLimitOD = function(args: limitArgs) {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;
@@ -41,7 +38,7 @@ const smrLimitOD = function(args: limitArguments) {
   return winsorise(limit, {lower: 0})
 }
 
-const smrLimit = function(args: limitArguments) {
+const smrLimit = function(args: limitArgs) {
   const q: number = args.q;
   const denominator: number = args.denominator;
   const p: number = normal_cdf(q, 0, 1);
@@ -54,9 +51,9 @@ const smrLimit = function(args: limitArguments) {
   return winsorise(limit, {lower: 0})
 }
 
-class smrFunnelObject extends chartObject {
-  constructor(args: { inputData: dataObject,
-                      inputSettings: settingsObject }) {
+class smrFunnelObject extends chartClass {
+  constructor(args: { inputData: dataClass,
+                      inputSettings: settingsClass }) {
     super({
       seFunction: smrSE,
       seFunctionOD: smrSEOD,

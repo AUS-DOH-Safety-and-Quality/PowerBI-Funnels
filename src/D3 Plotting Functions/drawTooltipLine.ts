@@ -1,7 +1,6 @@
 import * as d3 from "./D3 Modules";
 import type { svgBaseType, Visual } from "../visual";
-import type { plotData } from "../Classes/plotData";
-import type plotPropertiesClass from "../Classes/plotProperties";
+import type { plotData, plotPropertiesClass } from "../Classes/";
 
 export default function drawTooltipLine(selection: svgBaseType, visualObj: Visual) {
   const plotProperties: plotPropertiesClass = visualObj.viewModel.plotProperties;

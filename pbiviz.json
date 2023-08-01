@@ -4,7 +4,7 @@
         "displayName":"Funnel Plots",
         "guid":"PBIFUN",
         "visualClassName":"Visual",
-        "version":"1.3.5.1",
+        "version":"1.3.5.2",
         "description":"A PowerBI custom visual for funnel plots",
         "supportUrl":"https://github.com/AUS-DOH-Safety-and-Quality/PowerBI-Funnels",
         "gitHubUrl":"https://github.com/AUS-DOH-Safety-and-Quality/PowerBI-Funnels"

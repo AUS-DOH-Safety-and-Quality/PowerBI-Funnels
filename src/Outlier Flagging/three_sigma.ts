@@ -1,4 +1,4 @@
-import limitData from "../Classes/limitData"
+import type { limitData } from "../Classes";
 import { between } from "../Functions"
 
 export default function three_sigma(value: number, flag_direction: string,

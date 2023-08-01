@@ -1,31 +1,28 @@
-import chartObject from "../Classes/chartObject"
-import dataObject from "../Classes/dataObject";
-import limitArguments from "../Classes/limitArgs";
-import settingsObject from "../Classes/settingsObject";
+import { chartClass, type limitArgs, type dataClass, type settingsClass } from "../Classes"
 import { sum, sqrt, inv, asin, square, multiply, divide, winsorise } from "../Functions"
 
-const prSE = function(inputData: dataObject): number[] {
+const prSE = function(inputData: dataClass): number[] {
   const denominator: number[] = inputData.denominator;
   return inv(multiply(2, sqrt(denominator)));
 }
 
-const prTarget = function(inputData: dataObject): number {
+const prTarget = function(inputData: dataClass): number {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
   return sum(numerator) / sum(denominator);
 }
 
-const prTargetTransformed = function(inputData: dataObject): number {
+const prTargetTransformed = function(inputData: dataClass): number {
   return Math.asin(Math.sqrt(prTarget(inputData)));
 }
 
-const prY = function(inputData: dataObject): number[] {
+const prY = function(inputData: dataClass): number[] {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
   return asin(sqrt(divide(numerator, denominator)));
 }
 
-const prLimit = function(args: limitArguments) {
+const prLimit = function(args: limitArgs) {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;
@@ -36,9 +33,9 @@ const prLimit = function(args: limitArguments) {
   return winsorise(limit, {lower: 0, upper: 1})
 }
 
-class prFunnelObject extends chartObject {
-  constructor(args: { inputData: dataObject,
-                      inputSettings: settingsObject }) {
+class prFunnelObject extends chartClass {
+  constructor(args: { inputData: dataClass,
+                      inputSettings: settingsClass }) {
     super({
       seFunction: prSE,
       seFunctionOD: prSE,

@@ -1,5 +1,5 @@
 import * as d3 from "./D3 Modules";
-import type { lineData } from "../Classes/lineData";
+import type { lineData } from "../Classes";
 import { between, getAesthetic } from "../Functions";
 import type { svgBaseType, Visual } from "../visual";
 

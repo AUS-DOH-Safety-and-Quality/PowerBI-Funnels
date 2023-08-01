@@ -1,36 +1,56 @@
 import { normal_quantile, seq, max } from "../Functions";
-import limitData from "./limitData";
-import intervalData from "./intervalData";
-import dataObject from "./dataObject";
-import limitArguments from "./limitArgs";
+import type { settingsClass, dataClass } from "../Classes";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
 import getTau2 from "../Funnel Calculations/getTau2";
-import settingsObject from "./settingsObject";
 
-type chartObjectConstructorT = {
-  seFunction: (x: dataObject) => number[];
-  seFunctionOD: (x: dataObject) => number[];
-  targetFunction: (x: dataObject) => number;
-  targetFunctionTransformed: (x: dataObject) => number;
-  yFunction: (x: dataObject) => number[];
-  limitFunction: (x: limitArguments) => number;
-  limitFunctionOD: (x: limitArguments) => number;
-  inputData: dataObject;
-  inputSettings: settingsObject;
+export type limitArgs = {
+  q: number;
+  target: number;
+  target_transformed: number;
+  SE: number;
+  tau2: number;
+  denominator: number;
 }
 
-class chartObject {
-  inputData: dataObject;
-  inputSettings: settingsObject;
-  seFunction: (x: dataObject) => number[];
-  seFunctionOD: (x: dataObject) => number[];
-  targetFunction: (x: dataObject) => number;
-  targetFunctionTransformed: (x: dataObject) => number;
-  yFunction: (x: dataObject) => number[];
-  limitFunction: (x: limitArguments) => number;
-  limitFunctionOD: (x: limitArguments) => number;
+export type limitData = {
+  denominator: number;
+  ll99: number;
+  ll95: number;
+  ul95: number;
+  ul99: number;
+  target: number;
+  alt_target: number;
+}
+
+type intervalData = {
+  quantile: number;
+  label: string;
+}
+
+type chartObjectConstructorT = {
+  seFunction: (x: dataClass) => number[];
+  seFunctionOD: (x: dataClass) => number[];
+  targetFunction: (x: dataClass) => number;
+  targetFunctionTransformed: (x: dataClass) => number;
+  yFunction: (x: dataClass) => number[];
+  limitFunction: (x: limitArgs) => number;
+  limitFunctionOD: (x: limitArgs) => number;
+  inputData: dataClass;
+  inputSettings: settingsClass;
+}
+
+export default class chartClass {
+  inputData: dataClass;
+  inputSettings: settingsClass;
+  seFunction: (x: dataClass) => number[];
+  seFunctionOD: (x: dataClass) => number[];
+  targetFunction: (x: dataClass) => number;
+  targetFunctionTransformed: (x: dataClass) => number;
+  yFunction: (x: dataClass) => number[];
+  limitFunction: (x: limitArgs) => number;
+  limitFunctionOD: (x: limitArgs) => number;
 
   getPlottingDenominators(): number[] {
     const maxDenominator: number = max(this.inputData.denominator);
@@ -50,7 +70,7 @@ class chartObject {
   getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
     const seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
     if (par.plottingDenominators) {
-      const dummyArray: dataObject = JSON.parse(JSON.stringify(this.inputData))
+      const dummyArray: dataClass = JSON.parse(JSON.stringify(this.inputData))
       dummyArray.numerator = null
       dummyArray.denominator = par.plottingDenominators;
       return seFun(dummyArray);
@@ -83,7 +103,7 @@ class chartObject {
     return tauReturn[this.inputSettings.funnel.od_adjust.value];
   }
 
-  getSingleLimit(par: { odAdjust: boolean, inputArgs: limitArguments }): number {
+  getSingleLimit(par: { odAdjust: boolean, inputArgs: limitArgs }): number {
     const limitFun = par.odAdjust ? this.limitFunctionOD : this.limitFunction;
     return limitFun(par.inputArgs);
   }
@@ -94,10 +114,12 @@ class chartObject {
                          .map(p => normal_quantile(p, 0, 1));
     const q_labels: string[] = ["ll99", "ll95", "ul95", "ul99"];
 
-    return qs.map((d, idx) => new intervalData({
-      quantile: d,
-      label: q_labels[idx]
-    }));
+    return qs.map((d, idx) => {
+      return {
+        quantile: d,
+        label: q_labels[idx]
+      }
+    });
   }
 
   getLimits(): limitData[] {
@@ -125,27 +147,28 @@ class chartObject {
     });
 
     const calcLimits: limitData[] = plottingDenominators.map((denom, idx) => {
-      const calcLimit: limitData = new limitData(denom);
+      let calcLimitEntries: [string, number][] = new Array<[string, number]>();
+      calcLimitEntries.push(["denominator", denom]);
       intervals.forEach(interval => {
-        const functionArgs: limitArguments = new limitArguments({
+        const functionArgs: limitArgs = {
           q: interval.quantile,
           target: target,
           target_transformed: target_transformed,
           SE: plottingSE[idx],
           tau2: tau2,
           denominator: denom
-        });
+        };
 
         const limit: number = this.getSingleLimit({
           odAdjust: odAdjust,
           inputArgs: functionArgs
         });
 
-        calcLimit[interval.label] = limit
+        calcLimitEntries.push([interval.label, limit])
       });
-      calcLimit.target = target;
-      calcLimit.alt_target = alt_target;
-      return calcLimit;
+      calcLimitEntries.push(["target", target]);
+      calcLimitEntries.push(["alt_target", alt_target]);
+      return Object.fromEntries(calcLimitEntries) as limitData;
     });
 
     return calcLimits.map((d, idx) => {
@@ -172,5 +195,3 @@ class chartObject {
     this.inputSettings = args.inputSettings;
   }
 }
-
-export default chartObject;

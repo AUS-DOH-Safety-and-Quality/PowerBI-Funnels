@@ -1,10 +1,7 @@
-import chartObject from "../Classes/chartObject"
-import dataObject from "../Classes/dataObject";
-import limitArguments from "../Classes/limitArgs";
+import { chartClass, type limitArgs, type dataClass, type settingsClass } from "../Classes"
 import { sum, add, divide, sqrt, log, exp, square, winsorise } from "../Functions"
-import settingsObject from "../Classes/settingsObject";
 
-const rcSE = function(inputData: dataObject): number[] {
+const rcSE = function(inputData: dataClass): number[] {
   const numerator: number[] = inputData.numerator ? inputData.numerator : inputData.denominator;
   const denominator: number[] = inputData.denominator;
 
@@ -14,25 +11,25 @@ const rcSE = function(inputData: dataObject): number[] {
   );
 }
 
-const rcTarget = function(inputData: dataObject): number {
+const rcTarget = function(inputData: dataClass): number {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
   return sum(numerator) / sum(denominator);
 }
 
-const rcTargetTransformed = function(inputData: dataObject): number {
+const rcTargetTransformed = function(inputData: dataClass): number {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
   return log(sum(numerator)) - log(sum(denominator));
 }
 
-const rcY = function(inputData: dataObject): number[] {
+const rcY = function(inputData: dataClass): number[] {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
   return log(divide(add(numerator, 0.5), add(denominator, 0.5)));
 }
 
-const rcLimit = function(args: limitArguments): number {
+const rcLimit = function(args: limitArgs): number {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;
@@ -43,9 +40,9 @@ const rcLimit = function(args: limitArguments): number {
   return winsorise(limit, {lower: 0});
 }
 
-class rcFunnelObject extends chartObject {
-  constructor(args: { inputData: dataObject,
-                      inputSettings: settingsObject }) {
+class rcFunnelObject extends chartClass {
+  constructor(args: { inputData: dataClass,
+                      inputSettings: settingsClass }) {
     super({
       seFunction: rcSE,
       seFunctionOD: rcSE,
