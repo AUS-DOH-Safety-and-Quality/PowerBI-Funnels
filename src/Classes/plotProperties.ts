@@ -7,7 +7,7 @@ import dataObject from "./dataObject";
 import settingsObject from "./settingsObject";
 import { divide, max } from "../Functions/";
 
-type axisProperties = {
+export type axisProperties = {
   lower: number,
   upper: number,
   start_padding: number,
@@ -24,7 +24,7 @@ type axisProperties = {
   label_colour: string
 };
 
-class plotPropertiesClass {
+export default class plotPropertiesClass {
   width: number;
   height: number;
   displayPlot: boolean;
@@ -42,8 +42,8 @@ class plotPropertiesClass {
 
     this.yScale = d3.scaleLinear()
                             .domain([this.yAxis.lower, this.yAxis.upper])
-                            .range([this.height - this.yAxis.end_padding,
-                                    this.yAxis.start_padding]);
+                            .range([this.height - this.yAxis.start_padding,
+                                    this.yAxis.end_padding]);
   }
 
   update(args: { options: VisualUpdateOptions,
@@ -58,30 +58,6 @@ class plotPropertiesClass {
     this.displayPlot = args.plotPoints
       ? args.plotPoints.length > 1
       : null;
-
-
-    // Axis & label padding is based on the browser default font size of 16px,
-    //    so need to scale accordingly if a different font size is used
-    const browserFontSize: number = Number(window.getComputedStyle(document.body).getPropertyValue('font-size').match(/\d+/)[0]);
-    const fontScaling: number = browserFontSize / 16;
-
-    // Map the default pixel sizes for each text label, based on browser default so scaled
-    // https://careerkarma.com/blog/css-font-size/
-    const fontSizeMap: Record<string, number> = {
-      "xx-small" : 9 * fontScaling,
-      "x-small" : 10 * fontScaling,
-      "small" : 13 * fontScaling,
-      "medium" : 16 * fontScaling,
-      "large" : 18 * fontScaling,
-      "x-large" : 24 * fontScaling,
-      "xx-large" : 32 * fontScaling
-    };
-
-    // Only scale padding for label if a label is actually present
-    const xLabelSize: string = args.inputSettings.x_axis.xlimit_label_size.value;
-    const xLabelPadding: number = args.inputSettings.x_axis.xlimit_label.value ? fontSizeMap[xLabelSize] : 0;
-    const yLabelSize: string = args.inputSettings.y_axis.ylimit_label_size.value;
-    const yLabelPadding: number = args.inputSettings.y_axis.ylimit_label.value ? fontSizeMap[yLabelSize] : 0;
 
     const xTickSize: string = args.inputSettings.x_axis.xlimit_tick_size.value;
     const yTickSize: string = args.inputSettings.y_axis.ylimit_tick_size.value;
@@ -98,7 +74,7 @@ class plotPropertiesClass {
     this.xAxis = {
       lower: xLowerLimit ? xLowerLimit : 0,
       upper: xUpperLimit,
-      start_padding: args.inputSettings.canvas.left_padding.value + fontSizeMap[xTickSize] + xLabelPadding,
+      start_padding: args.inputSettings.canvas.left_padding.value,
       end_padding: args.inputSettings.canvas.right_padding.value,
       colour: args.inputSettings.x_axis.xlimit_colour.value,
       ticks: (xTicksCount !== null) ? (xTicksCount > 0) : args.inputSettings.x_axis.xlimit_ticks.value,
@@ -124,8 +100,8 @@ class plotPropertiesClass {
     this.yAxis = {
       lower: yLowerLimit ? yLowerLimit : 0,
       upper: yUpperLimit,
-      start_padding: args.inputSettings.canvas.upper_padding.value,
-      end_padding: args.inputSettings.canvas.lower_padding.value + fontSizeMap[yTickSize] + yLabelPadding,
+      start_padding: args.inputSettings.canvas.lower_padding.value,
+      end_padding: args.inputSettings.canvas.upper_padding.value,
       colour: args.inputSettings.y_axis.ylimit_colour.value,
       ticks: (yTicksCount !== null) ? (yTicksCount > 0) : args.inputSettings.y_axis.ylimit_ticks.value,
       tick_size: yTickSize,
@@ -140,6 +116,3 @@ class plotPropertiesClass {
     this.initialiseScale();
   }
 }
-
-export default plotPropertiesClass
-export { axisProperties }
