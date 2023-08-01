@@ -63,12 +63,12 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
   const y: number = visualObj.viewModel.plotProperties.height / 2;
 
   selection.select(".yaxislabel")
-      .attr("x",leftMidpoint)
-      .attr("y", y)
-      .attr("transform",`rotate(-90, ${leftMidpoint}, ${y})`)
-      .text(yAxisProperties.label)
-      .style("text-anchor", "middle")
-      .style("font-size", yAxisProperties.label_size)
-      .style("font-family", yAxisProperties.label_font)
-      .style("fill", displayPlot ? yAxisProperties.label_colour : "#FFFFFF");
+            .attr("x",leftMidpoint)
+            .attr("y", y)
+            .attr("transform",`rotate(-90, ${leftMidpoint}, ${y})`)
+            .text(yAxisProperties.label)
+            .style("text-anchor", "middle")
+            .style("font-size", yAxisProperties.label_size)
+            .style("font-family", yAxisProperties.label_font)
+            .style("fill", displayPlot ? yAxisProperties.label_colour : "#FFFFFF");
 }

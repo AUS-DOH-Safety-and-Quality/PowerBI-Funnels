@@ -5,27 +5,27 @@ import updateHighlighting from "./updateHighlighting";
 
 export default function drawDots(selection: svgBaseType, visualObj: Visual) {
   selection
-  .select(".dotsgroup")
-  .selectAll("circle")
-  .data(visualObj.viewModel.plotPoints)
-  .join("circle")
-  .filter((d: plotData) => d.value !== null)
-  .attr("cy", (d: plotData) => visualObj.viewModel.plotProperties.yScale(d.value))
-  .attr("cx", (d: plotData) => visualObj.viewModel.plotProperties.xScale(d.x))
-  .attr("r", (d: plotData) => d.aesthetics.size)
-  .style("fill", (d: plotData) => {
-    const lower: number = visualObj.viewModel.plotProperties.yAxis.lower;
-    const upper: number = visualObj.viewModel.plotProperties.yAxis.upper;
-    return between(d.value, lower, upper) ? d.aesthetics.colour : "#FFFFFF";
-  })
-  .on("click", (event, d: plotData) => {
-        // Pass identities of selected data back to PowerBI
-        visualObj.selectionManager
-            // Propagate identities of selected data back to
-            //   PowerBI based on all selected dots
-            .select(d.identity, (event.ctrlKey || event.metaKey))
-            // Change opacity of non-selected dots
-            .then(() => { selection.call(updateHighlighting, visualObj); });
+    .select(".dotsgroup")
+    .selectAll("circle")
+    .data(visualObj.viewModel.plotPoints)
+    .join("circle")
+    .filter((d: plotData) => d.value !== null)
+    .attr("cy", (d: plotData) => visualObj.viewModel.plotProperties.yScale(d.value))
+    .attr("cx", (d: plotData) => visualObj.viewModel.plotProperties.xScale(d.x))
+    .attr("r", (d: plotData) => d.aesthetics.size)
+    .style("fill", (d: plotData) => {
+      const lower: number = visualObj.viewModel.plotProperties.yAxis.lower;
+      const upper: number = visualObj.viewModel.plotProperties.yAxis.upper;
+      return between(d.value, lower, upper) ? d.aesthetics.colour : "#FFFFFF";
+    })
+    .on("click", (event, d: plotData) => {
+      // Pass identities of selected data back to PowerBI
+      visualObj.selectionManager
+          // Propagate identities of selected data back to
+          //   PowerBI based on all selected dots
+          .select(d.identity, (event.ctrlKey || event.metaKey))
+          // Change opacity of non-selected dots
+          .then(() => { selection.call(updateHighlighting, visualObj); });
 
       event.stopPropagation();
     })
@@ -51,8 +51,8 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual) {
       })
     });
 
-    selection.on('click', () => {
-      visualObj.selectionManager.clear();
-      selection.call(updateHighlighting, visualObj);
-});
+  selection.on('click', () => {
+    visualObj.selectionManager.clear();
+    selection.call(updateHighlighting, visualObj);
+  });
 }
