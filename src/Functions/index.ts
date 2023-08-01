@@ -6,7 +6,6 @@ export { default as broadcast_binary, pow, subtract, add, divide, multiply } fro
 export { default as buildTooltip } from "./buildTooltip"
 export { default as checkInvalidDataView } from "./checkInvalidDataView"
 export { default as checkValidInput } from "./checkValidInput"
-export { default as dateToFormattedString } from "./dateToFormattedString"
 export { default as extractConditionalFormatting } from "./extractConditionalFormatting"
 export { default as extractDataColumn } from "./extractDataColumn"
 export { default as extractSetting } from "./extractSetting"

@@ -1,6 +1,5 @@
-import chartObject from "../Classes/chartObject"
+import chartObject, {limitArgs} from "../Classes/chartObject"
 import dataObject from '../Classes/dataObject';
-import limitArguments from '../Classes/limitArgs';
 import settingsObject from '../Classes/settingsObject';
 import { chisq_quantile, normal_cdf, winsorise, sqrt,
           inv, square, multiply, divide } from '../Functions';
@@ -30,7 +29,7 @@ const smrY = function(inputData: dataObject): number[] {
   return sqrt(divide(numerator, denominator));
 }
 
-const smrLimitOD = function(args: limitArguments) {
+const smrLimitOD = function(args: limitArgs) {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;
@@ -41,7 +40,7 @@ const smrLimitOD = function(args: limitArguments) {
   return winsorise(limit, {lower: 0})
 }
 
-const smrLimit = function(args: limitArguments) {
+const smrLimit = function(args: limitArgs) {
   const q: number = args.q;
   const denominator: number = args.denominator;
   const p: number = normal_cdf(q, 0, 1);

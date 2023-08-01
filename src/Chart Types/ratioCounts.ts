@@ -1,6 +1,5 @@
-import chartObject from "../Classes/chartObject"
+import chartObject, { limitArgs } from "../Classes/chartObject"
 import dataObject from "../Classes/dataObject";
-import limitArguments from "../Classes/limitArgs";
 import { sum, add, divide, sqrt, log, exp, square, winsorise } from "../Functions"
 import settingsObject from "../Classes/settingsObject";
 
@@ -32,7 +31,7 @@ const rcY = function(inputData: dataObject): number[] {
   return log(divide(add(numerator, 0.5), add(denominator, 0.5)));
 }
 
-const rcLimit = function(args: limitArguments): number {
+const rcLimit = function(args: limitArgs): number {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;

@@ -1,6 +1,5 @@
-import chartObject from "../Classes/chartObject"
+import chartObject, { limitArgs } from "../Classes/chartObject"
 import dataObject from "../Classes/dataObject";
-import limitArguments from "../Classes/limitArgs";
 import settingsObject from "../Classes/settingsObject";
 import { sum, sqrt, inv, asin, square, multiply, divide, winsorise } from "../Functions"
 
@@ -25,7 +24,7 @@ const prY = function(inputData: dataObject): number[] {
   return asin(sqrt(divide(numerator, denominator)));
 }
 
-const prLimit = function(args: limitArguments) {
+const prLimit = function(args: limitArgs) {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;

@@ -1,8 +1,8 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import { plotData } from "./plotData";
-import limitData from "./limitData";
+import { plotData } from "./viewModel";
+import type { limitData } from "./chartObject";
 import dataObject from "./dataObject";
 import settingsObject from "./settingsObject";
 import { divide, max } from "../Functions/";

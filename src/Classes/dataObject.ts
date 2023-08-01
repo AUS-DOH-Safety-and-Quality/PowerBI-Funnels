@@ -2,14 +2,13 @@ import powerbi from "powerbi-visuals-api";
 import extractValues from "../Functions/extractValues"
 import checkValidInput from "../Functions/checkValidInput"
 import settingsObject from "./settingsObject"
-import plotKey from "./plotKey"
 import extractDataColumn from "../Functions/extractDataColumn"
 import extractConditionalFormatting from "../Functions/extractConditionalFormatting"
 import { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
 
 class dataObject {
   id: number[];
-  keys: plotKey[];
+  keys: { x: number, id: number, label: string }[];
   numerator: number[];
   denominator: number[];
   highlights: powerbi.PrimitiveValue[];

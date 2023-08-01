@@ -2,20 +2,38 @@ import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import powerbi from "powerbi-visuals-api";
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
+type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+type ISelectionId = powerbi.visuals.ISelectionId;
 import chartObject from "./chartObject"
 import settingsObject from "./settingsObject";
 import checkInvalidDataView from "../Functions/checkInvalidDataView"
 import * as chartObjects from "../Chart Types"
 import dataObject from "./dataObject";
-import limitData from "./limitData";
-import type { lineData } from "./lineData"
+import type { limitData } from "./chartObject";
 import plotPropertiesClass from "./plotProperties";
-import type { plotData } from "./plotData"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
 import buildTooltip from "../Functions/buildTooltip"
 import { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
+
+export type lineData = {
+  x: number;
+  line_value: number;
+  group: string;
+}
+
+export type plotData = {
+  x: number;
+  value: number;
+  aesthetics: SettingsBaseTypedT<scatterSettings>;
+  // ISelectionId allows the visual to report the selection choice to PowerBI
+  identity: ISelectionId;
+  // Flag for whether dot should be highlighted by selections in other charts
+  highlighted: boolean;
+  // Tooltip data to print
+  tooltip: VisualTooltipDataItem[];
+}
 
 class viewModelObject {
   inputData: dataObject;

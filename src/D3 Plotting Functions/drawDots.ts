@@ -1,4 +1,4 @@
-import type { plotData } from "../Classes/plotData";
+import type { plotData } from "../Classes/viewModel";
 import { between } from "../Functions";
 import type { svgBaseType, Visual } from "../visual";
 import updateHighlighting from "./updateHighlighting";
