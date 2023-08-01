@@ -1,7 +1,7 @@
-import type { plotData } from "../Classes/viewModel";
+import type { plotData } from "../Classes";
 import { between } from "../Functions";
 import type { svgBaseType, Visual } from "../visual";
-import updateHighlighting from "./updateHighlighting";
+import { updateHighlighting } from "../D3 Plotting Functions";
 
 export default function drawDots(selection: svgBaseType, visualObj: Visual) {
   selection

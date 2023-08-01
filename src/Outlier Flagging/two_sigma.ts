@@ -1,4 +1,4 @@
-import type { limitData } from "../Classes/chartObject";
+import type { limitData } from "../Classes";
 import { between } from "../Functions"
 
 export default function two_sigma(value: number, flag_direction: string,

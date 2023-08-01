@@ -15,7 +15,7 @@ import {
 } from "./settingsGroups"
 import { extractSetting, extractConditionalFormatting } from "../Functions";
 
-class settingsObject {
+export default class settingsClass {
   [key: string] : any;
   canvas: canvasSettings;
   funnel: funnelSettings;
@@ -29,7 +29,7 @@ class settingsObject {
 
   update(inputView: powerbi.DataView): void {
     const inputObjects: powerbi.DataViewObjects = inputView.metadata.objects;
-    // Get the names of all classes in settingsObject which have values to be updated
+    // Get the names of all classes in settingsClass which have values to be updated
     const allSettingGroups: string[] = Object.getOwnPropertyNames(this);
     allSettingGroups.forEach(settingGroup => {
       const condFormatting: AllSettingsTypes = inputView.categorical.categories
@@ -82,5 +82,3 @@ class settingsObject {
     this.outliers = new outliersSettings();
   }
 }
-
-export default settingsObject;

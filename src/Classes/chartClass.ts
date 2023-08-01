@@ -1,10 +1,9 @@
 import { normal_quantile, seq, max } from "../Functions";
-import dataObject from "./dataObject";
+import { settingsClass, dataClass } from "../Classes";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
 import getTau2 from "../Funnel Calculations/getTau2";
-import settingsObject from "./settingsObject";
 
 export type limitArgs = {
   q: number;
@@ -31,25 +30,25 @@ type intervalData = {
 }
 
 type chartObjectConstructorT = {
-  seFunction: (x: dataObject) => number[];
-  seFunctionOD: (x: dataObject) => number[];
-  targetFunction: (x: dataObject) => number;
-  targetFunctionTransformed: (x: dataObject) => number;
-  yFunction: (x: dataObject) => number[];
+  seFunction: (x: dataClass) => number[];
+  seFunctionOD: (x: dataClass) => number[];
+  targetFunction: (x: dataClass) => number;
+  targetFunctionTransformed: (x: dataClass) => number;
+  yFunction: (x: dataClass) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
-  inputData: dataObject;
-  inputSettings: settingsObject;
+  inputData: dataClass;
+  inputSettings: settingsClass;
 }
 
-class chartObject {
-  inputData: dataObject;
-  inputSettings: settingsObject;
-  seFunction: (x: dataObject) => number[];
-  seFunctionOD: (x: dataObject) => number[];
-  targetFunction: (x: dataObject) => number;
-  targetFunctionTransformed: (x: dataObject) => number;
-  yFunction: (x: dataObject) => number[];
+export default class chartClass {
+  inputData: dataClass;
+  inputSettings: settingsClass;
+  seFunction: (x: dataClass) => number[];
+  seFunctionOD: (x: dataClass) => number[];
+  targetFunction: (x: dataClass) => number;
+  targetFunctionTransformed: (x: dataClass) => number;
+  yFunction: (x: dataClass) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
 
@@ -71,7 +70,7 @@ class chartObject {
   getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
     const seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
     if (par.plottingDenominators) {
-      const dummyArray: dataObject = JSON.parse(JSON.stringify(this.inputData))
+      const dummyArray: dataClass = JSON.parse(JSON.stringify(this.inputData))
       dummyArray.numerator = null
       dummyArray.denominator = par.plottingDenominators;
       return seFun(dummyArray);
@@ -196,5 +195,3 @@ class chartObject {
     this.inputSettings = args.inputSettings;
   }
 }
-
-export default chartObject;

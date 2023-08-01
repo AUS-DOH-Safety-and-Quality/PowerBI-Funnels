@@ -4,18 +4,14 @@ import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
-import chartObject from "./chartObject"
-import settingsObject from "./settingsObject";
+import { chartClass, settingsClass, dataClass, type limitData, plotPropertiesClass } from "../Classes"
 import checkInvalidDataView from "../Functions/checkInvalidDataView"
 import * as chartObjects from "../Chart Types"
-import dataObject from "./dataObject";
-import type { limitData } from "./chartObject";
-import plotPropertiesClass from "./plotProperties";
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
-import buildTooltip from "../Functions/buildTooltip"
-import { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
+import { buildTooltip } from "../Functions"
+import { SettingsBaseTypedT, scatterSettings } from "./settingsGroups";
 
 export type lineData = {
   x: number;
@@ -35,10 +31,10 @@ export type plotData = {
   tooltip: VisualTooltipDataItem[];
 }
 
-class viewModelObject {
-  inputData: dataObject;
-  inputSettings: settingsObject;
-  chartBase: chartObject;
+export default class viewModelClass {
+  inputData: dataClass;
+  inputSettings: settingsClass;
+  chartBase: chartClass;
   calculatedLimits: limitData[];
   plotPoints: plotData[];
   groupedLines: [string, lineData[]][];
@@ -133,12 +129,12 @@ class viewModelObject {
   update(args: { options: VisualUpdateOptions;
                   host: IVisualHost; }) {
     if (this.firstRun) {
-      this.inputSettings = new settingsObject();
+      this.inputSettings = new settingsClass();
     }
     this.inputSettings.update(args.options.dataViews[0]);
 
     if (checkInvalidDataView(args.options.dataViews)) {
-      this.inputData = <dataObject>null;
+      this.inputData = <dataClass>null;
       this.chartBase = null;
       this.calculatedLimits = null;
       this.plotPoints = new Array<plotData>();
@@ -147,7 +143,7 @@ class viewModelObject {
       const dv: powerbi.DataView[] = args.options.dataViews;
       const chart_type: string = this.inputSettings.funnel.chart_type.value
 
-      this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
+      this.inputData = new dataClass(dv[0].categorical, this.inputSettings);
 
       this.chartBase = new chartObjects[chart_type as keyof typeof chartObjects]({ inputData: this.inputData,
                                                       inputSettings: this.inputSettings });
@@ -172,8 +168,8 @@ class viewModelObject {
   }
 
   constructor() {
-    this.inputData = <dataObject>null;
-    this.inputSettings = <settingsObject>null;
+    this.inputData = <dataClass>null;
+    this.inputSettings = <settingsClass>null;
     this.chartBase = null;
     this.calculatedLimits = null;
     this.plotPoints = new Array<plotData>();
@@ -182,5 +178,3 @@ class viewModelObject {
     this.firstRun = true
   }
 }
-
-export default viewModelObject;
