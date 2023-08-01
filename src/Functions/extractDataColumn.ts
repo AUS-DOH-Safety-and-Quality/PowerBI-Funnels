@@ -6,11 +6,11 @@ import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import PrimitiveValue = powerbi.PrimitiveValue;
 import ValueTypeDescriptor = powerbi.ValueTypeDescriptor;
 import dateFormat from "../Classes/dateFormat";
-import dateToFormattedString from "./dateToFormattedString";
+import { dateToFormattedString } from "../Functions";
 
 type TargetT = number[] | string[] | number | string;
 
-function extractDataColumn<T extends TargetT>(inputView: DataViewCategorical,
+export default function extractDataColumn<T extends TargetT>(inputView: DataViewCategorical,
                                               name: string): T {
   let columnRaw: DataViewValueColumn;
   if (name === "key" || name === "group") {
@@ -44,5 +44,3 @@ function extractDataColumn<T extends TargetT>(inputView: DataViewCategorical,
     return (columnRaw ? columnRaw.values : null) as T;
   }
 }
-
-export default extractDataColumn;

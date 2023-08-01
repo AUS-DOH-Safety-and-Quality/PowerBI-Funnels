@@ -1,6 +1,4 @@
-import * as d3 from "d3";
-import * as stats from '@stdlib/stats/base/dists';
-import seq from "../Functions/seq"
+import { normal_quantile, seq, max } from "../Functions";
 import limitData from "./limitData";
 import intervalData from "./intervalData";
 import dataObject from "./dataObject";
@@ -35,7 +33,7 @@ class chartObject {
   limitFunctionOD: (x: limitArguments) => number;
 
   getPlottingDenominators(): number[] {
-    const maxDenominator: number = d3.max(this.inputData.denominator);
+    const maxDenominator: number = max(this.inputData.denominator);
     const plotDenomLower: number = 1;
     const plotDenomUpper: number = maxDenominator + maxDenominator * 0.1;
     const plotDenomStep: number = maxDenominator * 0.01;
@@ -93,7 +91,7 @@ class chartObject {
   getIntervals(): intervalData[] {
     // Specify the intervals for the limits: 95% and 99.8%
     const qs: number[] = [0.001, 0.025, 0.975, 0.999]
-                         .map(p => stats.normal.quantile(p, 0, 1));
+                         .map(p => normal_quantile(p, 0, 1));
     const q_labels: string[] = ["ll99", "ll95", "ul95", "ul99"];
 
     return qs.map((d, idx) => new intervalData({

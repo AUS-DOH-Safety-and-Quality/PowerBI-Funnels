@@ -2,7 +2,7 @@ import powerbi from "powerbi-visuals-api"
 import DataViewObjects = powerbi.DataViewObjects
 import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils";
 
-function extractSetting(inputObjects: DataViewObjects,
+export default function extractSetting(inputObjects: DataViewObjects,
                         settingsGroup: string,
                         settingName: string,
                         defaultValue?: string | number): string | number {
@@ -24,5 +24,3 @@ function extractSetting(inputObjects: DataViewObjects,
     )
   }
 }
-
-export default extractSetting

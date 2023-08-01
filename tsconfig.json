@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
       "allowJs": false,
-      "noImplicitAny": true,
       "allowUnreachableCode": false,
       "allowUnusedLabels": false,
       "alwaysStrict": true,
@@ -13,6 +12,7 @@
       "strictBindCallApply": true,
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
+      "allowSyntheticDefaultImports": true,
       "target": "es6",
       "sourceMap": true,
       "outDir": "./.tmp/build/",

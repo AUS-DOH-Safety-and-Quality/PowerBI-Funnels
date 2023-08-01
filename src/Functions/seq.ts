@@ -1,4 +1,4 @@
-function seq(from: number, to: number, by: number): number[] {
+export default function seq(from: number, to: number, by: number): number[] {
   const n_iter: number = Math.floor((to - from) / by);
   const res: number[] = new Array<number>(n_iter);
   res[0] = from;
@@ -7,5 +7,3 @@ function seq(from: number, to: number, by: number): number[] {
   }
   return res;
 }
-
-export default seq;

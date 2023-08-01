@@ -1,4 +1,4 @@
-import { divide, subtract } from "../Functions/BinaryFunctions";
+import { divide, subtract } from "../Functions";
 
 /**
  * Generate (un-adjusted) z-scores using transformed
@@ -9,8 +9,6 @@ import { divide, subtract } from "../Functions/BinaryFunctions";
  * @param target
  * @returns
  */
-function getZScores(y: number[], SE: number[], target: number): number[] {
+export default function getZScores(y: number[], SE: number[], target: number): number[] {
   return divide(subtract(y, target), SE);
 }
-
-export default getZScores;

@@ -1,12 +1,9 @@
-import * as stats from '@stdlib/stats/base/dists';
 import chartObject from "../Classes/chartObject"
 import dataObject from '../Classes/dataObject';
 import limitArguments from '../Classes/limitArgs';
 import settingsObject from '../Classes/settingsObject';
-import winsorise from '../Functions/winsorise';
-import { sqrt, inv, square } from "../Functions/UnaryFunctions"
-import { multiply, divide } from "../Functions/BinaryFunctions"
-
+import { chisq_quantile, normal_cdf, winsorise, sqrt,
+          inv, square, multiply, divide } from '../Functions';
 
 // ESLint errors due to unused input, but needed for agnostic use with other charts
 /* eslint-disable */
@@ -47,11 +44,11 @@ const smrLimitOD = function(args: limitArguments) {
 const smrLimit = function(args: limitArguments) {
   const q: number = args.q;
   const denominator: number = args.denominator;
-  const p: number = stats.normal.cdf(q, 0, 1);
+  const p: number = normal_cdf(q, 0, 1);
   const is_upper: boolean = p > 0.5;
   const offset: number = is_upper ? 1 : 0;
 
-  const limit: number = (stats.chisquare.quantile(p, 2 * (denominator + offset)) / 2.0)
+  const limit: number = (chisq_quantile(p, 2 * (denominator + offset)) / 2.0)
                         / denominator;
 
   return winsorise(limit, {lower: 0})

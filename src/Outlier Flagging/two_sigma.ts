@@ -1,7 +1,7 @@
 import limitData from "../Classes/limitData"
-import between from "../Functions/between"
+import { between } from "../Functions"
 
-function two_sigma(value: number, flag_direction: string,
+export default function two_sigma(value: number, flag_direction: string,
                    limits: limitData): boolean {
   if (limits.ul95 === null && limits.ll95 === null) {
     return false;
@@ -22,5 +22,3 @@ function two_sigma(value: number, flag_direction: string,
   }
   return false;
 }
-
-export default two_sigma;

@@ -1,10 +1,7 @@
-import * as d3 from "d3";
 import chartObject from "../Classes/chartObject"
 import dataObject from "../Classes/dataObject";
 import limitArguments from "../Classes/limitArgs";
-import winsorise from "../Functions/winsorise";
-import { sqrt, log, exp, square } from "../Functions/UnaryFunctions"
-import { add, divide } from "../Functions/BinaryFunctions"
+import { sum, add, divide, sqrt, log, exp, square, winsorise } from "../Functions"
 import settingsObject from "../Classes/settingsObject";
 
 const rcSE = function(inputData: dataObject): number[] {
@@ -20,13 +17,13 @@ const rcSE = function(inputData: dataObject): number[] {
 const rcTarget = function(inputData: dataObject): number {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
-  return d3.sum(numerator) / d3.sum(denominator);
+  return sum(numerator) / sum(denominator);
 }
 
 const rcTargetTransformed = function(inputData: dataObject): number {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
-  return log(d3.sum(numerator)) - log(d3.sum(denominator));
+  return log(sum(numerator)) - log(sum(denominator));
 }
 
 const rcY = function(inputData: dataObject): number[] {

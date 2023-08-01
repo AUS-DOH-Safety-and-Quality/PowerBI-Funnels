@@ -1,7 +1,7 @@
 import limitData from "../Classes/limitData"
-import between from "../Functions/between"
+import { between } from "../Functions"
 
-function three_sigma(value: number, flag_direction: string,
+export default function three_sigma(value: number, flag_direction: string,
                    limits: limitData): boolean {
   if (limits.ul99 === null && limits.ll99 === null) {
     return false;
@@ -22,5 +22,3 @@ function three_sigma(value: number, flag_direction: string,
   }
   return false;
 }
-
-export default three_sigma;

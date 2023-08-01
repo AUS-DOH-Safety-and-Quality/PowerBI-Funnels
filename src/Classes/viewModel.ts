@@ -1,4 +1,4 @@
-import * as d3 from "d3";
+import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import powerbi from "powerbi-visuals-api";
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
@@ -128,7 +128,6 @@ class viewModelObject {
     } else {
       const dv: powerbi.DataView[] = args.options.dataViews;
       const chart_type: string = this.inputSettings.funnel.chart_type.value
-      console.log("input dv: ", dv)
 
       this.inputData = new dataObject(dv[0].categorical, this.inputSettings);
 

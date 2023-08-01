@@ -2,13 +2,11 @@ import powerbi from "powerbi-visuals-api"
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import DataViewCategorical = powerbi.DataViewCategorical;
 import settingsObject from "../Classes/settingsObject";
-import {
-  AllSettingsTypes
-} from "../Classes/settingsGroups"
-import extractSetting from "./extractSetting";
+import { AllSettingsTypes } from "../Classes/settingsGroups"
+import { extractSetting } from "../Functions";
 
 
-function extractConditionalFormatting<SettingsT extends AllSettingsTypes>(inputView: DataViewCategorical, name: string, inputSettings: settingsObject): SettingsT[] {
+export default function extractConditionalFormatting<SettingsT extends AllSettingsTypes>(inputView: DataViewCategorical, name: string, inputSettings: settingsObject): SettingsT[] {
   const inputCategories: DataViewCategoryColumn = (inputView.categories as DataViewCategoryColumn[])[0];
   const staticSettings = inputSettings[name as keyof typeof inputSettings];
   const settingNames = Object.getOwnPropertyNames(staticSettings)
@@ -29,5 +27,3 @@ function extractConditionalFormatting<SettingsT extends AllSettingsTypes>(inputV
   }
   return rtn
 }
-
-export default extractConditionalFormatting

@@ -1,11 +1,8 @@
-import * as d3 from "d3";
 import chartObject from "../Classes/chartObject"
 import dataObject from "../Classes/dataObject";
 import limitArguments from "../Classes/limitArgs";
 import settingsObject from "../Classes/settingsObject";
-import winsorise from "../Functions/winsorise";
-import { sqrt, inv, asin, square } from "../Functions/UnaryFunctions"
-import { multiply, divide } from "../Functions/BinaryFunctions"
+import { sum, sqrt, inv, asin, square, multiply, divide, winsorise } from "../Functions"
 
 const prSE = function(inputData: dataObject): number[] {
   const denominator: number[] = inputData.denominator;
@@ -15,7 +12,7 @@ const prSE = function(inputData: dataObject): number[] {
 const prTarget = function(inputData: dataObject): number {
   const numerator: number[] = inputData.numerator;
   const denominator: number[] = inputData.denominator;
-  return d3.sum(numerator) / d3.sum(denominator);
+  return sum(numerator) / sum(denominator);
 }
 
 const prTargetTransformed = function(inputData: dataObject): number {

@@ -13,8 +13,7 @@ import {
   yAxisSettings,
   AllSettingsTypes
 } from "./settingsGroups"
-import extractSetting from "../Functions/extractSetting";
-import extractConditionalFormatting from "../Functions/extractConditionalFormatting";
+import { extractSetting, extractConditionalFormatting } from "../Functions";
 
 class settingsObject {
   [key: string] : any;

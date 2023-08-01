@@ -1,11 +1,11 @@
-import * as d3 from "d3";
-import powerbi from "powerbi-visuals-api";
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
+import * as d3 from "../D3 Plotting Functions/D3 Modules";
+import type powerbi from "powerbi-visuals-api";
+type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import plotData from "./plotData";
 import limitData from "./limitData";
 import dataObject from "./dataObject";
 import settingsObject from "./settingsObject";
-import { divide } from "../Functions/BinaryFunctions";
+import { divide, max } from "../Functions/";
 
 type axisProperties = {
   lower: number,
@@ -92,7 +92,7 @@ class plotPropertiesClass {
     let xUpperLimit: number = args.inputSettings.x_axis.xlimit_u.value;
 
     if (args.inputData) {
-      xUpperLimit = xUpperLimit ? xUpperLimit : d3.max(args.inputData.denominator) * 1.1;
+      xUpperLimit = xUpperLimit ? xUpperLimit : max(args.inputData.denominator) * 1.1;
     }
 
     this.xAxis = {
@@ -117,7 +117,7 @@ class plotPropertiesClass {
 
     if (args.inputData) {
       const multiplier: number = args.inputSettings.funnel.multiplier.value
-      const maxRatio: number = d3.max(divide(args.inputData.numerator, args.inputData.denominator));
+      const maxRatio: number = max(divide(args.inputData.numerator, args.inputData.denominator));
       yUpperLimit = yUpperLimit ? yUpperLimit : maxRatio * multiplier
     }
 
