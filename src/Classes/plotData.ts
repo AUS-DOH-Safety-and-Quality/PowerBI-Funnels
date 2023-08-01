@@ -1,7 +1,7 @@
-import powerbi from "powerbi-visuals-api";
-import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import ISelectionId = powerbi.visuals.ISelectionId;
-import { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
+import type powerbi from "powerbi-visuals-api";
+type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+type ISelectionId = powerbi.visuals.ISelectionId;
+import type { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
 
 
 class plotData {

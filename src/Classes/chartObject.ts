@@ -1,6 +1,5 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import { normal_quantile } from "../Functions";
-import seq from "../Functions/seq"
+import { normal_quantile, seq } from "../Functions";
 import limitData from "./limitData";
 import intervalData from "./intervalData";
 import dataObject from "./dataObject";

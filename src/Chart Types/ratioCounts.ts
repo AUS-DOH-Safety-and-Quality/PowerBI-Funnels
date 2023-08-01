@@ -2,9 +2,7 @@ import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import chartObject from "../Classes/chartObject"
 import dataObject from "../Classes/dataObject";
 import limitArguments from "../Classes/limitArgs";
-import winsorise from "../Functions/winsorise";
-import { sqrt, log, exp, square } from "../Functions/UnaryFunctions"
-import { add, divide } from "../Functions/BinaryFunctions"
+import { add, divide, sqrt, log, exp, square, winsorise } from "../Functions"
 import settingsObject from "../Classes/settingsObject";
 
 const rcSE = function(inputData: dataObject): number[] {

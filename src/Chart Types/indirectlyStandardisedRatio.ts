@@ -1,12 +1,9 @@
-import { chisq_quantile, normal_cdf } from '../Functions';
 import chartObject from "../Classes/chartObject"
 import dataObject from '../Classes/dataObject';
 import limitArguments from '../Classes/limitArgs';
 import settingsObject from '../Classes/settingsObject';
-import winsorise from '../Functions/winsorise';
-import { sqrt, inv, square } from "../Functions/UnaryFunctions"
-import { multiply, divide } from "../Functions/BinaryFunctions"
-
+import { chisq_quantile, normal_cdf, winsorise, sqrt,
+          inv, square, multiply, divide } from '../Functions';
 
 // ESLint errors due to unused input, but needed for agnostic use with other charts
 /* eslint-disable */

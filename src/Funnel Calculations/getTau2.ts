@@ -1,5 +1,5 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import { inv, square } from "../Functions/UnaryFunctions"
+import { inv, square } from "../Functions"
 
 /**
  * Estimate the between-unit variance to adjust control limits

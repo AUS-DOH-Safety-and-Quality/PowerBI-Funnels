@@ -1,11 +1,11 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import powerbi from "powerbi-visuals-api";
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
+import type powerbi from "powerbi-visuals-api";
+type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import plotData from "./plotData";
 import limitData from "./limitData";
 import dataObject from "./dataObject";
 import settingsObject from "./settingsObject";
-import { divide } from "../Functions/BinaryFunctions";
+import { divide } from "../Functions/";
 
 type axisProperties = {
   lower: number,

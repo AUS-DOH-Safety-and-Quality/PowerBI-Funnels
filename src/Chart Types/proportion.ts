@@ -3,9 +3,7 @@ import chartObject from "../Classes/chartObject"
 import dataObject from "../Classes/dataObject";
 import limitArguments from "../Classes/limitArgs";
 import settingsObject from "../Classes/settingsObject";
-import winsorise from "../Functions/winsorise";
-import { sqrt, inv, asin, square } from "../Functions/UnaryFunctions"
-import { multiply, divide } from "../Functions/BinaryFunctions"
+import { sqrt, inv, asin, square, multiply, divide, winsorise } from "../Functions"
 
 const prSE = function(inputData: dataObject): number[] {
   const denominator: number[] = inputData.denominator;

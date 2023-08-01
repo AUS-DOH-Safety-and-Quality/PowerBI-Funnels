@@ -1,4 +1,4 @@
-function winsorise<T extends number | number[]>(val: T, limits: {lower?: number, upper?: number}): T {
+export default function winsorise<T extends number | number[]>(val: T, limits: {lower?: number, upper?: number}): T {
   let rtn: T = val;
   if (limits.lower) {
     if (Array.isArray(rtn)) {
@@ -16,5 +16,3 @@ function winsorise<T extends number | number[]>(val: T, limits: {lower?: number,
   }
   return rtn;
 }
-
-export default winsorise;

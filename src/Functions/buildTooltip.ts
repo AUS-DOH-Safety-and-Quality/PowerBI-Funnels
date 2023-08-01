@@ -17,7 +17,7 @@ type tooltipArgs = {
   sig_figs: number
 }
 
-function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
+export default function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
   const numerator: number = args.numerator;
   const denominator: number = args.denominator;
   const multiplier: number = args.multiplier;
@@ -84,5 +84,3 @@ function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
   }
   return tooltip;
 }
-
-export default buildTooltip;

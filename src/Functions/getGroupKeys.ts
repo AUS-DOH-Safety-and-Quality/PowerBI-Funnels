@@ -1,13 +1,13 @@
 import settingsObject from "../Classes/settingsObject"
 
-type groupKeysT = {
+export type groupKeysT = {
   group: string;
   colour: string;
   width: number;
   type: string;
 }
 
-function getGroupKeys(inputSettings: settingsObject): groupKeysT[] {
+export default function getGroupKeys(inputSettings: settingsObject): groupKeysT[] {
   const l99_width: number = inputSettings.lines.width_99.value;
   const l95_width: number = inputSettings.lines.width_95.value;
   const target_width: number = inputSettings.lines.width_target.value;
@@ -63,6 +63,3 @@ function getGroupKeys(inputSettings: settingsObject): groupKeysT[] {
 
   return GroupKeys;
 }
-
-export default getGroupKeys;
-export { groupKeysT }

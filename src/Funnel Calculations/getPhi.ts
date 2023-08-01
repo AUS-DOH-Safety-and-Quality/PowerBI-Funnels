@@ -1,5 +1,5 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import { square } from "../Functions/UnaryFunctions"
+import { square } from "../Functions"
 
 /**
  * Estimate the dispersion ratio of the observed responses using
@@ -8,8 +8,6 @@ import { square } from "../Functions/UnaryFunctions"
  * @param z_adj
  * @returns
  */
-function getPhi(z_adj: number[]): number {
+export default function getPhi(z_adj: number[]): number {
   return d3.sum(square(z_adj)) / z_adj.length;
 }
-
-export default getPhi;

@@ -1,24 +1,23 @@
 "use strict";
 
-import powerbi from "powerbi-visuals-api";
-import IVisual = powerbi.extensibility.IVisual;
-import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
-import IVisualHost = powerbi.extensibility.visual.IVisualHost;
-import ISelectionManager = powerbi.extensibility.ISelectionManager;
-import ISelectionId = powerbi.visuals.ISelectionId;
-import IVisualEventService = powerbi.extensibility.IVisualEventService;
+import type powerbi from "powerbi-visuals-api";
+type IVisual = powerbi.extensibility.IVisual;
+type VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
+type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
+type EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
+type VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
+type IVisualHost = powerbi.extensibility.visual.IVisualHost;
+type ISelectionManager = powerbi.extensibility.ISelectionManager;
+type ISelectionId = powerbi.visuals.ISelectionId;
+type IVisualEventService = powerbi.extensibility.IVisualEventService;
 import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import svgObjectClass from "./Classes/svgObjectClass"
 import svgSelectionClass from "./Classes/svgSelectionClass"
 import viewModelObject from "./Classes/viewModel"
 import plotData from "./Classes/plotData"
 import lineData from "./Classes/lineData"
-import getAesthetic from "./Functions/getAesthetic"
+import { getAesthetic, between } from "./Functions"
 import { axisProperties } from "./Classes/plotProperties";
-import between from "./Functions/between";
 
 type SelectionAny = d3.Selection<any, any, any, any>;
 type mergedSVGObjects = { dotsMerged: SelectionAny,
@@ -38,7 +37,6 @@ export class Visual implements IVisual {
   private refreshingAxis: boolean;
 
   constructor(options: VisualConstructorOptions) {
-    console.log("start constructor");
     this.events = options.host.eventService;
     this.host = options.host;
     this.svg = d3.select(options.element)
@@ -58,47 +56,29 @@ export class Visual implements IVisual {
     this.selectionManager.registerOnSelectCallback(() => {
       this.updateHighlighting();
     })
-    console.log("finish constructor");
   }
 
   public update(options: VisualUpdateOptions) {
-    console.log("Update start")
-    console.log(options)
     try {
       this.events.renderingStarted(options);
       this.updateOptions = options;
 
-      console.log("viewModel start")
-      console.log(this.viewModel)
       this.viewModel.update({ options: options,
                               host: this.host });
-      console.log(this.viewModel)
-      console.log("svgSelections start")
       this.svgSelections.update({ svgObjects: this.svgObjects,
                                   viewModel: this.viewModel});
 
-      console.log("svg scale start")
       this.svg.attr("width", this.viewModel.plotProperties.width)
               .attr("height", this.viewModel.plotProperties.height);
 
-      console.log("TooltipTracking start")
       this.initTooltipTracking();
-
-      console.log("Draw X-Axis")
       this.drawXAxis();
-
-      console.log("Draw X-Axis")
       this.drawYAxis();
-
-      console.log("Draw Lines start")
       this.drawLines();
-
-      console.log("Draw dots start")
       this.drawDots();
 
       this.addContextMenu();
       this.events.renderingFinished(options);
-      console.log("Update finished")
     } catch (caught_error) {
       console.error(caught_error)
       this.events.renderingFailed(options);

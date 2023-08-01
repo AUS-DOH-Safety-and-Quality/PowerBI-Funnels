@@ -23,7 +23,6 @@ class dataObject {
     const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
     const scatter_cond = extractConditionalFormatting<SettingsBaseTypedT<scatterSettings>>(inputView, "scatter", inputSettings)
 
-    console.log("scatter: ", scatter_cond)
     const valid_indexes: number[] = new Array<number>();
 
     for (let i: number = 0; i < denominators.length; i++) {

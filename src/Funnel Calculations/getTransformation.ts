@@ -1,5 +1,4 @@
-
-function getTransformation(setting_name: string): (x: number) => number {
+export default function getTransformation(setting_name: string): (x: number) => number {
   if(setting_name == "none") {
     return function(x: number): number { return x; };
   } else if (setting_name == "ln") {
@@ -12,5 +11,3 @@ function getTransformation(setting_name: string): (x: number) => number {
     return function(x: number): number { return x; };
   }
 }
-
-export default getTransformation;

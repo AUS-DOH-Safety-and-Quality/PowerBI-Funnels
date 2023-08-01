@@ -1,5 +1,5 @@
 import dateFormat from "../Classes/dateFormat";
-import broadcast_binary from "./BinaryFunctions"
+import { broadcast_binary } from "../Functions"
 
 function dateToFormattedString_impl(input_date: Date, date_format: dateFormat): string {
   return input_date.toLocaleDateString(date_format.locale, date_format.options)
