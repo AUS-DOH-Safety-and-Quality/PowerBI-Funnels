@@ -1,8 +1,5 @@
 "use strict";
 
-import "core-js/stable";
-import "regenerator-runtime/runtime";
-import "../style/visual.less";
 import powerbi from "powerbi-visuals-api";
 import IVisual = powerbi.extensibility.IVisual;
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;

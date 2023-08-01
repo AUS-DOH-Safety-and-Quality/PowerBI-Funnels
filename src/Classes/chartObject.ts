@@ -1,5 +1,5 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
-import * as stats from '@stdlib/stats/base/dists';
+import { normal_quantile } from "../Functions";
 import seq from "../Functions/seq"
 import limitData from "./limitData";
 import intervalData from "./intervalData";
@@ -93,7 +93,7 @@ class chartObject {
   getIntervals(): intervalData[] {
     // Specify the intervals for the limits: 95% and 99.8%
     const qs: number[] = [0.001, 0.025, 0.975, 0.999]
-                         .map(p => stats.normal.quantile(p, 0, 1));
+                         .map(p => normal_quantile(p, 0, 1));
     const q_labels: string[] = ["ll99", "ll95", "ul95", "ul99"];
 
     return qs.map((d, idx) => new intervalData({

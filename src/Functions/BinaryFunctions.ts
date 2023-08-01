@@ -1,5 +1,3 @@
-import * as math from '@stdlib/math/base/special';
-
 type ReturnT<Input1T, Input2T, BaseT> = Input1T extends Array<any> ? BaseT[] : Input2T extends Array<any> ? BaseT[] : BaseT;
 
 function broadcast_binary<ScalarInput1T, ScalarInput2T, ScalarReturnT>(fun: (x: ScalarInput1T, y: ScalarInput2T) => ScalarReturnT) {
@@ -22,7 +20,7 @@ function broadcast_binary<ScalarInput1T, ScalarInput2T, ScalarReturnT>(fun: (x: 
   };
 }
 
-const pow = broadcast_binary((x: number, y: number): number => math.pow(x, y));
+const pow = broadcast_binary((x: number, y: number): number => Math.pow(x, y));
 const add = broadcast_binary((x: number, y: number): number => x + y);
 const subtract = broadcast_binary((x: number, y: number): number => x - y);
 const divide = broadcast_binary((x: number, y: number): number => x / y);
