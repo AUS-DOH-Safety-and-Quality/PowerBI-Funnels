@@ -4,7 +4,7 @@ type ISelectionId = powerbi.visuals.ISelectionId;
 import type { SettingsBaseTypedT, scatterSettings } from "../Classes/settingsGroups";
 
 
-class plotData {
+export type plotData = {
   x: number;
   value: number;
   aesthetics: SettingsBaseTypedT<scatterSettings>;
@@ -15,5 +15,3 @@ class plotData {
   // Tooltip data to print
   tooltip: VisualTooltipDataItem[];
 }
-
-export default plotData;

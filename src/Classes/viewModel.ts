@@ -8,9 +8,9 @@ import checkInvalidDataView from "../Functions/checkInvalidDataView"
 import * as chartObjects from "../Chart Types"
 import dataObject from "./dataObject";
 import limitData from "./limitData";
-import lineData from "./lineData"
+import type { lineData } from "./lineData"
 import plotPropertiesClass from "./plotProperties";
-import plotData from "./plotData"
+import type { plotData } from "./plotData"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
@@ -123,8 +123,8 @@ class viewModelObject {
       this.inputData = <dataObject>null;
       this.chartBase = null;
       this.calculatedLimits = null;
-      this.plotPoints = <plotData[]>null;
-      this.groupedLines = <[string, lineData[]][]>null;
+      this.plotPoints = new Array<plotData>();
+      this.groupedLines = new Array<[string, lineData[]]>();
     } else {
       const dv: powerbi.DataView[] = args.options.dataViews;
       const chart_type: string = this.inputSettings.funnel.chart_type.value
@@ -158,8 +158,8 @@ class viewModelObject {
     this.inputSettings = <settingsObject>null;
     this.chartBase = null;
     this.calculatedLimits = null;
-    this.plotPoints = <plotData[]>null;
-    this.groupedLines = <[string, lineData[]][]>null;
+    this.plotPoints = new Array<plotData>();
+    this.groupedLines = new Array<[string, lineData[]]>();
     this.plotProperties = <plotPropertiesClass>null;
     this.firstRun = true
   }
