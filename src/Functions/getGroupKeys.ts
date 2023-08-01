@@ -1,4 +1,4 @@
-import { settingsClass } from "../Classes"
+import type { settingsClass } from "../Classes"
 
 export type groupKeysT = {
   group: string;

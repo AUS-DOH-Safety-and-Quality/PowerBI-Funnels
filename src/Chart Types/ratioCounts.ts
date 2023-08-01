@@ -1,4 +1,4 @@
-import { chartClass, limitArgs, dataClass, settingsClass } from "../Classes"
+import { chartClass, type limitArgs, type dataClass, type settingsClass } from "../Classes"
 import { sum, add, divide, sqrt, log, exp, square, winsorise } from "../Functions"
 
 const rcSE = function(inputData: dataClass): number[] {

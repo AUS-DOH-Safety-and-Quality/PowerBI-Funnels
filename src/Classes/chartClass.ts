@@ -1,5 +1,5 @@
 import { normal_quantile, seq, max } from "../Functions";
-import { settingsClass, dataClass } from "../Classes";
+import type { settingsClass, dataClass } from "../Classes";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";

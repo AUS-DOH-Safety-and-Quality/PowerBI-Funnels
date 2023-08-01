@@ -1,4 +1,4 @@
-import { chartClass, limitArgs, dataClass, settingsClass } from "../Classes"
+import { chartClass, type limitArgs, type dataClass, type settingsClass } from "../Classes"
 import { chisq_quantile, normal_cdf, winsorise, sqrt,
           inv, square, multiply, divide } from '../Functions';
 

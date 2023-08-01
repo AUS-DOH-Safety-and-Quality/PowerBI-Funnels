@@ -1,4 +1,4 @@
-import { chartClass, limitArgs, dataClass, settingsClass } from "../Classes"
+import { chartClass, type limitArgs, type dataClass, type settingsClass } from "../Classes"
 import { sum, sqrt, inv, asin, square, multiply, divide, winsorise } from "../Functions"
 
 const prSE = function(inputData: dataClass): number[] {

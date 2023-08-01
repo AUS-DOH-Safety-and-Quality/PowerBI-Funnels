@@ -1,6 +1,6 @@
 import powerbi from "powerbi-visuals-api";
 import { extractValues, checkValidInput, extractDataColumn, extractConditionalFormatting } from "../Functions"
-import { settingsClass } from "../Classes"
+import { type settingsClass } from "../Classes"
 import { SettingsBaseTypedT, scatterSettings } from "./settingsGroups";
 
 export default class dataClass {
