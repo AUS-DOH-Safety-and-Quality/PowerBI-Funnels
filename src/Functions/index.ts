@@ -15,6 +15,6 @@ export { default as getAesthetic } from "./getAesthetic"
 export { default as getGroupKeys } from "./getGroupKeys"
 export { default as rep } from "./rep"
 export { default as seq } from "./seq"
-export { default as broadcast_unary, sqrt, square, exp, inv, asin, log } from "./UnaryFunctions"
+export { default as broadcast_unary, sqrt, square, exp, inv, asin, log, abs } from "./UnaryFunctions"
 export { default as winsorise } from "./winsorise"
 export { mean, median, sum, max, min, quantile } from "d3-array";

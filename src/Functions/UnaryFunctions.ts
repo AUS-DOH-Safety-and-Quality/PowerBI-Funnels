@@ -16,3 +16,4 @@ export const log = broadcast_unary(Math.log);
 export const asin = broadcast_unary(Math.asin);
 export const square = broadcast_unary((x: number): number => Math.pow(x, 2));
 export const inv = broadcast_unary((x: number): number => 1.0 / x);
+export const abs = broadcast_unary(Math.abs);

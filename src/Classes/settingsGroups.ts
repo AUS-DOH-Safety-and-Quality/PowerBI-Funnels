@@ -19,9 +19,9 @@ class canvasSettings {
   right_padding: settingsPair<number>;
 
   constructor() {
-    this.lower_padding = new settingsPair(50);
+    this.lower_padding = new settingsPair(10);
     this.upper_padding = new settingsPair(10);
-    this.left_padding = new settingsPair(50);
+    this.left_padding = new settingsPair(10);
     this.right_padding = new settingsPair(10);
   }
 }

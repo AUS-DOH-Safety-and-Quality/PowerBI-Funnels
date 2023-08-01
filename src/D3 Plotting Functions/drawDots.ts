@@ -1,0 +1,58 @@
+import type { plotData } from "../Classes/plotData";
+import { between } from "../Functions";
+import type { svgBaseType, Visual } from "../visual";
+import updateHighlighting from "./updateHighlighting";
+
+export default function drawDots(selection: svgBaseType, visualObj: Visual) {
+  selection
+    .select(".dotsgroup")
+    .selectAll("circle")
+    .data(visualObj.viewModel.plotPoints)
+    .join("circle")
+    .filter((d: plotData) => d.value !== null)
+    .attr("cy", (d: plotData) => visualObj.viewModel.plotProperties.yScale(d.value))
+    .attr("cx", (d: plotData) => visualObj.viewModel.plotProperties.xScale(d.x))
+    .attr("r", (d: plotData) => d.aesthetics.size)
+    .style("fill", (d: plotData) => {
+      const lower: number = visualObj.viewModel.plotProperties.yAxis.lower;
+      const upper: number = visualObj.viewModel.plotProperties.yAxis.upper;
+      return between(d.value, lower, upper) ? d.aesthetics.colour : "#FFFFFF";
+    })
+    .on("click", (event, d: plotData) => {
+      // Pass identities of selected data back to PowerBI
+      visualObj.selectionManager
+          // Propagate identities of selected data back to
+          //   PowerBI based on all selected dots
+          .select(d.identity, (event.ctrlKey || event.metaKey))
+          // Change opacity of non-selected dots
+          .then(() => { selection.call(updateHighlighting, visualObj); });
+
+      event.stopPropagation();
+    })
+    // Display tooltip content on mouseover
+    .on("mouseover", (event, d: plotData) => {
+      // Get screen coordinates of mouse pointer, tooltip will
+      //   be displayed at these coordinates
+      const x = event.pageX;
+      const y = event.pageY;
+
+      visualObj.host.tooltipService.show({
+        dataItems: d.tooltip,
+        identities: [d.identity],
+        coordinates: [x, y],
+        isTouchEvent: false
+      });
+    })
+    // Hide tooltip when mouse moves out of dot
+    .on("mouseout", () => {
+      visualObj.host.tooltipService.hide({
+        immediately: true,
+        isTouchEvent: false
+      })
+    });
+
+  selection.on('click', () => {
+    visualObj.selectionManager.clear();
+    selection.call(updateHighlighting, visualObj);
+  });
+}
