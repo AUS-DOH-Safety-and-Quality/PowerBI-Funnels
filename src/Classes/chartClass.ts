@@ -147,7 +147,7 @@ export default class chartClass {
     });
 
     const calcLimits: limitData[] = plottingDenominators.map((denom, idx) => {
-      let calcLimitEntries: [string, number][] = new Array<[string, number]>();
+      const calcLimitEntries: [string, number][] = new Array<[string, number]>();
       calcLimitEntries.push(["denominator", denom]);
       intervals.forEach(interval => {
         const functionArgs: limitArgs = {
