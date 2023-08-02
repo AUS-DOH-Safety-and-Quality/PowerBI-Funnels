@@ -4,14 +4,13 @@ type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
-import { chartClass, settingsClass, dataClass, type limitData, plotPropertiesClass } from "../Classes"
+import { chartClass, settingsClass, dataClass, type limitData, plotPropertiesClass, type defaultSettingsType } from "../Classes"
 import checkInvalidDataView from "../Functions/checkInvalidDataView"
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
 import { buildTooltip } from "../Functions"
-import { SettingsBaseTypedT, scatterSettings } from "./settingsGroups";
 
 export type lineData = {
   x: number;
@@ -22,7 +21,7 @@ export type lineData = {
 export type plotData = {
   x: number;
   value: number;
-  aesthetics: SettingsBaseTypedT<scatterSettings>;
+  aesthetics: defaultSettingsType["scatter"];
   // ISelectionId allows the visual to report the selection choice to PowerBI
   identity: ISelectionId;
   // Flag for whether dot should be highlighted by selections in other charts
@@ -43,16 +42,16 @@ export default class viewModelClass {
 
   getScatterData(host: IVisualHost): plotData[] {
     const plotPoints = new Array<plotData>();
-    const transform_text: string = this.inputSettings.funnel.transformation.value;
+    const transform_text: string = this.inputSettings.settings.funnel.transformation;
     const transform: (x: number) => number = getTransformation(transform_text);
     const target: number = this.chartBase.getTarget({ transformed: false });
-    const multiplier: number = this.inputSettings.funnel.multiplier.value;
-    const data_type: string = this.inputSettings.funnel.chart_type.value;
-    const flag_two_sigma: boolean = this.inputSettings.outliers.two_sigma.value;
-    const flag_three_sigma: boolean = this.inputSettings.outliers.three_sigma.value;
-    const flag_direction: string = this.inputSettings.outliers.flag_direction.value;
-    const two_sigma_colour: string = this.inputSettings.outliers.two_sigma_colour.value;
-    const three_sigma_colour: string = this.inputSettings.outliers.three_sigma_colour.value;
+    const multiplier: number = this.inputSettings.settings.funnel.multiplier;
+    const data_type: string = this.inputSettings.settings.funnel.chart_type;
+    const flag_two_sigma: boolean = this.inputSettings.settings.outliers.two_sigma;
+    const flag_three_sigma: boolean = this.inputSettings.settings.outliers.three_sigma;
+    const flag_direction: string = this.inputSettings.settings.outliers.flag_direction;
+    const two_sigma_colour: string = this.inputSettings.settings.outliers.two_sigma_colour;
+    const three_sigma_colour: string = this.inputSettings.settings.outliers.three_sigma_colour;
 
     for (let i: number = 0; i < this.inputData.id.length; i++) {
       const original_index: number = this.inputData.id[i];
@@ -61,7 +60,7 @@ export default class viewModelClass {
       const ratio: number = (numerator / denominator);
       const limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominator === denominator && d.ll99 !== null && d.ul99 !== null);
       const limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominator === denominator)[0];
-      const aesthetics: SettingsBaseTypedT<scatterSettings> = this.inputData.scatter_formatting[i]
+      const aesthetics: defaultSettingsType["scatter"] = this.inputData.scatter_formatting[i]
       const two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
       const three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
       const category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
@@ -95,7 +94,7 @@ export default class viewModelClass {
           multiplier: multiplier,
           two_sigma_outlier: two_sigma_outlier,
           three_sigma_outlier: three_sigma_outlier,
-          sig_figs: this.inputSettings.funnel.sig_figs.value
+          sig_figs: this.inputSettings.settings.funnel.sig_figs
         })
       })
     }
@@ -103,11 +102,11 @@ export default class viewModelClass {
   }
 
   getGroupedLines(): [string, lineData[]][] {
-    const multiplier: number = this.inputSettings.funnel.multiplier.value;
-    const transform: (x: number) => number = getTransformation(this.inputSettings.funnel.transformation.value);
+    const multiplier: number = this.inputSettings.settings.funnel.multiplier;
+    const transform: (x: number) => number = getTransformation(this.inputSettings.settings.funnel.transformation);
 
     const target: number = this.chartBase.getTarget({ transformed: false });
-    const alt_target: number = this.inputSettings.funnel.alt_target.value;
+    const alt_target: number = this.inputSettings.settings.funnel.alt_target;
 
     const labels: string[] = ["ll99", "ll95", "ul95", "ul99", "target", "alt_target"];
 
@@ -141,9 +140,9 @@ export default class viewModelClass {
       this.groupedLines = new Array<[string, lineData[]]>();
     } else {
       const dv: powerbi.DataView[] = args.options.dataViews;
-      const chart_type: string = this.inputSettings.funnel.chart_type.value
+      const chart_type: string = this.inputSettings.settings.funnel.chart_type
 
-      this.inputData = new dataClass(dv[0].categorical, this.inputSettings);
+      this.inputData = new dataClass(dv[0].categorical, this.inputSettings.settings);
 
       this.chartBase = new chartObjects[chart_type as keyof typeof chartObjects]({ inputData: this.inputData,
                                                       inputSettings: this.inputSettings });
@@ -162,7 +161,7 @@ export default class viewModelClass {
       plotPoints: this.plotPoints,
       calculatedLimits: this.calculatedLimits,
       inputData: this.inputData,
-      inputSettings: this.inputSettings
+      inputSettings: this.inputSettings.settings
     })
     this.firstRun = false;
   }

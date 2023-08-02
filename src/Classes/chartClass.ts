@@ -100,7 +100,7 @@ export default class chartClass {
       "no"  : false,
       "auto": true
     };
-    return tauReturn[this.inputSettings.funnel.od_adjust.value];
+    return tauReturn[this.inputSettings.settings.funnel.od_adjust];
   }
 
   getSingleLimit(par: { odAdjust: boolean, inputArgs: limitArgs }): number {
@@ -135,7 +135,7 @@ export default class chartClass {
     }
 
     const target: number = this.getTarget({ transformed: false });
-    const alt_target: number = this.inputSettings.funnel.alt_target.value;
+    const alt_target: number = this.inputSettings.settings.funnel.alt_target;
     const target_transformed: number = this.getTarget({ transformed: true });
 
     const intervals: intervalData[] = this.getIntervals();
