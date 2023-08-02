@@ -7,9 +7,9 @@ import type { svgBaseType, Visual } from "../visual";
 export default function drawYAxis(selection: svgBaseType, visualObj: Visual, refresh?: boolean) {
   const yAxisProperties: axisProperties = visualObj.viewModel.plotProperties.yAxis;
   const yAxis: d3.Axis<d3.NumberValue> = d3.axisLeft(visualObj.viewModel.plotProperties.yScale);
-  const yaxis_sig_figs: number = null;// visualObj.viewModel.inputSettings.y_axis.ylimit_sig_figs;
-  const sig_figs: number = yaxis_sig_figs === null ? visualObj.viewModel.inputSettings.funnel.sig_figs.value : yaxis_sig_figs;
-  const multiplier: number = visualObj.viewModel.inputSettings.funnel.multiplier.value;
+  const yaxis_sig_figs: number =  visualObj.viewModel.inputSettings.settings.y_axis.ylimit_sig_figs;
+  const sig_figs: number = yaxis_sig_figs === null ? visualObj.viewModel.inputSettings.settings.funnel.sig_figs : yaxis_sig_figs;
+  const multiplier: number = visualObj.viewModel.inputSettings.settings.funnel.multiplier;
   const displayPlot: boolean = visualObj.viewModel.plotProperties.displayPlot;
 
   if (yAxisProperties.ticks) {
@@ -38,7 +38,7 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
       // Right-align
       .style("text-anchor", "right")
       // Rotate tick labels
-      //.attr("transform", `rotate(${yAxisProperties.tick_rotation})`)
+      .attr("transform", `rotate(${yAxisProperties.tick_rotation})`)
       // Scale font
       .style("font-size", yAxisProperties.tick_size)
       .style("font-family", yAxisProperties.tick_font)
@@ -47,7 +47,7 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
   const currNode: SVGGElement = selection.selectAll(".yaxisgroup").selectAll(".tick text").node() as SVGGElement;
   const yAxisCoordinates: DOMRect = currNode.getBoundingClientRect() as DOMRect;
 
-  const settingsPadding: number = visualObj.viewModel.inputSettings.canvas.left_padding.value
+  const settingsPadding: number = visualObj.viewModel.inputSettings.settings.canvas.left_padding
   const tickLeftofPadding: number = yAxisCoordinates.left - settingsPadding;
 
   if (tickLeftofPadding < 0) {

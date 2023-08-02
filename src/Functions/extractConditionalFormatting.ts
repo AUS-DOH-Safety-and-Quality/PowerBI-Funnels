@@ -1,29 +1,31 @@
 import type powerbi from "powerbi-visuals-api"
 type DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 type DataViewCategorical = powerbi.DataViewCategorical;
-import type { settingsClass } from "../Classes";
-import { AllSettingsTypes } from "../Classes/settingsGroups"
-import { extractSetting } from "../Functions";
+import type { defaultSettingsType, defaultSettingsKey } from "../Classes";
+import { dataViewObjects } from "powerbi-visuals-utils-dataviewutils"
+import defaultSettings from "../defaultSettings";
 
+type SettingsTypes = defaultSettingsType[defaultSettingsKey];
 
-export default function extractConditionalFormatting<SettingsT extends AllSettingsTypes>(inputView: DataViewCategorical, name: string, inputSettings: settingsClass): SettingsT[] {
-  const inputCategories: DataViewCategoryColumn = (inputView.categories as DataViewCategoryColumn[])[0];
-  const staticSettings = inputSettings[name as keyof typeof inputSettings];
-  const settingNames = Object.getOwnPropertyNames(staticSettings)
-
-  const rtn: SettingsT[] = new Array<SettingsT>();
-  for (let i: number = 0; i < inputCategories.values.length; i++) {
-    rtn.push(
-      Object.fromEntries(
-        settingNames.map(settingName => {
-          return [
-            settingName,
-            extractSetting(inputCategories.objects ? inputCategories.objects[i] : null,
-                            name, settingName, staticSettings[settingName].default)
-          ]
-        })
-      ) as SettingsT
-    )
+export default function extractConditionalFormatting(categoricalView: DataViewCategorical, name: string, inputSettings: defaultSettingsType): SettingsTypes[] {
+  if (!(categoricalView?.categories[0]?.objects)) {
+    return [null];
   }
-  return rtn
+  const inputCategories: DataViewCategoryColumn = (categoricalView.categories as DataViewCategoryColumn[])[0];
+  const settingNames = Object.keys(defaultSettings[name]);
+
+  return inputCategories.values.map((_, idx) => {
+    return Object.fromEntries(
+      settingNames.map(settingName => {
+        return [
+          settingName,
+          dataViewObjects.getCommonValue(
+            inputCategories.objects[idx] as powerbi.DataViewObjects,
+            { objectName: name, propertyName: settingName },
+            inputSettings[name][settingName]
+          )
+        ]
+      })
+    ) as SettingsTypes
+  });
 }

@@ -26,12 +26,7 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
       // Plots the axis at the correct height
       .attr("transform", `translate(0, ${xAxisHeight})`)
       .selectAll(".tick text")
-      // Right-align
-      //.style("text-anchor", xAxisProperties.tick_rotation < 0.0 ? "end" : "start")
-      // Rotate tick labels
-      //.attr("dx", xAxisProperties.tick_rotation < 0.0 ? "-.8em" : ".8em")
-      //.attr("dy", xAxisProperties.tick_rotation < 0.0 ? "-.15em" : ".15em")
-      //.attr("transform","rotate(" + xAxisProperties.tick_rotation + ")")
+      .attr("transform","rotate(" + xAxisProperties.tick_rotation + ")")
       // Scale font
       .style("font-size", xAxisProperties.tick_size)
       .style("font-family", xAxisProperties.tick_font)
