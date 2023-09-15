@@ -4,13 +4,12 @@ type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
-import { chartClass, settingsClass, dataClass, type limitData, plotPropertiesClass, type defaultSettingsType } from "../Classes"
-import checkInvalidDataView from "../Functions/checkInvalidDataView"
+import { chartClass, settingsClass, type limitData, plotPropertiesClass, type defaultSettingsType } from "../Classes"
+import { extractInputData, buildTooltip, type dataObject } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
-import { buildTooltip } from "../Functions"
 
 export type lineData = {
   x: number;
@@ -31,7 +30,7 @@ export type plotData = {
 }
 
 export default class viewModelClass {
-  inputData: dataClass;
+  inputData: dataObject;
   inputSettings: settingsClass;
   chartBase: chartClass;
   calculatedLimits: limitData[];
@@ -41,7 +40,7 @@ export default class viewModelClass {
   firstRun: boolean;
 
   constructor() {
-    this.inputData = <dataClass>null;
+    this.inputData = <dataObject>null;
     this.inputSettings = new settingsClass();
     this.chartBase = null;
     this.calculatedLimits = null;
@@ -52,36 +51,25 @@ export default class viewModelClass {
   }
 
   update(options: VisualUpdateOptions, host: IVisualHost) {
-    if (checkInvalidDataView(options.dataViews)) {
-      this.inputData = <dataClass>null;
-      this.chartBase = null;
-      this.calculatedLimits = null;
-      this.plotPoints = new Array<plotData>();
-      this.groupedLines = new Array<[string, lineData[]]>();
-    } else {
-      const dv: powerbi.DataView[] = options.dataViews;
+    // Only re-construct data and re-calculate limits if they have changed
+    if (options.type === 2 || this.firstRun) {
       const chart_type: string = this.inputSettings.settings.funnel.chart_type
 
-      this.inputData = new dataClass(dv[0].categorical, this.inputSettings.settings);
+      this.inputData = extractInputData(options.dataViews[0].categorical, this.inputSettings.settings);
 
       this.chartBase = new chartObjects[chart_type](this.inputData, this.inputSettings);
-
       this.calculatedLimits = this.chartBase.getLimits();
 
       this.plotPoints = this.getScatterData(host);
       this.groupedLines = this.getGroupedLines();
     }
 
-    if (this.firstRun) {
-      this.plotProperties = new plotPropertiesClass();
-    }
-    this.plotProperties.update({
-      options: options,
-      plotPoints: this.plotPoints,
-      calculatedLimits: this.calculatedLimits,
-      inputData: this.inputData,
-      inputSettings: this.inputSettings.settings
-    })
+    this.plotProperties.update(
+      options,
+      this.plotPoints,
+      this.inputData,
+      this.inputSettings.settings
+    )
     this.firstRun = false;
   }
 
@@ -100,11 +88,11 @@ export default class viewModelClass {
 
     for (let i: number = 0; i < this.inputData.id.length; i++) {
       const original_index: number = this.inputData.id[i];
-      const numerator: number = this.inputData.numerator[i];
-      const denominator: number = this.inputData.denominator[i];
+      const numerator: number = this.inputData.numerators[i];
+      const denominator: number = this.inputData.denominators[i];
       const ratio: number = (numerator / denominator);
-      const limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominator === denominator && d.ll99 !== null && d.ul99 !== null);
-      const limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominator === denominator)[0];
+      const limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null);
+      const limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominators === denominator)[0];
       const aesthetics: defaultSettingsType["scatter"] = this.inputData.scatter_formatting[i]
       const two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
       const three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
@@ -161,7 +149,7 @@ export default class viewModelClass {
       limits.alt_target = alt_target;
       labels.forEach(label => {
           formattedLines.push({
-            x: limits.denominator,
+            x: limits.denominators,
             line_value: limits[label] ? transform(limits[label] * multiplier) : null,
             group: label
           })

@@ -1,32 +1,32 @@
-import { chartClass, type limitArgs, type dataClass, type settingsClass } from "../Classes"
-import { sum, add, divide, sqrt, log, exp, square, winsorise } from "../Functions"
+import { chartClass, type limitArgs, type settingsClass } from "../Classes"
+import { sum, add, divide, sqrt, log, exp, square, winsorise, type dataObject } from "../Functions"
 
-const rcSE = function(inputData: dataClass): number[] {
-  const numerator: number[] = inputData.numerator ? inputData.numerator : inputData.denominator;
-  const denominator: number[] = inputData.denominator;
+const rcSE = function(inputData: dataObject): number[] {
+  const numerators: number[] = inputData.numerators ? inputData.numerators : inputData.denominators;
+  const denominators: number[] = inputData.denominators;
 
   return sqrt(
-    add(divide(numerator, square(add(numerator, 0.5))),
-        divide(denominator, square(add(denominator, 0.5))))
+    add(divide(numerators, square(add(numerators, 0.5))),
+        divide(denominators, square(add(denominators, 0.5))))
   );
 }
 
-const rcTarget = function(inputData: dataClass): number {
-  const numerator: number[] = inputData.numerator;
-  const denominator: number[] = inputData.denominator;
-  return sum(numerator) / sum(denominator);
+const rcTarget = function(inputData: dataObject): number {
+  const numerators: number[] = inputData.numerators;
+  const denominators: number[] = inputData.denominators;
+  return sum(numerators) / sum(denominators);
 }
 
-const rcTargetTransformed = function(inputData: dataClass): number {
-  const numerator: number[] = inputData.numerator;
-  const denominator: number[] = inputData.denominator;
-  return log(sum(numerator)) - log(sum(denominator));
+const rcTargetTransformed = function(inputData: dataObject): number {
+  const numerators: number[] = inputData.numerators;
+  const denominators: number[] = inputData.denominators;
+  return log(sum(numerators)) - log(sum(denominators));
 }
 
-const rcY = function(inputData: dataClass): number[] {
-  const numerator: number[] = inputData.numerator;
-  const denominator: number[] = inputData.denominator;
-  return log(divide(add(numerator, 0.5), add(denominator, 0.5)));
+const rcY = function(inputData: dataObject): number[] {
+  const numerators: number[] = inputData.numerators;
+  const denominators: number[] = inputData.denominators;
+  return log(divide(add(numerators, 0.5), add(denominators, 0.5)));
 }
 
 const rcLimit = function(args: limitArgs): number {
@@ -41,7 +41,7 @@ const rcLimit = function(args: limitArgs): number {
 }
 
 export default class rcFunnelClass extends chartClass {
-  constructor(inputData: dataClass, inputSettings: settingsClass) {
+  constructor(inputData: dataObject, inputSettings: settingsClass) {
     super({
       seFunction: rcSE,
       seFunctionOD: rcSE,
