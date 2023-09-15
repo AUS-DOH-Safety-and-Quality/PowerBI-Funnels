@@ -40,6 +40,51 @@ export default class viewModelClass {
   plotProperties: plotPropertiesClass;
   firstRun: boolean;
 
+  constructor() {
+    this.inputData = <dataClass>null;
+    this.inputSettings = new settingsClass();
+    this.chartBase = null;
+    this.calculatedLimits = null;
+    this.plotPoints = new Array<plotData>();
+    this.groupedLines = new Array<[string, lineData[]]>();
+    this.plotProperties = new plotPropertiesClass();
+    this.firstRun = true
+  }
+
+  update(options: VisualUpdateOptions, host: IVisualHost) {
+    if (checkInvalidDataView(options.dataViews)) {
+      this.inputData = <dataClass>null;
+      this.chartBase = null;
+      this.calculatedLimits = null;
+      this.plotPoints = new Array<plotData>();
+      this.groupedLines = new Array<[string, lineData[]]>();
+    } else {
+      const dv: powerbi.DataView[] = options.dataViews;
+      const chart_type: string = this.inputSettings.settings.funnel.chart_type
+
+      this.inputData = new dataClass(dv[0].categorical, this.inputSettings.settings);
+
+      this.chartBase = new chartObjects[chart_type](this.inputData, this.inputSettings);
+
+      this.calculatedLimits = this.chartBase.getLimits();
+
+      this.plotPoints = this.getScatterData(host);
+      this.groupedLines = this.getGroupedLines();
+    }
+
+    if (this.firstRun) {
+      this.plotProperties = new plotPropertiesClass();
+    }
+    this.plotProperties.update({
+      options: options,
+      plotPoints: this.plotPoints,
+      calculatedLimits: this.calculatedLimits,
+      inputData: this.inputData,
+      inputSettings: this.inputSettings.settings
+    })
+    this.firstRun = false;
+  }
+
   getScatterData(host: IVisualHost): plotData[] {
     const plotPoints = new Array<plotData>();
     const transform_text: string = this.inputSettings.settings.funnel.transformation;
@@ -123,57 +168,5 @@ export default class viewModelClass {
       })
     })
     return d3.groups(formattedLines, d => d.group);
-  }
-
-  update(args: { options: VisualUpdateOptions;
-                  host: IVisualHost; }) {
-    if (this.firstRun) {
-      this.inputSettings = new settingsClass();
-    }
-    this.inputSettings.update(args.options.dataViews[0]);
-
-    if (checkInvalidDataView(args.options.dataViews)) {
-      this.inputData = <dataClass>null;
-      this.chartBase = null;
-      this.calculatedLimits = null;
-      this.plotPoints = new Array<plotData>();
-      this.groupedLines = new Array<[string, lineData[]]>();
-    } else {
-      const dv: powerbi.DataView[] = args.options.dataViews;
-      const chart_type: string = this.inputSettings.settings.funnel.chart_type
-
-      this.inputData = new dataClass(dv[0].categorical, this.inputSettings.settings);
-
-      this.chartBase = new chartObjects[chart_type as keyof typeof chartObjects]({ inputData: this.inputData,
-                                                      inputSettings: this.inputSettings });
-
-      this.calculatedLimits = this.chartBase.getLimits();
-
-      this.plotPoints = this.getScatterData(args.host);
-      this.groupedLines = this.getGroupedLines();
-    }
-
-    if (this.firstRun) {
-      this.plotProperties = new plotPropertiesClass();
-    }
-    this.plotProperties.update({
-      options: args.options,
-      plotPoints: this.plotPoints,
-      calculatedLimits: this.calculatedLimits,
-      inputData: this.inputData,
-      inputSettings: this.inputSettings.settings
-    })
-    this.firstRun = false;
-  }
-
-  constructor() {
-    this.inputData = <dataClass>null;
-    this.inputSettings = <settingsClass>null;
-    this.chartBase = null;
-    this.calculatedLimits = null;
-    this.plotPoints = new Array<plotData>();
-    this.groupedLines = new Array<[string, lineData[]]>();
-    this.plotProperties = <plotPropertiesClass>null;
-    this.firstRun = true
   }
 }

@@ -40,9 +40,8 @@ const rcLimit = function(args: limitArgs): number {
   return winsorise(limit, {lower: 0});
 }
 
-class rcFunnelObject extends chartClass {
-  constructor(args: { inputData: dataClass,
-                      inputSettings: settingsClass }) {
+export default class rcFunnelClass extends chartClass {
+  constructor(inputData: dataClass, inputSettings: settingsClass) {
     super({
       seFunction: rcSE,
       seFunctionOD: rcSE,
@@ -51,10 +50,8 @@ class rcFunnelObject extends chartClass {
       yFunction: rcY,
       limitFunction: rcLimit,
       limitFunctionOD: rcLimit,
-      inputData: args.inputData,
-      inputSettings: args.inputSettings
+      inputData: inputData,
+      inputSettings: inputSettings
     });
   }
 }
-
-export default rcFunnelObject;
