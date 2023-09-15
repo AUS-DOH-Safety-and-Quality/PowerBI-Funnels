@@ -1,7 +1,7 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import type { plotData, limitData, defaultSettingsType } from "../Classes";
+import type { plotData, defaultSettingsType } from "../Classes";
 import { divide, max, type dataObject } from "../Functions";
 
 export type axisProperties = {

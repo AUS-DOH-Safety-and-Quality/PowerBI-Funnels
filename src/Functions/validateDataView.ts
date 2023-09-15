@@ -1,7 +1,6 @@
 import type powerbi from "powerbi-visuals-api";
-import type { defaultSettingsType } from "../Classes";
 
-export default function validateDataView(inputDV: powerbi.DataView[], inputSettings: defaultSettingsType) {
+export default function validateDataView(inputDV: powerbi.DataView[]) {
   if (!(inputDV?.at(0))) {
     throw("No data present");
   }
