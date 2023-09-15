@@ -1,8 +1,15 @@
 {
   "supportsHighlight": true,
+  "supportsKeyboardFocus": true,
   "sorting": {
     "implicit": { "clauses": [{ "role": "key", "direction": 1 }] }
   },
+  "tooltips": {
+    "supportedTypes": { "default": true, "canvas": true },
+    "roles": [ "tooltips" ],
+    "supportEnhancedTooltips": true
+  },
+  "privileges": [],
   "dataRoles": [
     { "displayName": "Numerator",   "name": "numerators",   "kind": "Measure" },
     { "displayName": "Denominator", "name": "denominators", "kind": "Measure" },
@@ -346,9 +353,5 @@
         ]
       }
     }
-  }],
-  "tooltips": {
-    "supportedTypes": { "default": true, "canvas": true },
-    "roles": [ "tooltips" ]
-  }
+  }]
 }

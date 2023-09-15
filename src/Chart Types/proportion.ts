@@ -33,9 +33,8 @@ const prLimit = function(args: limitArgs) {
   return winsorise(limit, {lower: 0, upper: 1})
 }
 
-class prFunnelObject extends chartClass {
-  constructor(args: { inputData: dataClass,
-                      inputSettings: settingsClass }) {
+export default class prFunnelClass extends chartClass {
+  constructor(inputData: dataClass, inputSettings: settingsClass) {
     super({
       seFunction: prSE,
       seFunctionOD: prSE,
@@ -44,10 +43,8 @@ class prFunnelObject extends chartClass {
       yFunction: prY,
       limitFunction: prLimit,
       limitFunctionOD: prLimit,
-      inputData: args.inputData,
-      inputSettings: args.inputSettings
+      inputData: inputData,
+      inputSettings: inputSettings
     });
   }
 }
-
-export default prFunnelObject;

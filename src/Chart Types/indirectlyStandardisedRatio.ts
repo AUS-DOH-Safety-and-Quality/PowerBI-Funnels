@@ -51,9 +51,8 @@ const smrLimit = function(args: limitArgs) {
   return winsorise(limit, {lower: 0})
 }
 
-class smrFunnelObject extends chartClass {
-  constructor(args: { inputData: dataClass,
-                      inputSettings: settingsClass }) {
+export default class smrFunnelClass extends chartClass {
+  constructor(inputData: dataClass, inputSettings: settingsClass) {
     super({
       seFunction: smrSE,
       seFunctionOD: smrSEOD,
@@ -62,10 +61,8 @@ class smrFunnelObject extends chartClass {
       yFunction: smrY,
       limitFunction: smrLimit,
       limitFunctionOD: smrLimitOD,
-      inputData: args.inputData,
-      inputSettings: args.inputSettings
+      inputData: inputData,
+      inputSettings: inputSettings
     });
   }
 }
-
-export default smrFunnelObject;
