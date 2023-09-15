@@ -17,3 +17,4 @@ export { default as broadcast_unary, sqrt, square, exp, inv, asin, log, abs } fr
 export { default as winsorise } from "./winsorise"
 export { mean, median, sum, max, min, quantile } from "d3-array";
 export { default as validateDataView } from "./validateDataView"
+export { default as validateInputData } from "./validateInputData"
