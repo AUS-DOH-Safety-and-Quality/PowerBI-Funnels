@@ -1,8 +1,8 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import type { plotData, limitData, dataClass, defaultSettingsType } from "../Classes";
-import { divide, max } from "../Functions";
+import type { plotData, defaultSettingsType } from "../Classes";
+import { divide, max, type dataObject } from "../Functions";
 
 export type axisProperties = {
   lower: number,
@@ -44,74 +44,73 @@ export default class plotPropertiesClass {
                                     this.yAxis.end_padding]);
   }
 
-  update(args: { options: VisualUpdateOptions,
-                  plotPoints: plotData[],
-                  calculatedLimits: limitData[],
-                  inputData: dataClass,
-                  inputSettings: defaultSettingsType }) {
+  update(options: VisualUpdateOptions,
+        plotPoints: plotData[],
+        inputData: dataObject,
+        inputSettings: defaultSettingsType) {
 
     // Get the width and height of plotting space
-    this.width = args.options.viewport.width;
-    this.height = args.options.viewport.height;
-    this.displayPlot = args.plotPoints
-      ? args.plotPoints.length > 1
+    this.width = options.viewport.width;
+    this.height = options.viewport.height;
+    this.displayPlot = plotPoints
+      ? plotPoints.length > 1
       : null;
 
-    const xTickSize: number = args.inputSettings.x_axis.xlimit_tick_size;
-    const yTickSize: number = args.inputSettings.y_axis.ylimit_tick_size;
-    const xTicksCount: number = args.inputSettings.x_axis.xlimit_tick_count;
-    const yTicksCount: number = args.inputSettings.y_axis.ylimit_tick_count;
+    const xTickSize: number = inputSettings.x_axis.xlimit_tick_size;
+    const yTickSize: number = inputSettings.y_axis.ylimit_tick_size;
+    const xTicksCount: number = inputSettings.x_axis.xlimit_tick_count;
+    const yTicksCount: number = inputSettings.y_axis.ylimit_tick_count;
 
-    const xLowerLimit: number = args.inputSettings.x_axis.xlimit_l;
-    let xUpperLimit: number = args.inputSettings.x_axis.xlimit_u;
+    const xLowerLimit: number = inputSettings.x_axis.xlimit_l;
+    let xUpperLimit: number = inputSettings.x_axis.xlimit_u;
 
-    if (args.inputData) {
-      xUpperLimit = xUpperLimit ? xUpperLimit : max(args.inputData.denominator) * 1.1;
+    if (inputData) {
+      xUpperLimit = xUpperLimit ? xUpperLimit : max(inputData.denominators) * 1.1;
     }
 
     this.xAxis = {
       lower: xLowerLimit ? xLowerLimit : 0,
       upper: xUpperLimit,
-      start_padding: args.inputSettings.canvas.left_padding,
-      end_padding: args.inputSettings.canvas.right_padding,
-      colour: args.inputSettings.x_axis.xlimit_colour,
-      ticks: (xTicksCount !== null) ? (xTicksCount > 0) : args.inputSettings.x_axis.xlimit_ticks,
+      start_padding: inputSettings.canvas.left_padding,
+      end_padding: inputSettings.canvas.right_padding,
+      colour: inputSettings.x_axis.xlimit_colour,
+      ticks: (xTicksCount !== null) ? (xTicksCount > 0) : inputSettings.x_axis.xlimit_ticks,
       tick_size: `${xTickSize}px`,
-      tick_font: args.inputSettings.x_axis.xlimit_tick_font,
-      tick_colour: args.inputSettings.x_axis.xlimit_tick_colour,
-      tick_rotation: args.inputSettings.x_axis.xlimit_tick_rotation,
-      tick_count: args.inputSettings.x_axis.xlimit_tick_count,
-      label: args.inputSettings.x_axis.xlimit_label,
-      label_size: `${args.inputSettings.x_axis.xlimit_label_size}px`,
-      label_font: args.inputSettings.x_axis.xlimit_label_font,
-      label_colour: args.inputSettings.x_axis.xlimit_label_colour
+      tick_font: inputSettings.x_axis.xlimit_tick_font,
+      tick_colour: inputSettings.x_axis.xlimit_tick_colour,
+      tick_rotation: inputSettings.x_axis.xlimit_tick_rotation,
+      tick_count: inputSettings.x_axis.xlimit_tick_count,
+      label: inputSettings.x_axis.xlimit_label,
+      label_size: `${inputSettings.x_axis.xlimit_label_size}px`,
+      label_font: inputSettings.x_axis.xlimit_label_font,
+      label_colour: inputSettings.x_axis.xlimit_label_colour
     };
 
-    const yLowerLimit: number = args.inputSettings.y_axis.ylimit_l;
-    let yUpperLimit: number = args.inputSettings.y_axis.ylimit_u;
+    const yLowerLimit: number = inputSettings.y_axis.ylimit_l;
+    let yUpperLimit: number = inputSettings.y_axis.ylimit_u;
 
-    if (args.inputData) {
-      const multiplier: number = args.inputSettings.funnel.multiplier
-      const maxRatio: number = max(divide(args.inputData.numerator, args.inputData.denominator));
+    if (inputData) {
+      const multiplier: number = inputSettings.funnel.multiplier
+      const maxRatio: number = max(divide(inputData.numerators, inputData.denominators));
       yUpperLimit = yUpperLimit ? yUpperLimit : maxRatio * multiplier
     }
 
     this.yAxis = {
       lower: yLowerLimit ? yLowerLimit : 0,
       upper: yUpperLimit,
-      start_padding: args.inputSettings.canvas.lower_padding,
-      end_padding: args.inputSettings.canvas.upper_padding,
-      colour: args.inputSettings.y_axis.ylimit_colour,
-      ticks: (yTicksCount !== null) ? (yTicksCount > 0) : args.inputSettings.y_axis.ylimit_ticks,
+      start_padding: inputSettings.canvas.lower_padding,
+      end_padding: inputSettings.canvas.upper_padding,
+      colour: inputSettings.y_axis.ylimit_colour,
+      ticks: (yTicksCount !== null) ? (yTicksCount > 0) : inputSettings.y_axis.ylimit_ticks,
       tick_size: `${yTickSize}px`,
-      tick_font: args.inputSettings.y_axis.ylimit_tick_font,
-      tick_colour: args.inputSettings.y_axis.ylimit_tick_colour,
-      tick_rotation: args.inputSettings.y_axis.ylimit_tick_rotation,
-      tick_count: args.inputSettings.y_axis.ylimit_tick_count,
-      label: args.inputSettings.y_axis.ylimit_label,
-      label_size: `${args.inputSettings.y_axis.ylimit_label_size}px`,
-      label_font: args.inputSettings.y_axis.ylimit_label_font,
-      label_colour: args.inputSettings.y_axis.ylimit_label_colour
+      tick_font: inputSettings.y_axis.ylimit_tick_font,
+      tick_colour: inputSettings.y_axis.ylimit_tick_colour,
+      tick_rotation: inputSettings.y_axis.ylimit_tick_rotation,
+      tick_count: inputSettings.y_axis.ylimit_tick_count,
+      label: inputSettings.y_axis.ylimit_label,
+      label_size: `${inputSettings.y_axis.ylimit_label_size}px`,
+      label_font: inputSettings.y_axis.ylimit_label_font,
+      label_colour: inputSettings.y_axis.ylimit_label_colour
     };
     this.initialiseScale();
   }

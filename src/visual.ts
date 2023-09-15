@@ -38,7 +38,7 @@ export class Visual implements powerbi.extensibility.IVisual {
               .attr("height", options.viewport.height)
 
       this.viewModel.inputSettings.update(options.dataViews[0]);
-      validateDataView(options.dataViews, this.viewModel.inputSettings.settings);
+      validateDataView(options.dataViews);
       this.viewModel.update(options, this.host);
 
       this.svg.call(drawXAxis, this)

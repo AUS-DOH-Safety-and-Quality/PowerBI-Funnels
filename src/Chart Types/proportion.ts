@@ -1,25 +1,25 @@
-import { chartClass, type limitArgs, type dataClass, type settingsClass } from "../Classes"
-import { sum, sqrt, inv, asin, square, multiply, divide, winsorise } from "../Functions"
+import { chartClass, type limitArgs, type settingsClass } from "../Classes"
+import { sum, sqrt, inv, asin, square, multiply, divide, winsorise, type dataObject } from "../Functions"
 
-const prSE = function(inputData: dataClass): number[] {
-  const denominator: number[] = inputData.denominator;
-  return inv(multiply(2, sqrt(denominator)));
+const prSE = function(inputData: dataObject): number[] {
+  const denominators: number[] = inputData.denominators;
+  return inv(multiply(2, sqrt(denominators)));
 }
 
-const prTarget = function(inputData: dataClass): number {
-  const numerator: number[] = inputData.numerator;
-  const denominator: number[] = inputData.denominator;
-  return sum(numerator) / sum(denominator);
+const prTarget = function(inputData: dataObject): number {
+  const numerators: number[] = inputData.numerators;
+  const denominators: number[] = inputData.denominators;
+  return sum(numerators) / sum(denominators);
 }
 
-const prTargetTransformed = function(inputData: dataClass): number {
+const prTargetTransformed = function(inputData: dataObject): number {
   return Math.asin(Math.sqrt(prTarget(inputData)));
 }
 
-const prY = function(inputData: dataClass): number[] {
-  const numerator: number[] = inputData.numerator;
-  const denominator: number[] = inputData.denominator;
-  return asin(sqrt(divide(numerator, denominator)));
+const prY = function(inputData: dataObject): number[] {
+  const numerators: number[] = inputData.numerators;
+  const denominators: number[] = inputData.denominators;
+  return asin(sqrt(divide(numerators, denominators)));
 }
 
 const prLimit = function(args: limitArgs) {
@@ -34,7 +34,7 @@ const prLimit = function(args: limitArgs) {
 }
 
 export default class prFunnelClass extends chartClass {
-  constructor(inputData: dataClass, inputSettings: settingsClass) {
+  constructor(inputData: dataObject, inputSettings: settingsClass) {
     super({
       seFunction: prSE,
       seFunctionOD: prSE,

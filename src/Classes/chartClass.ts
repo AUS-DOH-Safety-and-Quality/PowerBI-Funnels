@@ -1,5 +1,5 @@
-import { normal_quantile, seq, max } from "../Functions";
-import type { settingsClass, dataClass } from "../Classes";
+import { normal_quantile, seq, max, type dataObject } from "../Functions";
+import type { settingsClass } from "../Classes";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
@@ -11,11 +11,11 @@ export type limitArgs = {
   target_transformed: number;
   SE: number;
   tau2: number;
-  denominator: number;
+  denominators: number;
 }
 
 export type limitData = {
-  denominator: number;
+  denominators: number;
   ll99: number;
   ll95: number;
   ul95: number;
@@ -30,35 +30,35 @@ type intervalData = {
 }
 
 type chartObjectConstructorT = {
-  seFunction: (x: dataClass) => number[];
-  seFunctionOD: (x: dataClass) => number[];
-  targetFunction: (x: dataClass) => number;
-  targetFunctionTransformed: (x: dataClass) => number;
-  yFunction: (x: dataClass) => number[];
+  seFunction: (x: dataObject) => number[];
+  seFunctionOD: (x: dataObject) => number[];
+  targetFunction: (x: dataObject) => number;
+  targetFunctionTransformed: (x: dataObject) => number;
+  yFunction: (x: dataObject) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
-  inputData: dataClass;
+  inputData: dataObject;
   inputSettings: settingsClass;
 }
 
 export default class chartClass {
-  inputData: dataClass;
+  inputData: dataObject;
   inputSettings: settingsClass;
-  seFunction: (x: dataClass) => number[];
-  seFunctionOD: (x: dataClass) => number[];
-  targetFunction: (x: dataClass) => number;
-  targetFunctionTransformed: (x: dataClass) => number;
-  yFunction: (x: dataClass) => number[];
+  seFunction: (x: dataObject) => number[];
+  seFunctionOD: (x: dataObject) => number[];
+  targetFunction: (x: dataObject) => number;
+  targetFunctionTransformed: (x: dataObject) => number;
+  yFunction: (x: dataObject) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
 
   getPlottingDenominators(): number[] {
-    const maxDenominator: number = max(this.inputData.denominator);
+    const maxDenominator: number = max(this.inputData.denominators);
     const plotDenomLower: number = 1;
     const plotDenomUpper: number = maxDenominator + maxDenominator * 0.1;
     const plotDenomStep: number = maxDenominator * 0.01;
     return seq(plotDenomLower, plotDenomUpper, plotDenomStep)
-            .concat(this.inputData.denominator)
+            .concat(this.inputData.denominators)
             .sort((a, b) => a - b);
   }
 
@@ -70,9 +70,9 @@ export default class chartClass {
   getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
     const seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
     if (par.plottingDenominators) {
-      const dummyArray: dataClass = JSON.parse(JSON.stringify(this.inputData))
-      dummyArray.numerator = null
-      dummyArray.denominator = par.plottingDenominators;
+      const dummyArray: dataObject = JSON.parse(JSON.stringify(this.inputData))
+      dummyArray.numerators = null
+      dummyArray.denominators = par.plottingDenominators;
       return seFun(dummyArray);
     } else {
       return seFun(this.inputData);
@@ -148,7 +148,7 @@ export default class chartClass {
 
     const calcLimits: limitData[] = plottingDenominators.map((denom, idx) => {
       const calcLimitEntries: [string, number][] = new Array<[string, number]>();
-      calcLimitEntries.push(["denominator", denom]);
+      calcLimitEntries.push(["denominators", denom]);
       intervals.forEach(interval => {
         const functionArgs: limitArgs = {
           q: interval.quantile,
@@ -156,7 +156,7 @@ export default class chartClass {
           target_transformed: target_transformed,
           SE: plottingSE[idx],
           tau2: tau2,
-          denominator: denom
+          denominators: denom
         };
 
         const limit: number = this.getSingleLimit({
