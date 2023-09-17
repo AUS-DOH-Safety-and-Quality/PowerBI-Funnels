@@ -3,8 +3,9 @@ type DataViewValueColumn = powerbi.DataViewValueColumn;
 type DataViewValueColumns = powerbi.DataViewValueColumns;
 type DataViewCategorical = powerbi.DataViewCategorical;
 type DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
+type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
-type TargetT = number[] | string[] | number | string;
+type TargetT = number[] | string[] | number | string | VisualTooltipDataItem[][];
 
 export default function extractDataColumn<T extends TargetT>(inputView: DataViewCategorical,
                                               name: string): T {
@@ -15,7 +16,23 @@ export default function extractDataColumn<T extends TargetT>(inputView: DataView
     });
       columnRaw = columnRawTmp[0];
       return <string[]>columnRaw.values as Extract<T, string[]>;
-  } else {
+  } else if (name === "tooltips") {
+    let rtn = new Array<VisualTooltipDataItem[]>();
+    const tooltipColumns = inputView.values.filter(viewColumn => viewColumn.source.roles.tooltips);
+    if (tooltipColumns.length > 0) {
+      rtn = tooltipColumns[0].values.map((_, idx) => {
+        return tooltipColumns.map(viewColumn => {
+          return <VisualTooltipDataItem>{
+            displayName: viewColumn.source.displayName,
+            value: viewColumn.source.type.numeric
+                    ? (<number>(viewColumn.values[idx])).toString()
+                    : <string>(viewColumn.values[idx])
+          }
+        })
+      })
+    }
+    return rtn as Extract<T, VisualTooltipDataItem[][]>;
+  }  else {
     columnRaw = (inputView.values as DataViewValueColumns).filter(viewColumn => {
       return viewColumn.source.roles ? viewColumn.source.roles[name] : false;
     })[0];

@@ -1,4 +1,5 @@
 import type powerbi from "powerbi-visuals-api";
+type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import { extractValues, validateInputData, extractDataColumn, extractConditionalFormatting, rep } from "../Functions"
 import { type defaultSettingsType } from "../Classes"
 
@@ -12,6 +13,7 @@ export type dataObject = {
   percentLabels: boolean;
   categories: powerbi.DataViewCategoryColumn;
   scatter_formatting: defaultSettingsType["scatter"][];
+  tooltips: VisualTooltipDataItem[][];
   warningMessage: string;
 }
 
@@ -21,6 +23,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const keys: string[] = extractDataColumn<string[]>(inputView, "key");
   let scatter_cond = extractConditionalFormatting(inputView, "scatter", inputSettings) as defaultSettingsType["scatter"][];
   scatter_cond = scatter_cond[0] === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
+  const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
   const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
 
   const inputValidStatus: string[] = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
@@ -45,6 +48,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
     id: valid_ids,
     numerators: extractValues(numerators, valid_ids),
     denominators: extractValues(denominators, valid_ids),
+    tooltips: extractValues(tooltips, valid_ids),
     highlights: extractValues(highlights, valid_ids),
     anyHighlights: highlights != null,
     percentLabels: (inputSettings.funnel.chart_type === "PR") && (inputSettings.funnel.multiplier === 1 || inputSettings.funnel.multiplier === 100),
