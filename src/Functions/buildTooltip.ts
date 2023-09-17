@@ -14,7 +14,8 @@ type tooltipArgs = {
   multiplier: number,
   two_sigma_outlier: boolean,
   three_sigma_outlier: boolean,
-  sig_figs: number
+  sig_figs: number,
+  userTooltips: VisualTooltipDataItem[]
 }
 
 export default function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
@@ -82,5 +83,10 @@ export default function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[]
       value: patterns.join("\n")
     })
   }
+
+  if (args?.userTooltips?.length > 0) {
+    args.userTooltips.forEach(customTooltip => tooltip.push(customTooltip));
+  }
+
   return tooltip;
 }

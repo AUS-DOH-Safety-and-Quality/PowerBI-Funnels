@@ -127,7 +127,8 @@ export default class viewModelClass {
           multiplier: multiplier,
           two_sigma_outlier: two_sigma_outlier,
           three_sigma_outlier: three_sigma_outlier,
-          sig_figs: this.inputSettings.settings.funnel.sig_figs
+          sig_figs: this.inputSettings.settings.funnel.sig_figs,
+          userTooltips: this.inputData.tooltips[i]
         })
       })
     }
