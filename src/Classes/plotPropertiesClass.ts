@@ -1,7 +1,7 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import type { plotData, defaultSettingsType } from "../Classes";
+import type { plotData, defaultSettingsType, derivedSettingsClass } from "../Classes";
 import { divide, max, type dataObject } from "../Functions";
 
 export type axisProperties = {
@@ -47,7 +47,8 @@ export default class plotPropertiesClass {
   update(options: VisualUpdateOptions,
         plotPoints: plotData[],
         inputData: dataObject,
-        inputSettings: defaultSettingsType) {
+        inputSettings: defaultSettingsType,
+        derivedSettings: derivedSettingsClass) {
 
     // Get the width and height of plotting space
     this.width = options.viewport.width;
@@ -69,7 +70,7 @@ export default class plotPropertiesClass {
     }
 
     this.xAxis = {
-      lower: xLowerLimit ? xLowerLimit : 0,
+      lower: xLowerLimit ?? 0,
       upper: xUpperLimit,
       start_padding: inputSettings.canvas.left_padding,
       end_padding: inputSettings.canvas.right_padding,
@@ -90,13 +91,12 @@ export default class plotPropertiesClass {
     let yUpperLimit: number = inputSettings.y_axis.ylimit_u;
 
     if (inputData) {
-      const multiplier: number = inputSettings.funnel.multiplier
       const maxRatio: number = max(divide(inputData.numerators, inputData.denominators));
-      yUpperLimit = yUpperLimit ? yUpperLimit : maxRatio * multiplier
+      yUpperLimit ??= maxRatio * derivedSettings.multiplier
     }
 
     this.yAxis = {
-      lower: yLowerLimit ? yLowerLimit : 0,
+      lower: yLowerLimit ?? 0,
       upper: yUpperLimit,
       start_padding: inputSettings.canvas.lower_padding,
       end_padding: inputSettings.canvas.upper_padding,
