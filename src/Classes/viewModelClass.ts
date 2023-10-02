@@ -68,7 +68,8 @@ export default class viewModelClass {
       options,
       this.plotPoints,
       this.inputData,
-      this.inputSettings.settings
+      this.inputSettings.settings,
+      this.inputSettings.derivedSettings
     )
     this.firstRun = false;
   }
@@ -78,7 +79,7 @@ export default class viewModelClass {
     const transform_text: string = this.inputSettings.settings.funnel.transformation;
     const transform: (x: number) => number = getTransformation(transform_text);
     const target: number = this.chartBase.getTarget({ transformed: false });
-    const multiplier: number = this.inputSettings.settings.funnel.multiplier;
+    const multiplier: number = this.inputSettings.derivedSettings.multiplier;
     const data_type: string = this.inputSettings.settings.funnel.chart_type;
     const flag_two_sigma: boolean = this.inputSettings.settings.outliers.two_sigma;
     const flag_three_sigma: boolean = this.inputSettings.settings.outliers.three_sigma;
@@ -136,7 +137,7 @@ export default class viewModelClass {
   }
 
   getGroupedLines(): [string, lineData[]][] {
-    const multiplier: number = this.inputSettings.settings.funnel.multiplier;
+    const multiplier: number = this.inputSettings.derivedSettings.multiplier;
     const transform: (x: number) => number = getTransformation(this.inputSettings.settings.funnel.transformation);
 
     const target: number = this.chartBase.getTarget({ transformed: false });

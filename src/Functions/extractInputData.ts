@@ -10,7 +10,6 @@ export type dataObject = {
   denominators: number[];
   highlights: powerbi.PrimitiveValue[];
   anyHighlights: boolean;
-  percentLabels: boolean;
   categories: powerbi.DataViewCategoryColumn;
   scatter_formatting: defaultSettingsType["scatter"][];
   tooltips: VisualTooltipDataItem[][];
@@ -51,7 +50,6 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
     tooltips: extractValues(tooltips, valid_ids),
     highlights: extractValues(highlights, valid_ids),
     anyHighlights: highlights != null,
-    percentLabels: (inputSettings.funnel.chart_type === "PR") && (inputSettings.funnel.multiplier === 1 || inputSettings.funnel.multiplier === 100),
     categories: inputView.categories[0],
     scatter_formatting: extractValues(scatter_cond, valid_ids) as defaultSettingsType["scatter"][],
     warningMessage: removalMessages.length >0 ? removalMessages.join("\n") : ""
