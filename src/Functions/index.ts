@@ -18,3 +18,4 @@ export { default as winsorise } from "./winsorise"
 export { mean, median, sum, max, min, quantile } from "d3-array";
 export { default as validateDataView } from "./validateDataView"
 export { default as validateInputData } from "./validateInputData"
+export { default as formatPrimitiveValue } from "./formatPrimitiveValue"
