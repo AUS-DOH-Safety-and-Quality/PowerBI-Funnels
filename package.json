@@ -9,7 +9,7 @@
   "dependencies": {
     "@stdlib/stats-base-dists-chisquare-quantile": "^0.0.7",
     "@stdlib/stats-base-dists-normal-cdf": "^0.0.7",
-    "@stdlib/stats-base-dists-normal-quantile": "^0.0.7",
+    "@stdlib/stats-base-dists-normal-quantile": "^0.1.1",
     "d3-array": "^3.2.4",
     "d3-axis": "^3.0.0",
     "d3-scale": "^4.0.2",
