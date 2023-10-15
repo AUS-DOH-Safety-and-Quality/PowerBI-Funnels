@@ -7,9 +7,9 @@
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@stdlib/stats-base-dists-chisquare-quantile": "^0.0.7",
+    "@stdlib/stats-base-dists-chisquare-quantile": "^0.1.0",
     "@stdlib/stats-base-dists-normal-cdf": "^0.0.7",
-    "@stdlib/stats-base-dists-normal-quantile": "^0.0.7",
+    "@stdlib/stats-base-dists-normal-quantile": "^0.1.1",
     "d3-array": "^3.2.4",
     "d3-axis": "^3.0.0",
     "d3-scale": "^4.0.2",
@@ -28,8 +28,8 @@
     "@typescript-eslint/parser": "^6.2.0",
     "eslint": "^8.45.0",
     "eslint-plugin-powerbi-visuals": "^0.8.1",
-    "ts-loader": "9.4.4",
-    "typescript": "5.1.6"
+    "ts-loader": "9.5.0",
+    "typescript": "5.2.2"
   },
   "override": {
     "powerbi-visuals-api": "$powerbi-visuals-api"
