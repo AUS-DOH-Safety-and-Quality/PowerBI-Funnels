@@ -22,7 +22,7 @@ export default function extractConditionalFormatting(categoricalView: DataViewCa
           dataViewObjects.getCommonValue(
             inputCategories.objects[idx] as powerbi.DataViewObjects,
             { objectName: name, propertyName: settingName },
-            inputSettings[name][settingName]
+            defaultSettings[name][settingName]
           )
         ]
       })

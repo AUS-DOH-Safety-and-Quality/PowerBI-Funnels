@@ -6,7 +6,7 @@ type ValueTypeDescriptor = powerbi.ValueTypeDescriptor
 const formatPrimitiveValue = broadcastBinary((rawValue: PrimitiveValue,
                                               valueType: ValueTypeDescriptor): string => {
   if (rawValue === null || rawValue === undefined) {
-    return "";
+    return null;
   }
 
   if (valueType.numeric) {
