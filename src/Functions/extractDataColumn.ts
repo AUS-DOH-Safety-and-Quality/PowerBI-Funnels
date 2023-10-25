@@ -1,9 +1,7 @@
 import type powerbi from "powerbi-visuals-api"
 import formatPrimitiveValue from "./formatPrimitiveValue";
 type DataViewValueColumn = powerbi.DataViewValueColumn;
-type DataViewValueColumns = powerbi.DataViewValueColumns;
 type DataViewCategorical = powerbi.DataViewCategorical;
-type DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
 type TargetT = number[] | string[] | number | string | VisualTooltipDataItem[][];
@@ -34,7 +32,7 @@ function extractTooltips(inputView: DataViewCategorical): VisualTooltipDataItem[
   const tooltipColumns = inputView.values.filter(viewColumn => viewColumn.source.roles.tooltips);
   return tooltipColumns?.[0]?.values?.map((_, idx) => {
     return tooltipColumns.map(viewColumn => {
-      let tooltipValueFormatted: string = formatPrimitiveValue(viewColumn?.values?.[idx], viewColumn.source.type)
+      const tooltipValueFormatted: string = formatPrimitiveValue(viewColumn?.values?.[idx], viewColumn.source.type)
 
       return <VisualTooltipDataItem>{
         displayName: viewColumn.source.displayName,

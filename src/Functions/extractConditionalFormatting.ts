@@ -7,7 +7,7 @@ import defaultSettings from "../defaultSettings";
 
 type SettingsTypes = defaultSettingsType[defaultSettingsKey];
 
-export default function extractConditionalFormatting(categoricalView: DataViewCategorical, name: string, inputSettings: defaultSettingsType): SettingsTypes[] {
+export default function extractConditionalFormatting(categoricalView: DataViewCategorical, name: string): SettingsTypes[] {
   if (!(categoricalView?.categories?.at(0)?.objects)) {
     return [null];
   }
