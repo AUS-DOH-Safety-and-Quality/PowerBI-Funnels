@@ -37,7 +37,7 @@ export default class settingsClass {
 
     allSettingGroups.forEach(settingGroup => {
       const categoricalView: DataViewCategorical = inputView.categorical ? inputView.categorical : null;
-      const condFormatting: defaultSettingsType[defaultSettingsKey] = extractConditionalFormatting(categoricalView, settingGroup, this.settings)[0];
+      const condFormatting: defaultSettingsType[defaultSettingsKey] = extractConditionalFormatting(categoricalView, settingGroup)[0];
       // Get the names of all settings in a given class and
       // use those to extract and update the relevant values
       const settingNames: string[] = Object.keys(this.settings[settingGroup]);
@@ -72,7 +72,7 @@ export default class settingsClass {
       );
 
       type propArray = Array<string | powerbi.default.VisualEnumerationInstanceKinds>;
-      let propertyKinds: propArray[] = new Array<propArray>();
+      const propertyKinds: propArray[] = new Array<propArray>();
 
       (paneGroupings[currKey]).forEach(setting => {
         if ((typeof this.settings[settingGroupName][setting]) != "boolean") {

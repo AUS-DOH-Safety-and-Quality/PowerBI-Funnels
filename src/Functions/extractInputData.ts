@@ -20,7 +20,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
   const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
   const keys: string[] = extractDataColumn<string[]>(inputView, "key");
-  let scatter_cond = extractConditionalFormatting(inputView, "scatter", inputSettings) as defaultSettingsType["scatter"][];
+  let scatter_cond = extractConditionalFormatting(inputView, "scatter") as defaultSettingsType["scatter"][];
   scatter_cond = scatter_cond[0] === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
   const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
   const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
