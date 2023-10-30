@@ -10,6 +10,6 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-    dev-dependencies:
-      patterns:
-        - "*"
+      dev-dependencies:
+        patterns:
+          - "*"
