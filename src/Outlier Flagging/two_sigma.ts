@@ -1,24 +1,12 @@
 import type { limitData } from "../Classes";
-import { between } from "../Functions"
 
-export default function two_sigma(value: number, flag_direction: string,
-                   limits: limitData): boolean {
-  if (limits.ul95 === null && limits.ll95 === null) {
-    return false;
-  } else if (limits.ul95 === null) {
-    flag_direction = "lower"
-  } else if (limits.ll95 === null) {
-    flag_direction = "upper"
+export default function two_sigma(value: number,
+                   limits: limitData): string {
+  if (value < limits.ll99) {
+    return "lower";
+  } else if (value > limits.ul99) {
+    return "upper";
+  } else {
+    return "none";
   }
-
-  if (!between(value, limits.ll95, limits.ul95)) {
-    if (flag_direction === "both") {
-      return true;
-    } else if (flag_direction === "upper") {
-      return value > limits.ul95;
-    } else if (flag_direction === "lower") {
-      return value < limits.ll95;
-    }
-  }
-  return false;
 }

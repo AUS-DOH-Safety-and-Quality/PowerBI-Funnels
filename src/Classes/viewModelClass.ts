@@ -5,7 +5,7 @@ type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import { chartClass, settingsClass, type limitData, plotPropertiesClass, type defaultSettingsType } from "../Classes"
-import { extractInputData, buildTooltip, type dataObject } from "../Functions";
+import { extractInputData, buildTooltip, type dataObject, checkFlagDirection } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
@@ -83,9 +83,6 @@ export default class viewModelClass {
     const data_type: string = this.inputSettings.settings.funnel.chart_type;
     const flag_two_sigma: boolean = this.inputSettings.settings.outliers.two_sigma;
     const flag_three_sigma: boolean = this.inputSettings.settings.outliers.three_sigma;
-    const flag_direction: string = this.inputSettings.settings.outliers.flag_direction;
-    const two_sigma_colour: string = this.inputSettings.settings.outliers.two_sigma_colour;
-    const three_sigma_colour: string = this.inputSettings.settings.outliers.three_sigma_colour;
 
     for (let i: number = 0; i < this.inputData.id.length; i++) {
       const original_index: number = this.inputData.id[i];
@@ -95,17 +92,23 @@ export default class viewModelClass {
       const limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null);
       const limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominators === denominator)[0];
       const aesthetics: defaultSettingsType["scatter"] = this.inputData.scatter_formatting[i]
-      const two_sigma_outlier: boolean = flag_two_sigma ? two_sigma(ratio, flag_direction, limits) : false;
-      const three_sigma_outlier: boolean = flag_three_sigma ? three_sigma(ratio, flag_direction, limits) : false;
+      const two_sigma_outlier: string = flag_two_sigma ? two_sigma(ratio, limits) : "none";
+      const three_sigma_outlier: string = flag_three_sigma ? three_sigma(ratio, limits) : "none";
       const category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
                               (this.inputData.categories.values[original_index]).toString() :
                               <string>(this.inputData.categories.values[original_index]);
-      if (two_sigma_outlier) {
-        aesthetics.colour = two_sigma_colour;
+      const flagSettings = {
+        process_flag_type: this.inputSettings.settings.outliers.process_flag_type,
+        improvement_direction: this.inputSettings.settings.outliers.improvement_direction
+      }
+      if (two_sigma_outlier !== "none") {
+        const two_sigma_flag: string = checkFlagDirection(two_sigma_outlier, flagSettings)
+        aesthetics.colour = this.inputSettings.settings.outliers["two_sigma_colour_" + two_sigma_flag];
       }
 
-      if (three_sigma_outlier) {
-        aesthetics.colour = three_sigma_colour
+      if (three_sigma_outlier !== "none") {
+        const three_sigma_flag: string = checkFlagDirection(three_sigma_outlier, flagSettings)
+        aesthetics.colour = this.inputSettings.settings.outliers["three_sigma_colour_" + three_sigma_flag];
       }
 
       plotPoints.push({
@@ -126,8 +129,8 @@ export default class viewModelClass {
           limits: limits,
           data_type: data_type,
           multiplier: multiplier,
-          two_sigma_outlier: two_sigma_outlier,
-          three_sigma_outlier: three_sigma_outlier,
+          two_sigma_outlier: two_sigma_outlier !== "none",
+          three_sigma_outlier: three_sigma_outlier !== "none",
           sig_figs: this.inputSettings.settings.funnel.sig_figs,
           userTooltips: this.inputData.tooltips[i]
         })

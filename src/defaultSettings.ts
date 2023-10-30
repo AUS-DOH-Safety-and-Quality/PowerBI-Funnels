@@ -26,8 +26,8 @@ const defaultSettings = {
     width_alt_target: 1.5,
     type_99: "10 10",
     type_95: "2 5",
-    type_target: "10 10",
-    type_alt_target: "10 10",
+    type_target: "10 0",
+    type_alt_target: "10 0",
     colour_99: "#6495ED",
     colour_95: "#6495ED",
     colour_target: "#000000",
@@ -65,11 +65,18 @@ const defaultSettings = {
     ylimit_u: <number>null
   },
   outliers: {
-    flag_direction: "both",
+    process_flag_type: "both",
+    improvement_direction: "increase",
     three_sigma: false,
-    three_sigma_colour: "#E1C233",
+    three_sigma_colour_improvement: "#E1C233",
+    three_sigma_colour_deterioration: "#E1C233",
+    three_sigma_colour_neutral_low: "#E1C233",
+    three_sigma_colour_neutral_high: "#E1C233",
     two_sigma: false,
-    two_sigma_colour: "#E1C233"
+    two_sigma_colour_improvement: "#E1C233",
+    two_sigma_colour_deterioration: "#E1C233",
+    two_sigma_colour_neutral_low: "#E1C233",
+    two_sigma_colour_neutral_high: "#E1C233"
   }
 }
 
