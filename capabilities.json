@@ -68,13 +68,23 @@
     "outliers" : {
       "displayName": "Outlier Highlighting",
       "properties": {
-        "flag_direction": {
-          "displayName": "Direction to Flag",
+        "process_flag_type": {
+          "displayName": "Type of Change to Flag",
           "type": {
             "enumeration" : [
-              { "displayName" : "Both",  "value" : "both" },
-              { "displayName" : "Upper", "value" : "upper" },
-              { "displayName" : "Lower", "value" : "lower" }
+              { "displayName" : "Both",                 "value" : "both" },
+              { "displayName" : "Improvement (Imp.)",   "value" : "improvement" },
+              { "displayName" : "Deterioration (Det.)", "value" : "deterioration" }
+            ]
+          }
+        },
+        "improvement_direction": {
+          "displayName": "Improvement Direction",
+          "type": {
+            "enumeration" : [
+              { "displayName" : "Increase", "value" : "increase" },
+              { "displayName" : "Neutral",  "value" : "neutral" },
+              { "displayName" : "Decrease", "value" : "decrease" }
             ]
           }
         },
@@ -86,12 +96,36 @@
           "displayName": "Two Sigma Outliers",
           "type" : { "bool" : true }
         },
-        "three_sigma_colour":{
-          "displayName": "Three Sigma Colour",
+        "three_sigma_colour_improvement":{
+          "displayName": "Imp. Three Sigma Colour",
           "type": { "fill": { "solid": { "color": true } } }
         },
-        "two_sigma_colour":{
-          "displayName": "Two Sigma Colour",
+        "three_sigma_colour_deterioration":{
+          "displayName": "Det. Three Sigma Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "three_sigma_colour_neutral_low":{
+          "displayName": "Neutral (Low) Three Sigma Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "three_sigma_colour_neutral_high":{
+          "displayName": "Neutral (High) Three Sigma Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "two_sigma_colour_improvement":{
+          "displayName": "Imp. Two Sigma Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "two_sigma_colour_deterioration":{
+          "displayName": "Det. Two Sigma Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "two_sigma_colour_neutral_low":{
+          "displayName": "Neutral (Low) Two Sigma Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "two_sigma_colour_neutral_high":{
+          "displayName": "Neutral (High) Two Sigma Colour",
           "type": { "fill": { "solid": { "color": true } } }
         }
       }
