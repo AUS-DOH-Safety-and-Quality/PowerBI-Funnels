@@ -18,6 +18,8 @@ et al
 [Handling over-dispersion of performance indicators. Spiegelhalter
 (2005)](https://qualitysafety.bmj.com/content/14/5/347)<br>
 
+<iframe title="Report Section" width="1024" height="612" src="https://app.powerbi.com/view?r=eyJrIjoiZjQxNmQ5YmMtZmE1Mi00MzRkLWFmNzQtOGI5MThlMjQ4ZjdiIiwidCI6IjIzMjA0YzgxLTVlNzYtNDE0ZS04Y2M1LTYzMWI0ODc0ZTIwOCJ9" frameborder="0" allowFullScreen="true"></iframe>
+
 # Installing the Visual
 
 The most recent version of the visual can be downloaded from the ['Releases' section](https://github.com/andrjohns/PowerBI-Funnels/releases/tag/latest) and added to PowerBI using the 'Import visual from a file' option:
