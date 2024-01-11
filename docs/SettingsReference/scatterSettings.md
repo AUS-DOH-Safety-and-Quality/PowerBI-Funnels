@@ -6,11 +6,14 @@ nav_order: 7.4
 ---
 
 # Scatterplot Aesthetic Configuration
+Contains the settings for formatting the points on the SPC chart.
 
-## Dot Size
+![Padding](images\scatterSettings.png)
 
-## Opacity
+- **Dot Size** - Size for each point in the SPC (default is 3)
+- **Colour** - The colour for each point in the SPC (default is black)
+- **Opacity** - The opacity for each point (default is 1)
+- **Opacity if Unselected** - The opacity for the points that are not highlighted (default is 0.2)
 
-## Opacity if Unselected
+Each of the above settings can also be configured using conditional formatting, allowing for different dot sizes, colours and opacities. Colour should be set using the hex colour code.
 
-## Colour
