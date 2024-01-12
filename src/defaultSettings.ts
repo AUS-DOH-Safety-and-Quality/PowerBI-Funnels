@@ -14,6 +14,9 @@ const defaultSettings = {
     alt_target: <number>null
   },
   scatter: {
+    use_group_text: false,
+    font_family: "'Arial', sans-serif",
+    font_size: 10,
     size: 3,
     colour: "#000000",
     opacity: 1,

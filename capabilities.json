@@ -154,6 +154,18 @@
     "scatter": {
       "displayName": "Scatter Settings",
       "properties": {
+        "use_group_text": {
+          "displayName": "Use Group Text",
+          "type" : { "bool" : true }
+        },
+        "font_family": {
+          "displayName": "Tick Font",
+          "type": { "formatting": { "fontFamily": true } }
+        },
+        "font_size": {
+          "displayName": "Font Size",
+          "type": { "numeric": true }
+        },
         "size": {
           "displayName": "Dot Size",
           "type": { "numeric": true }
