@@ -104,11 +104,13 @@ export default class viewModelClass {
       if (two_sigma_outlier !== "none") {
         const two_sigma_flag: string = checkFlagDirection(two_sigma_outlier, flagSettings)
         aesthetics.colour = this.inputSettings.settings.outliers["two_sigma_colour_" + two_sigma_flag];
+        aesthetics.scatter_text_colour = aesthetics.colour;
       }
 
       if (three_sigma_outlier !== "none") {
         const three_sigma_flag: string = checkFlagDirection(three_sigma_outlier, flagSettings)
         aesthetics.colour = this.inputSettings.settings.outliers["three_sigma_colour_" + three_sigma_flag];
+        aesthetics.scatter_text_colour = aesthetics.colour;
       }
 
       plotPoints.push({

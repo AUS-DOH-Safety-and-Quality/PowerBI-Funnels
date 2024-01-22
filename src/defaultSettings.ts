@@ -15,8 +15,11 @@ const defaultSettings = {
   },
   scatter: {
     use_group_text: false,
-    font_family: "'Arial', sans-serif",
-    font_size: 10,
+    scatter_text_font: "'Arial', sans-serif",
+    scatter_text_size: 10,
+    scatter_text_colour: "#000000",
+    scatter_text_opacity: 1,
+    scatter_text_opacity_unselected: 0.2,
     size: 3,
     colour: "#000000",
     opacity: 1,
@@ -98,6 +101,12 @@ export const settingsPaneGroupings = {
     "Axis": ["ylimit_colour", "ylimit_sig_figs", "ylimit_l", "ylimit_u"],
     "Ticks": ["ylimit_ticks", "ylimit_tick_count", "ylimit_tick_font", "ylimit_tick_size", "ylimit_tick_colour", "ylimit_tick_rotation"],
     "Label": ["ylimit_label", "ylimit_label_font", "ylimit_label_size", "ylimit_label_colour"]
+  }
+}
+
+export const settingsPaneToggles = {
+  scatter: {
+    "use_group_text": ["scatter_text_font", "scatter_text_size", "scatter_text_colour", "scatter_text_opacity", "scatter_text_opacity_unselected"]
   }
 }
 

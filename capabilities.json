@@ -158,12 +158,24 @@
           "displayName": "Use Group Text",
           "type" : { "bool" : true }
         },
-        "font_family": {
-          "displayName": "Tick Font",
+        "scatter_text_font": {
+          "displayName": "Group Text Font",
           "type": { "formatting": { "fontFamily": true } }
         },
-        "font_size": {
-          "displayName": "Font Size",
+        "scatter_text_size": {
+          "displayName": "Group Text Size",
+          "type": { "numeric": true }
+        },
+        "scatter_text_colour":{
+          "displayName": "Group Text Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "scatter_text_opacity": {
+          "displayName": "Group Text Opacity",
+          "type": { "numeric": true }
+        },
+        "scatter_text_opacity_unselected": {
+          "displayName": "Group Text Opacity if Unselected",
           "type": { "numeric": true }
         },
         "size": {
