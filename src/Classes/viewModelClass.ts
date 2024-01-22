@@ -20,6 +20,7 @@ export type lineData = {
 export type plotData = {
   x: number;
   value: number;
+  group_text: string;
   aesthetics: defaultSettingsType["scatter"];
   // ISelectionId allows the visual to report the selection choice to PowerBI
   identity: ISelectionId;
@@ -104,16 +105,19 @@ export default class viewModelClass {
       if (two_sigma_outlier !== "none") {
         const two_sigma_flag: string = checkFlagDirection(two_sigma_outlier, flagSettings)
         aesthetics.colour = this.inputSettings.settings.outliers["two_sigma_colour_" + two_sigma_flag];
+        aesthetics.scatter_text_colour = aesthetics.colour;
       }
 
       if (three_sigma_outlier !== "none") {
         const three_sigma_flag: string = checkFlagDirection(three_sigma_outlier, flagSettings)
         aesthetics.colour = this.inputSettings.settings.outliers["three_sigma_colour_" + three_sigma_flag];
+        aesthetics.scatter_text_colour = aesthetics.colour;
       }
 
       plotPoints.push({
         x: denominator,
         value: transform(ratio * multiplier),
+        group_text: category,
         aesthetics: aesthetics,
         identity: host.createSelectionIdBuilder()
                       .withCategory(this.inputData.categories, original_index)

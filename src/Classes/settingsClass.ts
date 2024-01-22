@@ -7,7 +7,7 @@ type VisualObjectInstance = powerbi.default.VisualObjectInstance;
 type VisualObjectInstanceContainer = powerbi.default.VisualObjectInstanceContainer;
 import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import { extractConditionalFormatting } from "../Functions";
-import { default as defaultSettings, settingsPaneGroupings } from "../defaultSettings";
+import { default as defaultSettings, settingsPaneGroupings, settingsPaneToggles } from "../defaultSettings";
 import derivedSettingsClass from "./derivedSettingsClass";
 
 export type defaultSettingsType = typeof defaultSettings;
@@ -58,8 +58,22 @@ export default class settingsClass {
    */
   createSettingsEntry(settingGroupName: string): VisualObjectInstanceEnumerationObject {
     const settingNames: string[] = Object.keys(this.settings[settingGroupName]);
+    const toggledSettings: string[] = Object.keys(settingsPaneToggles).includes(settingGroupName) ? settingsPaneToggles[settingGroupName] : {};
+
     const settingsGrouped: boolean = Object.keys(settingsPaneGroupings).includes(settingGroupName);
     const paneGroupings: Record<string, string[]> = settingsGrouped ? settingsPaneGroupings[settingGroupName] : { "all": settingNames };
+
+    Object.keys(toggledSettings).forEach(settingToggle => {
+      if (this.settings[settingGroupName][settingToggle] !== true) {
+        Object.keys(paneGroupings).forEach(currKey => {
+          paneGroupings[currKey] = paneGroupings[currKey].filter(setting => !toggledSettings[settingToggle].includes(setting))
+        })
+      } else {
+        Object.keys(paneGroupings).forEach(currKey => {
+          paneGroupings[currKey] = paneGroupings[currKey].filter(setting => toggledSettings[settingToggle].includes(setting) || setting == settingToggle)
+        })
+      }
+    })
     const rtnInstances = new Array<VisualObjectInstance>();
     const rtnContainers = new Array<VisualObjectInstanceContainer>();
 

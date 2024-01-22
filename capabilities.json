@@ -154,6 +154,30 @@
     "scatter": {
       "displayName": "Scatter Settings",
       "properties": {
+        "use_group_text": {
+          "displayName": "Use Group Text",
+          "type" : { "bool" : true }
+        },
+        "scatter_text_font": {
+          "displayName": "Group Text Font",
+          "type": { "formatting": { "fontFamily": true } }
+        },
+        "scatter_text_size": {
+          "displayName": "Group Text Size",
+          "type": { "numeric": true }
+        },
+        "scatter_text_colour":{
+          "displayName": "Group Text Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "scatter_text_opacity": {
+          "displayName": "Group Text Opacity",
+          "type": { "numeric": true }
+        },
+        "scatter_text_opacity_unselected": {
+          "displayName": "Group Text Opacity if Unselected",
+          "type": { "numeric": true }
+        },
         "size": {
           "displayName": "Dot Size",
           "type": { "numeric": true }
