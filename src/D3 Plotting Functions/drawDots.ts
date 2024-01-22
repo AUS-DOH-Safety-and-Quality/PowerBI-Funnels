@@ -2,10 +2,10 @@ import type { plotData } from "../Classes";
 import { between } from "../Functions";
 import type { svgBaseType, Visual } from "../visual";
 import { updateHighlighting } from "../D3 Plotting Functions";
-import * as d3 from "./D3 Modules";
+import { select, type Selection, type BaseType } from "./D3 Modules"
 
-type aestheticSelection = d3.Selection<SVGGraphicsElement, plotData, d3.BaseType, any>;
-type dataPointSelection = d3.Selection<SVGGraphicsElement, plotData, d3.BaseType, any>;
+type aestheticSelection = Selection<SVGGraphicsElement, plotData, BaseType, any>;
+type dataPointSelection = Selection<SVGGraphicsElement, plotData, BaseType, any>;
 
 export default function drawDots(selection: svgBaseType, visualObj: Visual): void {
   const use_group_text: boolean = visualObj.viewModel.inputSettings.settings.scatter.use_group_text;
@@ -62,7 +62,7 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
           .selectionManager
           .select(d.identity, (event.ctrlKey || event.metaKey))
           // Change opacity of non-selected dots
-          .then(() => { d3.select("svg").call(updateHighlighting, visualObj); });
+          .then(() => { select("svg").call(updateHighlighting, visualObj); });
       event.stopPropagation();
     })
     // Display tooltip content on mouseover
@@ -88,14 +88,19 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
     });
 }
 
+// TODO(Andrew): Construct these attributes in the viewModel
+//   - Tricky as the plotProperties get updated when rendering X & Y axes
+//      to add padding when rendering out of frame
 function dot_attributes(selection: aestheticSelection, visualObj: Visual): void {
   const scatter_settings = visualObj.viewModel.inputSettings.settings.scatter;
   const display_text: boolean = scatter_settings.use_group_text;
 
+  // If group text is displayed, then the dots are set to white backgrounds for
+  // the labels - avoids readability issues when intersecting with lines
   selection
     .attr("cy", (d: plotData) => visualObj.viewModel.plotProperties.yScale(d.value))
     .attr("cx", (d: plotData) => visualObj.viewModel.plotProperties.xScale(d.x))
-    .attr("r", (d: plotData) => display_text ? scatter_settings.scatter_text_size * 0.5 : d.aesthetics.size)
+    .attr("r", (d: plotData) => display_text ? scatter_settings.scatter_text_size * 0.6 : d.aesthetics.size)
     .style("fill", (d: plotData) => {
       const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
       const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
