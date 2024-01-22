@@ -20,6 +20,7 @@ export type lineData = {
 export type plotData = {
   x: number;
   value: number;
+  group_text: string;
   aesthetics: defaultSettingsType["scatter"];
   // ISelectionId allows the visual to report the selection choice to PowerBI
   identity: ISelectionId;
@@ -116,6 +117,7 @@ export default class viewModelClass {
       plotPoints.push({
         x: denominator,
         value: transform(ratio * multiplier),
+        group_text: category,
         aesthetics: aesthetics,
         identity: host.createSelectionIdBuilder()
                       .withCategory(this.inputData.categories, original_index)
