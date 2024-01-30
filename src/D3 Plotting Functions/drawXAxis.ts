@@ -25,7 +25,7 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
       .attr("color", displayPlot ? xAxisProperties.colour : "#FFFFFF")
       // Plots the axis at the correct height
       .attr("transform", `translate(0, ${xAxisHeight})`);
-  let tickGroup = xAxisGroup
+  const tickGroup = xAxisGroup
       .selectAll(".tick text")
       .attr("transform","rotate(" + xAxisProperties.tick_rotation + ")")
       .attr("text-anchor", "middle")
@@ -34,11 +34,9 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
       .style("font-family", xAxisProperties.tick_font)
       .style("fill", displayPlot ? xAxisProperties.tick_colour : "#FFFFFF");
 
-  console.log(xAxisProperties.tick_rotation)
   if (xAxisProperties.tick_rotation != 0) {
     const textAnchor = xAxisProperties.tick_rotation < 0.0 ? "end" : "start";
     const dx = xAxisProperties.tick_rotation < 0.0 ? "-.8em" : ".8em";
-    const dy = xAxisProperties.tick_rotation < 0.0 ? "-.15em" : ".15em";
     tickGroup.attr("text-anchor", textAnchor)
               .attr("dx", dx);
   }
