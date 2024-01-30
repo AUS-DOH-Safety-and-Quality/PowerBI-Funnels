@@ -8,24 +8,9 @@ type TargetT = number[] | string[] | number | string | VisualTooltipDataItem[][]
 
 function extractKeys(inputView: DataViewCategorical): string[] {
   const primitiveKeyColumns = inputView.categories.filter(viewColumn => viewColumn.source?.roles?.["key"])
-
-  // If a 'Date Hierarchy' type is passed then there will be multiple 'key" entries
-  if (primitiveKeyColumns.length > 1) {
-    return primitiveKeyColumns[primitiveKeyColumns.length - 1].values.map((lastKeyValue: powerbi.PrimitiveValue, index) => {
-      if (lastKeyValue === null) {
-        return null
-      }
-      let concatKey: string = <string>lastKeyValue;
-      for (let i = (primitiveKeyColumns.length - 2); i >= 0; i--) {
-        concatKey += " " + primitiveKeyColumns[i].values[index];
-      }
-      return concatKey;
-    }) as string[];
-  } else {
-    const primitiveKeyValues = primitiveKeyColumns?.[0]?.values;
-    const primitiveKeyTypes = primitiveKeyColumns?.[0]?.source?.type;
-    return formatPrimitiveValue(primitiveKeyValues, primitiveKeyTypes)
-  }
+  const primitiveKeyValues = primitiveKeyColumns?.[0]?.values;
+  const primitiveKeyTypes = primitiveKeyColumns?.[0]?.source?.type;
+  return formatPrimitiveValue(primitiveKeyValues, primitiveKeyTypes)
 }
 
 function extractTooltips(inputView: DataViewCategorical): VisualTooltipDataItem[][] {

@@ -4,16 +4,16 @@ import type powerbi from "powerbi-visuals-api";
 type EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 type VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 import * as d3 from "./D3 Plotting Functions/D3 Modules";
-import { viewModelClass } from "./Classes"
-import { validateDataView } from "./Functions";
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, updateHighlighting, addContextMenu } from "./D3 Plotting Functions"
+import { viewModelClass } from "./Classes"
+import { validateDataView } from "./Functions";
 
 export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
 
 export class Visual implements powerbi.extensibility.IVisual {
   host: powerbi.extensibility.visual.IVisualHost;
-  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+  svg: svgBaseType;
   viewModel: viewModelClass;
   selectionManager: powerbi.extensibility.ISelectionManager;
 
@@ -25,7 +25,7 @@ export class Visual implements powerbi.extensibility.IVisual {
     this.selectionManager = this.host.createSelectionManager();
     this.selectionManager.registerOnSelectCallback(() => {
       this.svg.call(updateHighlighting, this);
-    })
+    });
     this.initialiseSVG();
   }
 
@@ -51,7 +51,7 @@ export class Visual implements powerbi.extensibility.IVisual {
 
       if (this.viewModel.inputData.warningMessage !== "") {
         this.host.displayWarningIcon("Invalid inputs have been removed",
-                                      this.viewModel.inputData.warningMessage);
+                                     this.viewModel.inputData.warningMessage);
       }
 
       this.host.eventService.renderingFinished(options);
@@ -90,13 +90,13 @@ export class Visual implements powerbi.extensibility.IVisual {
     if (removeAll) {
       this.svg.selectChildren().remove();
     }
-    this.svg.append('g').classed("linesgroup", true)
     this.svg.append('line').classed("ttip-line-x", true)
     this.svg.append('line').classed("ttip-line-y", true)
-    this.svg.append('g').classed("dotsgroup", true)
     this.svg.append('g').classed("xaxisgroup", true)
     this.svg.append('text').classed("xaxislabel", true)
     this.svg.append('g').classed("yaxisgroup", true)
     this.svg.append('text').classed("yaxislabel", true)
+    this.svg.append('g').classed("linesgroup", true)
+    this.svg.append('g').classed("dotsgroup", true)
   }
 }

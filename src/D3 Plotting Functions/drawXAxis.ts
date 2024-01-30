@@ -24,16 +24,29 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
       .call(xAxis)
       .attr("color", displayPlot ? xAxisProperties.colour : "#FFFFFF")
       // Plots the axis at the correct height
-      .attr("transform", `translate(0, ${xAxisHeight})`)
+      .attr("transform", `translate(0, ${xAxisHeight})`);
+  const tickGroup = xAxisGroup
       .selectAll(".tick text")
       .attr("transform","rotate(" + xAxisProperties.tick_rotation + ")")
-      // Scale font
+      .attr("text-anchor", "middle")
+      .attr("dx", null)
       .style("font-size", xAxisProperties.tick_size)
       .style("font-family", xAxisProperties.tick_font)
       .style("fill", displayPlot ? xAxisProperties.tick_colour : "#FFFFFF");
 
-  const axisNode: SVGGElement = selection.selectAll(".xaxisgroup").selectAll(".tick text").node() as SVGGElement;
-  const xAxisCoordinates: DOMRect = axisNode.getBoundingClientRect() as DOMRect;
+  if (xAxisProperties.tick_rotation != 0) {
+    const textAnchor = xAxisProperties.tick_rotation < 0.0 ? "end" : "start";
+    const dx = xAxisProperties.tick_rotation < 0.0 ? "-.8em" : ".8em";
+    tickGroup.attr("text-anchor", textAnchor)
+              .attr("dx", dx);
+  }
+  const xAxisNode: SVGGElement = selection.selectAll(".xaxisgroup").node() as SVGGElement;
+  if (!xAxisNode) {
+    selection.select(".xaxislabel")
+              .style("fill", displayPlot ? xAxisProperties.label_colour : "#FFFFFF");
+    return;
+  }
+  const xAxisCoordinates: DOMRect = xAxisNode.getBoundingClientRect() as DOMRect;
 
   // Update padding and re-draw axis if large tick values rendered outside of plot
   const tickBelowPadding: number = xAxisCoordinates.bottom - xAxisHeight;

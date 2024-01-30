@@ -61,8 +61,8 @@ export default class viewModelClass {
       this.chartBase = new chartObjects[chart_type](this.inputData, this.inputSettings);
       this.calculatedLimits = this.chartBase.getLimits();
 
-      this.plotPoints = this.getScatterData(host);
-      this.groupedLines = this.getGroupedLines();
+      this.initialisePlotData(host);
+      this.initialiseGroupedLines();
     }
 
     this.plotProperties.update(
@@ -75,8 +75,8 @@ export default class viewModelClass {
     this.firstRun = false;
   }
 
-  getScatterData(host: IVisualHost): plotData[] {
-    const plotPoints = new Array<plotData>();
+  initialisePlotData(host: IVisualHost): void {
+    this.plotPoints = new Array<plotData>();
     const transform_text: string = this.inputSettings.settings.funnel.transformation;
     const transform: (x: number) => number = getTransformation(transform_text);
     const target: number = this.chartBase.getTarget({ transformed: false });
@@ -114,7 +114,7 @@ export default class viewModelClass {
         aesthetics.scatter_text_colour = aesthetics.colour;
       }
 
-      plotPoints.push({
+      this.plotPoints.push({
         x: denominator,
         value: transform(ratio * multiplier),
         group_text: category,
@@ -122,7 +122,7 @@ export default class viewModelClass {
         identity: host.createSelectionIdBuilder()
                       .withCategory(this.inputData.categories, original_index)
                       .createSelectionId(),
-        highlighted: this.inputData.highlights ? (this.inputData.highlights[i] ? true : false) : false,
+        highlighted: this.inputData.highlights?.[i] != null,
         tooltip: buildTooltip({
           group: category,
           numerator: numerator,
@@ -140,10 +140,9 @@ export default class viewModelClass {
         })
       })
     }
-    return plotPoints;
   }
 
-  getGroupedLines(): [string, lineData[]][] {
+  initialiseGroupedLines(): void {
     const multiplier: number = this.inputSettings.derivedSettings.multiplier;
     const transform: (x: number) => number = getTransformation(this.inputSettings.settings.funnel.transformation);
 
@@ -164,6 +163,6 @@ export default class viewModelClass {
           })
       })
     })
-    return d3.groups(formattedLines, d => d.group);
+    this.groupedLines = d3.groups(formattedLines, d => d.group);
   }
 }

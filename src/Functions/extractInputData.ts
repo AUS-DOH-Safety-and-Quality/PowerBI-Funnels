@@ -20,7 +20,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
   const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
   const keys: string[] = extractDataColumn<string[]>(inputView, "key");
-  let scatter_cond = extractConditionalFormatting(inputView, "scatter") as defaultSettingsType["scatter"][];
+  let scatter_cond = extractConditionalFormatting<defaultSettingsType["scatter"]>(inputView, "scatter", inputSettings);
   scatter_cond = scatter_cond[0] === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
   const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
   const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
@@ -51,7 +51,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
     highlights: extractValues(highlights, valid_ids),
     anyHighlights: highlights != null,
     categories: inputView.categories[0],
-    scatter_formatting: extractValues(scatter_cond, valid_ids) as defaultSettingsType["scatter"][],
+    scatter_formatting: extractValues(scatter_cond, valid_ids),
     warningMessage: removalMessages.length >0 ? removalMessages.join("\n") : ""
   }
 }

@@ -23,7 +23,7 @@ export type settingsScalarTypes = number | string | boolean;
  */
 export default class settingsClass {
   settings: defaultSettingsType;
-  derivedSettings: derivedSettingsClass;
+  derivedSettings: derivedSettingsClass
 
   /**
    * Function to read the values from the settings pane and update the
@@ -37,7 +37,7 @@ export default class settingsClass {
 
     allSettingGroups.forEach(settingGroup => {
       const categoricalView: DataViewCategorical = inputView.categorical ? inputView.categorical : null;
-      const condFormatting: defaultSettingsType[defaultSettingsKey] = extractConditionalFormatting(categoricalView, settingGroup)[0];
+      const condFormatting: defaultSettingsType[defaultSettingsKey] = extractConditionalFormatting(categoricalView, settingGroup, this.settings)[0];
       // Get the names of all settings in a given class and
       // use those to extract and update the relevant values
       const settingNames: string[] = Object.keys(this.settings[settingGroup]);
@@ -45,6 +45,7 @@ export default class settingsClass {
         this.settings[settingGroup][settingName] = condFormatting ? condFormatting[settingName] : defaultSettings[settingGroup][settingName]
       })
     })
+
     this.derivedSettings.update(this.settings)
   }
 
@@ -58,22 +59,28 @@ export default class settingsClass {
    */
   createSettingsEntry(settingGroupName: string): VisualObjectInstanceEnumerationObject {
     const settingNames: string[] = Object.keys(this.settings[settingGroupName]);
-    const toggledSettings: string[] = Object.keys(settingsPaneToggles).includes(settingGroupName) ? settingsPaneToggles[settingGroupName] : {};
-
     const settingsGrouped: boolean = Object.keys(settingsPaneGroupings).includes(settingGroupName);
-    const paneGroupings: Record<string, string[]> = settingsGrouped ? settingsPaneGroupings[settingGroupName] : { "all": settingNames };
-
-    Object.keys(toggledSettings).forEach(settingToggle => {
-      if (this.settings[settingGroupName][settingToggle] !== true) {
-        Object.keys(paneGroupings).forEach(currKey => {
-          paneGroupings[currKey] = paneGroupings[currKey].filter(setting => !toggledSettings[settingToggle].includes(setting))
+    const paneGroupings: Record<string, string[]>
+      = settingsGrouped ? JSON.parse(JSON.stringify(settingsPaneGroupings[settingGroupName]))
+                        : { "all": settingNames };
+   
+    if (Object.keys(settingsPaneToggles).includes(settingGroupName)) {
+      const toggledSettings: Record<string, Record<string, string[]>>
+        = settingsGrouped ? settingsPaneToggles[settingGroupName]
+                          : { "all": settingsPaneToggles[settingGroupName]};
+    
+      Object.keys(toggledSettings).forEach(toggleGroup => {
+        const possibleSettings: string[] = paneGroupings[toggleGroup];
+        let settingsToRemove: string[] = new Array<string>();
+        Object.keys(toggledSettings[toggleGroup]).forEach(settingToggle => {
+          if (this.settings[settingGroupName][settingToggle] !== true) {
+            settingsToRemove = settingsToRemove.concat(toggledSettings[toggleGroup][settingToggle])
+          }
         })
-      } else {
-        Object.keys(paneGroupings).forEach(currKey => {
-          paneGroupings[currKey] = paneGroupings[currKey].filter(setting => toggledSettings[settingToggle].includes(setting) || setting == settingToggle)
-        })
-      }
-    })
+        paneGroupings[toggleGroup] = possibleSettings.filter(setting => !settingsToRemove.includes(setting))
+      })
+    }
+  
     const rtnInstances = new Array<VisualObjectInstance>();
     const rtnContainers = new Array<VisualObjectInstanceContainer>();
 
