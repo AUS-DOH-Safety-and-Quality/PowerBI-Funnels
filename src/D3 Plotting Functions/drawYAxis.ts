@@ -1,6 +1,6 @@
 import * as d3 from "./D3 Modules";
 import { abs } from "../Functions";
-import { drawXAxis } from "../D3 Plotting Functions";
+import drawXAxis from "./drawXAxis";
 import type { axisProperties } from "../Classes";
 import type { svgBaseType, Visual } from "../visual";
 
@@ -43,12 +43,16 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
       .style("font-family", yAxisProperties.tick_font)
       .style("fill", displayPlot ? yAxisProperties.tick_colour : "#FFFFFF");
 
-  const currNode: SVGGElement = selection.selectAll(".yaxisgroup").selectAll(".tick text").node() as SVGGElement;
-  const yAxisCoordinates: DOMRect = currNode.getBoundingClientRect() as DOMRect;
+  const yAxisNode: SVGGElement = selection.selectAll(".yaxisgroup").node() as SVGGElement;
+  if (!yAxisNode) {
+    selection.select(".yaxislabel")
+              .style("fill", displayPlot ? yAxisProperties.label_colour : "#FFFFFF");
+    return;
+  }
+  const yAxisCoordinates: DOMRect = yAxisNode.getBoundingClientRect() as DOMRect;
 
   const settingsPadding: number = visualObj.viewModel.inputSettings.settings.canvas.left_padding
   const tickLeftofPadding: number = yAxisCoordinates.left - settingsPadding;
-
   if (tickLeftofPadding < 0) {
     if (!refresh) {
       visualObj.viewModel.plotProperties.xAxis.start_padding += abs(tickLeftofPadding)
@@ -62,12 +66,12 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
   const y: number = visualObj.viewModel.plotProperties.height / 2;
 
   selection.select(".yaxislabel")
-            .attr("x",leftMidpoint)
-            .attr("y", y)
-            .attr("transform",`rotate(-90, ${leftMidpoint}, ${y})`)
-            .text(yAxisProperties.label)
-            .style("text-anchor", "middle")
-            .style("font-size", yAxisProperties.label_size)
-            .style("font-family", yAxisProperties.label_font)
-            .style("fill", displayPlot ? yAxisProperties.label_colour : "#FFFFFF");
+      .attr("x",leftMidpoint)
+      .attr("y", y)
+      .attr("transform",`rotate(-90, ${leftMidpoint}, ${y})`)
+      .text(yAxisProperties.label)
+      .style("text-anchor", "middle")
+      .style("font-size", yAxisProperties.label_size)
+      .style("font-family", yAxisProperties.label_font)
+      .style("fill", displayPlot ? yAxisProperties.label_colour : "#FFFFFF");
 }
