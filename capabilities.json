@@ -58,10 +58,6 @@
               { "displayName" : "Square-Root",       "value" : "sqrt" }
             ]
           }
-        },
-        "alt_target": {
-          "displayName": "Secondary Target",
-          "type": { "numeric": true }
         }
       }
     },
@@ -199,12 +195,36 @@
     "lines": {
       "displayName": "Line Settings",
       "properties": {
+        "show_99": {
+          "displayName": "Show 99.8% Lines",
+          "type" : { "bool" : true }
+        },
+        "show_95": {
+          "displayName": "Show 95% Lines",
+          "type" : { "bool" : true }
+        },
+        "show_68": {
+          "displayName": "Show 68% Lines",
+          "type" : { "bool" : true }
+        },
+        "show_target": {
+          "displayName": "Show Target Line",
+          "type" : { "bool" : true }
+        },
+        "show_alt_target": {
+          "displayName": "Show Alt. Target Line",
+          "type" : { "bool" : true }
+        },
         "width_99": {
           "displayName": "99.8% Line Width",
           "type": { "numeric": true }
         },
         "width_95": {
           "displayName": "95% Line Width",
+          "type": { "numeric": true }
+        },
+        "width_68": {
+          "displayName": "68% Line Width",
           "type": { "numeric": true }
         },
         "width_target": {
@@ -227,6 +247,16 @@
         },
         "type_95": {
           "displayName": "95% Line Type",
+          "type": {
+            "enumeration" : [
+              { "displayName" : "Solid",  "value" : "10 0" },
+              { "displayName" : "Dashed", "value" : "10 10" },
+              { "displayName" : "Dotted", "value" : "2 5" }
+            ]
+          }
+        },
+        "type_68": {
+          "displayName": "68% Line Type",
           "type": {
             "enumeration" : [
               { "displayName" : "Solid",  "value" : "10 0" },
@@ -263,6 +293,10 @@
           "displayName": "95% Line Colour",
           "type": { "fill": { "solid": { "color": true } } }
         },
+        "colour_68":{
+          "displayName": "68% Line Colour",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
         "colour_target":{
           "displayName": "Target Line Colour",
           "type": { "fill": { "solid": { "color": true } } }
@@ -270,6 +304,50 @@
         "colour_alt_target":{
           "displayName": "Alternative Target Line Colour",
           "type": { "fill": { "solid": { "color": true } } }
+        },
+        "ttip_show_99": {
+          "displayName": "Show value in tooltip",
+          "type" : { "bool" : true }
+        },
+        "ttip_show_95": {
+          "displayName": "Show value in tooltip",
+          "type" : { "bool" : true }
+        },
+        "ttip_show_68": {
+          "displayName": "Show value in tooltip",
+          "type" : { "bool" : true }
+        },
+        "ttip_show_target": {
+          "displayName": "Show value in tooltip",
+          "type" : { "bool" : true }
+        },
+        "ttip_show_alt_target": {
+          "displayName": "Show value in tooltip",
+          "type" : { "bool" : true }
+        },
+        "ttip_label_99": {
+          "displayName": "Tooltip Label",
+          "type": { "text": true }
+        },
+        "ttip_label_95": {
+          "displayName": "Tooltip Label",
+          "type": { "text": true }
+        },
+        "ttip_label_68": {
+          "displayName": "Tooltip Label",
+          "type": { "text": true }
+        },
+        "ttip_label_target": {
+          "displayName": "Tooltip Label",
+          "type": { "text": true }
+        },
+        "ttip_label_alt_target": {
+          "displayName": "Tooltip Label",
+          "type": { "text": true }
+        },
+        "alt_target": {
+          "displayName": "Additional Target Value:",
+          "type": { "numeric": true }
         }
       }
     },
