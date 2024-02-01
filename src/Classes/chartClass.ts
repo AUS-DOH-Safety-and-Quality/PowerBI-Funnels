@@ -18,6 +18,8 @@ export type limitData = {
   denominators: number;
   ll99: number;
   ll95: number;
+  ll68: number;
+  ul68: number;
   ul95: number;
   ul99: number;
   target: number;
@@ -109,10 +111,10 @@ export default class chartClass {
   }
 
   getIntervals(): intervalData[] {
-    // Specify the intervals for the limits: 95% and 99.8%
-    const qs: number[] = [0.001, 0.025, 0.975, 0.999]
+    // Specify the intervals for the limits: 68%, 95% and 99.8%
+    const qs: number[] = [0.001, 0.025, 0.16, 0.84, 0.975, 0.999]
                          .map(p => normal_quantile(p, 0, 1));
-    const q_labels: string[] = ["ll99", "ll95", "ul95", "ul99"];
+    const q_labels: string[] = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"];
 
     return qs.map((d, idx) => {
       return {
@@ -135,7 +137,7 @@ export default class chartClass {
     }
 
     const target: number = this.getTarget({ transformed: false });
-    const alt_target: number = this.inputSettings.settings.funnel.alt_target;
+    const alt_target: number = this.inputSettings.settings.lines.alt_target;
     const target_transformed: number = this.getTarget({ transformed: true });
 
     const intervals: intervalData[] = this.getIntervals();
@@ -176,6 +178,8 @@ export default class chartClass {
       if (idx < (calcLimits.length - 1)) {
         inner.ll99 = d.ll99 < calcLimits[idx + 1].ll99 ? d.ll99 : null;
         inner.ll95 = d.ll95 < calcLimits[idx + 1].ll95 ? d.ll95 : null;
+        inner.ll68 = d.ll68 < calcLimits[idx + 1].ll68 ? d.ll68 : null;
+        inner.ul68 = d.ul68 > calcLimits[idx + 1].ul68 ? d.ul68 : null;
         inner.ul95 = d.ul95 > calcLimits[idx + 1].ul95 ? d.ul95 : null;
         inner.ul99 = d.ul99 > calcLimits[idx + 1].ul99 ? d.ul99 : null;
       }

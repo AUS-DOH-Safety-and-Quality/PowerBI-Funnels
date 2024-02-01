@@ -63,6 +63,7 @@ export default class viewModelClass {
 
       this.initialisePlotData(host);
       this.initialiseGroupedLines();
+      console.log(this.groupedLines)
     }
 
     this.plotProperties.update(
@@ -147,9 +148,24 @@ export default class viewModelClass {
     const transform: (x: number) => number = getTransformation(this.inputSettings.settings.funnel.transformation);
 
     const target: number = this.chartBase.getTarget({ transformed: false });
-    const alt_target: number = this.inputSettings.settings.funnel.alt_target;
+    const alt_target: number = this.inputSettings.settings.lines.alt_target;
 
-    const labels: string[] = ["ll99", "ll95", "ul95", "ul99", "target", "alt_target"];
+    const labels: string[] = new Array<string>();
+    if (this.inputSettings.settings.lines.show_target) {
+      labels.push("target");
+    }
+    if (this.inputSettings.settings.lines.show_alt_target) {
+      labels.push("alt_target");
+    }
+    if (this.inputSettings.settings.lines.show_99) {
+      labels.push("ll99", "ul99");
+    }
+    if (this.inputSettings.settings.lines.show_95) {
+      labels.push("ll95", "ul95");
+    }
+    if (this.inputSettings.settings.lines.show_68) {
+      labels.push("ll68", "ul68");
+    }
 
     const formattedLines: lineData[] = new Array<lineData>();
     this.calculatedLimits.forEach(limits => {
