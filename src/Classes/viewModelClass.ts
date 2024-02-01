@@ -63,7 +63,6 @@ export default class viewModelClass {
 
       this.initialisePlotData(host);
       this.initialiseGroupedLines();
-      console.log(this.groupedLines)
     }
 
     this.plotProperties.update(
