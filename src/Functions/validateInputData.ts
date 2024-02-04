@@ -1,36 +1,68 @@
 import rep from "./rep";
 import { validationErrorClass } from "../Classes";
 
-export default function validateInputData(keys: string[], numerators: number[], denominators: number[], data_type: string): string[] {
-  const status: string[] = rep("", keys.length);
-  keys.forEach((d, idx) => status[idx] = status[idx] === "" ? ((d != null) ? "" : "Group missing") : status[idx]);
-  if (!status.some(d => d == "")) {
-    throw(new validationErrorClass("All Groups/IDs are missing or null!"))
+export type ValidationT = { status: number, messages: string[], error?: string };
+
+export default function validateInputData(keys: string[], numerators: number[], denominators: number[], data_type: string): ValidationT {
+  const validationRtn: ValidationT = { status: 0, messages: rep("", keys.length) };
+
+  keys.forEach((d, idx) => {
+    validationRtn.messages[idx] = validationRtn.messages[idx] === ""
+                                  ? ((d != null) ? "" : "Date missing")
+                                  : validationRtn.messages[idx]});
+  if (!validationRtn.messages.some(d => d == "")) {
+    validationRtn.status = 1;
+    validationRtn.error = "All Groups/IDs are missing or null!";
+    return validationRtn;
   }
 
-  numerators.forEach((d, idx) => status[idx] = status[idx] === "" ? ((d != null) ? "" : "Numerator missing") : status[idx]);
-  if (!status.some(d => d == "")) {
-    throw(new validationErrorClass("All numerators are missing or null!"))
+  numerators.forEach((d, idx) => {
+    validationRtn.messages[idx] = validationRtn.messages[idx] === ""
+                                  ? ((d != null) ? "" : "Numerator missing")
+                                  : validationRtn.messages[idx]});
+  if (!validationRtn.messages.some(d => d == "")) {
+    validationRtn.status = 1;
+    validationRtn.error = "All numerators are missing or null!";
+    return validationRtn;
+  }
+  numerators.forEach((d, idx) => {
+    validationRtn.messages[idx] = validationRtn.messages[idx] === ""
+                                  ? ((d >= 0) ? "" : "Numerator negative")
+                                  : validationRtn.messages[idx]});
+  if (!validationRtn.messages.some(d => d == "")) {
+    validationRtn.status = 1;
+    validationRtn.error = "All numerators are negative!";
+    return validationRtn;
   }
 
-  numerators.forEach((d, idx) => status[idx] = status[idx] === "" ? ((d >= 0) ? "" : "Numerator negative") : status[idx]);
-  if (!status.some(d => d == "")) {
-    throw(new validationErrorClass("All numerators are negative!"))
+  denominators.forEach((d, idx) => {
+    validationRtn.messages[idx] = validationRtn.messages[idx] === ""
+                                  ? ((d != null) ? "" : "Denominator missing")
+                                  : validationRtn.messages[idx]});
+  if (!validationRtn.messages.some(d => d == "")) {
+    validationRtn.status = 1;
+    validationRtn.error = "All denominators missing or null!";
+    return validationRtn;
   }
-
-  denominators.forEach((d, idx) => status[idx] = status[idx] === "" ? ((d != null) ? "" : "Denominator missing") : status[idx]);
-  if (!status.some(d => d == "")) {
-    throw(new validationErrorClass("All denominators missing or null!"))
-  }
-  denominators.forEach((d, idx) => status[idx] = status[idx] === "" ? ((d >= 0) ? "" : "Denominator negative") : status[idx]);
-  if (!status.some(d => d == "")) {
-    throw(new validationErrorClass("All denominators are negative!"))
+  denominators.forEach((d, idx) => {
+    validationRtn.messages[idx] = validationRtn.messages[idx] === ""
+                                  ? ((d >= 0) ? "" : "Denominator negative")
+                                  : validationRtn.messages[idx]});
+  if (!validationRtn.messages.some(d => d == "")) {
+    validationRtn.status = 1;
+    validationRtn.error = "All denominators are negative!";
+    return validationRtn;
   }
   if (data_type === "PR") {
-    denominators.forEach((d, idx) => status[idx] = status[idx] === "" ? ((d >= numerators[idx]) ? "" : "Denominator < numerator") : status[idx]);
-    if (!status.some(d => d == "")) {
-      throw(new validationErrorClass("All denominators are smaller than numerators!"))
+    denominators.forEach((d, idx) => {
+      validationRtn.messages[idx] = validationRtn.messages[idx] === ""
+                                    ? ((d >= numerators[idx]) ? "" : "Denominator < numerator")
+                                    : validationRtn.messages[idx]});
+    if (!validationRtn.messages.some(d => d == "")) {
+      validationRtn.status = 1;
+      validationRtn.error = "All denominators are smaller than numerators!";
+      return validationRtn;
     }
   }
-  return status;
+  return validationRtn;
 }

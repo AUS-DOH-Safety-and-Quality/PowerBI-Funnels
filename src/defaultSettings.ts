@@ -1,5 +1,6 @@
 const defaultSettings = {
   canvas: {
+    show_errors: true,
     lower_padding: 10,
     upper_padding: 10,
     left_padding: 10,
