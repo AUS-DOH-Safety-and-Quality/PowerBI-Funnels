@@ -1,5 +1,4 @@
 import rep from "./rep";
-import { validationErrorClass } from "../Classes";
 
 export type ValidationT = { status: number, messages: string[], error?: string };
 
