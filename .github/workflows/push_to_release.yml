@@ -19,9 +19,9 @@ jobs:
 
     - name: Label visuals as 'Development'
       run: |
-        sed -i 's/"name":"PBISPC"/"name":"PBISPC_DEV"/g' pbiviz.json
-        sed -i 's/"displayName":"SPC Charts"/"displayName":"SPC Charts (Dev)"/g' pbiviz.json
-        sed -i 's/"guid":"PBISPC"/"guid":"PBISPC_DEV"/g' pbiviz.json
+        sed -i 's/"name":"PBIFunnels"/"name":"PBIFunnels_DEV"/g' pbiviz.json
+        sed -i 's/"displayName":"Funnel Plots"/"displayName":"Funnel Plots (Dev)"/g' pbiviz.json
+        sed -i 's/"guid":"PBIFUN"/"guid":"PBIFUN_DEV"/g' pbiviz.json
       shell: bash
 
     - name: Build
