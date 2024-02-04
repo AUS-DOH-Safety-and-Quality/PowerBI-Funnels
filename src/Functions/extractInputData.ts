@@ -2,6 +2,7 @@ import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import { extractValues, validateInputData, extractDataColumn, extractConditionalFormatting, rep } from "../Functions"
 import { type defaultSettingsType } from "../Classes"
+import { type ValidationT } from "./validateInputData";
 
 export type dataObject = {
   keys: { x: number, id: number, label: string }[];
@@ -14,6 +15,7 @@ export type dataObject = {
   scatter_formatting: defaultSettingsType["scatter"][];
   tooltips: VisualTooltipDataItem[][];
   warningMessage: string;
+  validationStatus: ValidationT;
 }
 
 export default function extractInputData(inputView: powerbi.DataViewCategorical, inputSettings: defaultSettingsType): dataObject {
@@ -25,7 +27,23 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
   const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
 
-  const inputValidStatus: string[] = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
+  const inputValidStatus: ValidationT = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
+
+  if (inputValidStatus.status !== 0) {
+    return {
+      keys: null,
+      id: null,
+      numerators: null,
+      denominators: null,
+      highlights: null,
+      anyHighlights: null,
+      categories: null,
+      scatter_formatting: null,
+      tooltips: null,
+      warningMessage: inputValidStatus.error,
+      validationStatus: inputValidStatus
+    }
+  }
 
   const valid_ids: number[] = new Array<number>();
   const valid_keys: { x: number, id: number, label: string }[] = new Array<{ x: number, id: number, label: string }>();
@@ -33,12 +51,12 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const groupVarName: string = inputView.categories[0].source.displayName;
   let valid_x: number = 0;
   for (let i: number = 0; i < numerators.length; i++) {
-    if (inputValidStatus[i] === "") {
+    if (inputValidStatus.messages[i] === "") {
       valid_ids.push(i);
       valid_keys.push({ x: valid_x, id: i, label: keys[i] })
       valid_x += 1;
     } else {
-      removalMessages.push(`${groupVarName} ${keys[i]} removed due to: ${inputValidStatus[i]}.`)
+      removalMessages.push(`${groupVarName} ${keys[i]} removed due to: ${inputValidStatus.messages[i]}.`)
     }
   }
 
@@ -52,6 +70,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
     anyHighlights: highlights != null,
     categories: inputView.categories[0],
     scatter_formatting: extractValues(scatter_cond, valid_ids),
-    warningMessage: removalMessages.length >0 ? removalMessages.join("\n") : ""
+    warningMessage: removalMessages.length >0 ? removalMessages.join("\n") : "",
+    validationStatus: inputValidStatus
   }
 }
