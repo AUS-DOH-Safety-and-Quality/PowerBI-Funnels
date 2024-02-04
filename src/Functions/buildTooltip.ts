@@ -1,33 +1,31 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import type { limitData } from "../Classes";
+import type { limitData, defaultSettingsType, derivedSettingsClass } from "../Classes";
+import { type dataObject } from "../Functions";
+import getTransformation from "../Funnel Calculations/getTransformation";
 
-type tooltipArgs = {
-  group: string,
-  numerator: number,
-  denominator: number,
-  target: number,
-  transform_text: string,
-  transform: (x: number) => number,
-  limits: limitData,
-  data_type: string,
-  multiplier: number,
-  two_sigma_outlier: boolean,
-  three_sigma_outlier: boolean,
-  sig_figs: number,
-  userTooltips: VisualTooltipDataItem[]
-}
+export default function buildTooltip(index: number,
+                                      calculatedLimits: limitData[],
+                                      outliers: { two_sigma: boolean, three_sigma: boolean },
+                                      inputData: dataObject,
+                                      inputSettings: defaultSettingsType,
+                                      derivedSettings: derivedSettingsClass): VisualTooltipDataItem[] {
+  const data_type: string = inputSettings.funnel.chart_type;
+  const multiplier: number = derivedSettings.multiplier;
+  const transform_text: string = inputSettings.funnel.transformation;
+  const transform: (x: number) => number = getTransformation(transform_text);
 
-export default function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[] {
-  const numerator: number = args.numerator;
-  const denominator: number = args.denominator;
-  const multiplier: number = args.multiplier;
-  const ratio: number = args.transform((numerator / denominator) * multiplier);
-  const ul99: number = args.transform(args.limits.ul99 * multiplier);
-  const ll99: number = args.transform(args.limits.ll99 * multiplier);
-  const target: number = args.transform(args.target * multiplier);
+  const group: string = inputData.keys[index].label;
+  const numerator: number = inputData.numerators[index];
+  const denominator: number = inputData.denominators[index];
 
-  const prop_labels: boolean = (args.data_type === "PR" && args.multiplier === 100);
+  const limits: limitData = calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null)[0];
+
+  const ratio: number = transform((numerator / denominator) * multiplier);
+  const suffix: string = derivedSettings.percentLabels ? "%" : "";
+
+  const prop_labels: boolean = derivedSettings.percentLabels;
+  const sig_figs: number = inputSettings.funnel.sig_figs;
   const valueLabel: Record<string, string> = {
     "PR" : "Proportion",
     "SR" : "Standardised Ratio",
@@ -37,45 +35,65 @@ export default function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[]
   const tooltip: VisualTooltipDataItem[] = new Array<VisualTooltipDataItem>();
   tooltip.push({
     displayName: "Group",
-    value: args.group
+    value: group
   });
   tooltip.push({
-    displayName: valueLabel[args.data_type],
-    value: prop_labels ? ratio.toFixed(args.sig_figs) + "%" : ratio.toFixed(args.sig_figs)
+    displayName: valueLabel[data_type],
+    value: ratio.toFixed(sig_figs) + suffix
   })
-  tooltip.push({
-    displayName: "Numerator",
-    value: (args.numerator).toFixed(args.sig_figs)
-  })
-  tooltip.push({
-    displayName: "Denominator",
-    value: (args.denominator).toFixed(args.sig_figs)
-  })
-  tooltip.push({
-    displayName: "Upper 99% Limit",
-    value: prop_labels ? ul99.toFixed(args.sig_figs) + "%" : ul99.toFixed(args.sig_figs)
-  })
-  tooltip.push({
-    displayName: "Centerline",
-    value: prop_labels ? target.toFixed(args.sig_figs) + "%" : target.toFixed(args.sig_figs)
-  })
-  tooltip.push({
-    displayName: "Lower 99% Limit",
-    value: prop_labels ? ll99.toFixed(args.sig_figs) + "%" : ll99.toFixed(args.sig_figs)
-  })
-
-  if (args.transform_text !== "none") {
+  if(numerator || !(numerator === null || numerator === undefined)) {
     tooltip.push({
-      displayName: "Plot Scaling",
-      value: args.transform_text
+      displayName: "Numerator",
+      value: (numerator).toFixed(prop_labels ? 0 : sig_figs)
     })
   }
-  if (args.two_sigma_outlier || args.three_sigma_outlier) {
+  if(denominator || !(denominator === null || denominator === undefined)) {
+    tooltip.push({
+      displayName: "Denominator",
+      value: (denominator).toFixed(prop_labels ? 0 : sig_figs)
+    })
+  }
+  ["68", "95", "99"].forEach(limit => { 
+    if (inputSettings.lines[`ttip_show_${limit}`] && inputSettings.lines[`show_${limit}`]) {
+      tooltip.push({
+        displayName: `Upper ${inputSettings.lines[`ttip_label_${limit}`]}`,
+        value: (limits[`ul${limit}`]).toFixed(sig_figs) + suffix
+      })
+    }
+  })
+  if (inputSettings.lines.show_target && inputSettings.lines.ttip_show_target) {
+    tooltip.push({
+      displayName: inputSettings.lines.ttip_label_target,
+      value: (limits.target).toFixed(sig_figs) + suffix
+    })
+  }
+  if (inputSettings.lines.show_alt_target && inputSettings.lines.ttip_show_alt_target && !(limits.alt_target === null || limits.alt_target === undefined)) {
+    tooltip.push({
+      displayName: inputSettings.lines.ttip_label_alt_target,
+      value: (limits.alt_target).toFixed(sig_figs) + suffix
+    })
+  }
+  ["68", "95", "99"].forEach(limit => { 
+    if (inputSettings.lines[`ttip_show_${limit}`] && inputSettings.lines[`show_${limit}`]) {
+      tooltip.push({
+        displayName: `Lower ${inputSettings.lines[`ttip_label_${limit}`]}`,
+        value: (limits[`ll${limit}`]).toFixed(sig_figs) + suffix
+      })
+    }
+  })
+
+  if (transform_text !== "none") {
+    tooltip.push({
+      displayName: "Plot Scaling",
+      value: transform_text
+    })
+  }
+  if (outliers.two_sigma || outliers.three_sigma) {
     const patterns: string[] = new Array<string>();
-    if (args.three_sigma_outlier) {
+    if (outliers.three_sigma) {
       patterns.push("Three Sigma Outlier")
     }
-    if (args.two_sigma_outlier) {
+    if (outliers.two_sigma) {
       patterns.push("Two Sigma Outlier")
     }
     tooltip.push({
@@ -84,8 +102,8 @@ export default function buildTooltip(args: tooltipArgs): VisualTooltipDataItem[]
     })
   }
 
-  if (args?.userTooltips?.length > 0) {
-    args.userTooltips.forEach(customTooltip => tooltip.push(customTooltip));
+  if (inputData.tooltips.length > 0) {
+    inputData.tooltips[index].forEach(customTooltip => tooltip.push(customTooltip));
   }
 
   return tooltip;

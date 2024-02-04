@@ -5,7 +5,7 @@ type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import { chartClass, settingsClass, type limitData, plotPropertiesClass, type defaultSettingsType } from "../Classes"
-import { extractInputData, buildTooltip, type dataObject, checkFlagDirection } from "../Functions";
+import { extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
@@ -60,6 +60,7 @@ export default class viewModelClass {
 
       this.chartBase = new chartObjects[chart_type](this.inputData, this.inputSettings);
       this.calculatedLimits = this.chartBase.getLimits();
+      this.scaleAndTruncateLimits();
 
       this.initialisePlotData(host);
       this.initialiseGroupedLines();
@@ -79,9 +80,7 @@ export default class viewModelClass {
     this.plotPoints = new Array<plotData>();
     const transform_text: string = this.inputSettings.settings.funnel.transformation;
     const transform: (x: number) => number = getTransformation(transform_text);
-    const target: number = this.chartBase.getTarget({ transformed: false });
     const multiplier: number = this.inputSettings.derivedSettings.multiplier;
-    const data_type: string = this.inputSettings.settings.funnel.chart_type;
     const flag_two_sigma: boolean = this.inputSettings.settings.outliers.two_sigma;
     const flag_three_sigma: boolean = this.inputSettings.settings.outliers.three_sigma;
 
@@ -90,8 +89,7 @@ export default class viewModelClass {
       const numerator: number = this.inputData.numerators[i];
       const denominator: number = this.inputData.denominators[i];
       const ratio: number = (numerator / denominator);
-      const limits_impl: limitData[] = this.calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null);
-      const limits: limitData = limits_impl.length > 0 ? limits_impl[0] : this.calculatedLimits.filter(d => d.denominators === denominator)[0];
+      const limits: limitData = this.calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null)[0];
       const aesthetics: defaultSettingsType["scatter"] = this.inputData.scatter_formatting[i]
       const two_sigma_outlier: string = flag_two_sigma ? two_sigma(ratio, limits) : "none";
       const three_sigma_outlier: string = flag_three_sigma ? three_sigma(ratio, limits) : "none";
@@ -123,32 +121,19 @@ export default class viewModelClass {
                       .withCategory(this.inputData.categories, original_index)
                       .createSelectionId(),
         highlighted: this.inputData.highlights?.[i] != null,
-        tooltip: buildTooltip({
-          group: category,
-          numerator: numerator,
-          denominator: denominator,
-          target: target,
-          transform_text: transform_text,
-          transform: transform,
-          limits: limits,
-          data_type: data_type,
-          multiplier: multiplier,
-          two_sigma_outlier: two_sigma_outlier !== "none",
-          three_sigma_outlier: three_sigma_outlier !== "none",
-          sig_figs: this.inputSettings.settings.funnel.sig_figs,
-          userTooltips: this.inputData.tooltips[i]
-        })
+        tooltip: buildTooltip(
+          i,
+          this.calculatedLimits,
+          { two_sigma: two_sigma_outlier !== "none", three_sigma: three_sigma_outlier !== "none" },
+          this.inputData,
+          this.inputSettings.settings,
+          this.inputSettings.derivedSettings
+        )
       })
     }
   }
 
   initialiseGroupedLines(): void {
-    const multiplier: number = this.inputSettings.derivedSettings.multiplier;
-    const transform: (x: number) => number = getTransformation(this.inputSettings.settings.funnel.transformation);
-
-    const target: number = this.chartBase.getTarget({ transformed: false });
-    const alt_target: number = this.inputSettings.settings.lines.alt_target;
-
     const labels: string[] = new Array<string>();
     if (this.inputSettings.settings.lines.show_target) {
       labels.push("target");
@@ -168,16 +153,31 @@ export default class viewModelClass {
 
     const formattedLines: lineData[] = new Array<lineData>();
     this.calculatedLimits.forEach(limits => {
-      limits.target = target;
-      limits.alt_target = alt_target;
       labels.forEach(label => {
           formattedLines.push({
             x: limits.denominators,
-            line_value: limits[label] ? transform(limits[label] * multiplier) : null,
+            line_value: limits?.[label],
             group: label
           })
       })
     })
     this.groupedLines = d3.groups(formattedLines, d => d.group);
   }
+
+  scaleAndTruncateLimits(): void {
+    // Scale limits using provided multiplier
+    const multiplier: number = this.inputSettings.derivedSettings.multiplier;
+    const transform: (x: number) => number = getTransformation(this.inputSettings.settings.funnel.transformation);
+
+    const limits: truncateInputs = {
+      lower: this.inputSettings.settings.funnel.ll_truncate,
+      upper: this.inputSettings.settings.funnel.ul_truncate
+    };
+    this.calculatedLimits.forEach(limit => {
+      ["target", "ll99", "ll95", "ll68", "ul68", "ul95", "ul99"].forEach(type => {
+        limit[type] = truncate(transform(multiply(limit[type], multiplier)), limits)
+      })
+    })
+  }
 }
+

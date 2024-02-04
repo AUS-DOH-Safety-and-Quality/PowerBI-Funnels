@@ -10,7 +10,9 @@ const defaultSettings = {
     od_adjust: "no",
     multiplier: 1,
     sig_figs: 2,
-    transformation: "none"
+    transformation: "none",
+    ll_truncate: <number>null,
+    ul_truncate: <number>null,
   },
   scatter: {
     use_group_text: false,
