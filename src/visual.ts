@@ -40,7 +40,6 @@ export class Visual implements powerbi.extensibility.IVisual {
       this.viewModel.inputSettings.update(options.dataViews[0]);
       validateDataView(options.dataViews);
       this.viewModel.update(options, this.host);
-      console.log(this.viewModel)
 
       this.svg.call(drawXAxis, this)
               .call(drawYAxis, this)
