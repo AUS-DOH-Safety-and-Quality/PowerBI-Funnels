@@ -13,6 +13,12 @@ const defaultSettings = {
     sig_figs: 2,
     perc_labels: "Automatic",
     transformation: "none",
+    ttip_show_numerator: true,
+    ttip_label_numerator: "Numerator",
+    ttip_show_denominator: true,
+    ttip_label_denominator: "Denominator",
+    ttip_show_value: true,
+    ttip_label_value: "Automatic",
     ll_truncate: <number>null,
     ul_truncate: <number>null,
   },
@@ -129,6 +135,11 @@ export const settingsPaneGroupings = {
 }
 
 export const settingsPaneToggles = {
+  funnel: {
+    "ttip_show_numerator": ["ttip_label_numerator"],
+    "ttip_show_denominator": ["ttip_label_denominator"],
+    "ttip_show_value": ["ttip_label_value"]
+  },
   scatter: {
     "use_group_text": ["scatter_text_font", "scatter_text_size", "scatter_text_colour", "scatter_text_opacity", "scatter_text_opacity_unselected"]
   },
