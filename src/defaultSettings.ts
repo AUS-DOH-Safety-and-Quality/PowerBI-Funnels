@@ -11,6 +11,7 @@ const defaultSettings = {
     od_adjust: "no",
     multiplier: 1,
     sig_figs: 2,
+    perc_labels: "Automatic",
     transformation: "none",
     ll_truncate: <number>null,
     ul_truncate: <number>null,

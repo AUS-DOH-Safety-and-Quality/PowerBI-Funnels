@@ -48,6 +48,16 @@
           "displayName": "Decimals to Report:",
           "type": { "numeric": true }
         },
+        "perc_labels": {
+          "displayName": "Report as percentage",
+          "type": {
+            "enumeration" : [
+              { "displayName" : "Automatic",  "value" : "Automatic" },
+              { "displayName" : "Yes",        "value" : "Yes" },
+              { "displayName" : "No",         "value" : "No" }
+            ]
+          }
+        },
         "transformation": {
           "displayName": "Transformation",
           "type" : {
