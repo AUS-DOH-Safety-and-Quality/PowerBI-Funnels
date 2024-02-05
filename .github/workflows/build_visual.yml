@@ -3,7 +3,7 @@ name: Test Build PowerBI visual
 on:
   pull_request:
     branches: [ main ]
-    exclude:
+    paths-ignore:
       - docs/** # Don't run on docs folder
 
 jobs:
