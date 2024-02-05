@@ -37,23 +37,26 @@ export default function buildTooltip(index: number,
     displayName: "Group",
     value: group
   });
-  tooltip.push({
-    displayName: valueLabel[data_type],
-    value: ratio.toFixed(sig_figs) + suffix
-  })
-  if(numerator || !(numerator === null || numerator === undefined)) {
+  if (inputSettings.funnel.ttip_show_value) {
+    const ttip_label_value: string = inputSettings.funnel.ttip_label_value;
     tooltip.push({
-      displayName: "Numerator",
+      displayName: ttip_label_value === "Automatic" ? valueLabel[data_type] : ttip_label_value,
+      value: ratio.toFixed(sig_figs) + suffix
+    })
+  }
+  if(inputSettings.funnel.ttip_show_numerator && !(numerator === null || numerator === undefined)) {
+    tooltip.push({
+      displayName: inputSettings.funnel.ttip_label_numerator,
       value: (numerator).toFixed(prop_labels ? 0 : sig_figs)
     })
   }
-  if(denominator || !(denominator === null || denominator === undefined)) {
+  if(inputSettings.funnel.ttip_show_denominator && !(denominator === null || denominator === undefined)) {
     tooltip.push({
-      displayName: "Denominator",
+      displayName: inputSettings.funnel.ttip_label_denominator,
       value: (denominator).toFixed(prop_labels ? 0 : sig_figs)
     })
   }
-  ["68", "95", "99"].forEach(limit => { 
+  ["68", "95", "99"].forEach(limit => {
     if (inputSettings.lines[`ttip_show_${limit}`] && inputSettings.lines[`show_${limit}`]) {
       tooltip.push({
         displayName: `Upper ${inputSettings.lines[`ttip_label_${limit}`]}`,
@@ -73,7 +76,7 @@ export default function buildTooltip(index: number,
       value: (limits.alt_target).toFixed(sig_figs) + suffix
     })
   }
-  ["68", "95", "99"].forEach(limit => { 
+  ["68", "95", "99"].forEach(limit => {
     if (inputSettings.lines[`ttip_show_${limit}`] && inputSettings.lines[`show_${limit}`]) {
       tooltip.push({
         displayName: `Lower ${inputSettings.lines[`ttip_label_${limit}`]}`,
