@@ -89,11 +89,11 @@ export default class viewModelClass {
       const original_index: number = this.inputData.id[i];
       const numerator: number = this.inputData.numerators[i];
       const denominator: number = this.inputData.denominators[i];
-      const ratio: number = (numerator / denominator);
+      const value: number = transform((numerator / denominator) * multiplier);
       const limits: limitData = this.calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null)[0];
       const aesthetics: defaultSettingsType["scatter"] = this.inputData.scatter_formatting[i]
-      const two_sigma_outlier: string = flag_two_sigma ? two_sigma(ratio, limits) : "none";
-      const three_sigma_outlier: string = flag_three_sigma ? three_sigma(ratio, limits) : "none";
+      const two_sigma_outlier: string = flag_two_sigma ? two_sigma(value, limits) : "none";
+      const three_sigma_outlier: string = flag_three_sigma ? three_sigma(value, limits) : "none";
       const category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
                               (this.inputData.categories.values[original_index]).toString() :
                               <string>(this.inputData.categories.values[original_index]);
@@ -115,7 +115,7 @@ export default class viewModelClass {
 
       this.plotPoints.push({
         x: denominator,
-        value: transform(ratio * multiplier),
+        value: value,
         group_text: category,
         aesthetics: aesthetics,
         identity: host.createSelectionIdBuilder()

@@ -61,6 +61,7 @@ export default class chartClass {
     const plotDenomStep: number = maxDenominator * 0.01;
     return seq(plotDenomLower, plotDenomUpper, plotDenomStep)
             .concat(this.inputData.denominators)
+            .filter((d, i, arr) => arr.indexOf(d) === i)
             .sort((a, b) => a - b);
   }
 
@@ -176,12 +177,20 @@ export default class chartClass {
     return calcLimits.map((d, idx) => {
       const inner = d;
       if (idx < (calcLimits.length - 1)) {
-        inner.ll99 = d.ll99 < calcLimits[idx + 1].ll99 ? d.ll99 : null;
-        inner.ll95 = d.ll95 < calcLimits[idx + 1].ll95 ? d.ll95 : null;
-        inner.ll68 = d.ll68 < calcLimits[idx + 1].ll68 ? d.ll68 : null;
-        inner.ul68 = d.ul68 > calcLimits[idx + 1].ul68 ? d.ul68 : null;
-        inner.ul95 = d.ul95 > calcLimits[idx + 1].ul95 ? d.ul95 : null;
-        inner.ul99 = d.ul99 > calcLimits[idx + 1].ul99 ? d.ul99 : null;
+        ["99", "95", "68"].forEach(type => {
+          const lower: string = `ll${type}`;
+          const upper: string = `ul${type}`;
+          if (inner[lower] > calcLimits[idx + 1][lower]) {
+            inner[lower] = undefined;
+          }
+          if (inner[upper] < calcLimits[idx + 1][upper]) {
+            inner[upper] = undefined;
+          }
+          if (inner[lower] >= inner[upper]) {
+            inner[lower] = undefined;
+            inner[upper] = undefined;
+          }
+        })
       }
       return inner;
     });
