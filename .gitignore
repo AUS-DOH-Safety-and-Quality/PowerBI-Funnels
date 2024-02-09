@@ -14,3 +14,6 @@ webpack.statistics*
 coverage
 
 doc/*
+
+# OS generated files
+.DS_Store
