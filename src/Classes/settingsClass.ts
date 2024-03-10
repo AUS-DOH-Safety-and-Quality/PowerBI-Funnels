@@ -101,18 +101,14 @@ export default class settingsClass {
         }
       })
 
-      let validValues: undefined | Record<string, string[] | powerbi.default.ValidationOptions> = undefined;
-
-      validValues = Object.fromEntries(Object.keys(defaultSettings[settingGroupName]).map((settingName) => {
-        return [settingName, defaultSettings[settingGroupName][settingName]?.["valid"]]
-      }));
-
       rtnInstances.push({
         objectName: settingGroupName,
         properties: props,
         propertyInstanceKind: Object.fromEntries(propertyKinds),
         selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals),
-        validValues: validValues
+        validValues: Object.fromEntries(Object.keys(defaultSettings[settingGroupName]).map((settingName) => {
+          return [settingName, defaultSettings[settingGroupName][settingName]?.["valid"]]
+        }))
       })
 
       if (currKey !== "all") {
