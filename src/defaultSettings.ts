@@ -36,7 +36,7 @@ const validLineTypes: string[] = ["10 0", "10 10", "2 5"];
 const defaultSettings = {
   canvas: {
     show_errors: { default: true },
-    lower_padding: { default: 10, valid: { numberRange: { min: 0, max: 20 } } },
+    lower_padding: { default: 10 },
     upper_padding: { default: 10 },
     left_padding: { default: 10 },
     right_padding: { default: 10 }
