@@ -137,15 +137,15 @@ const defaultSettings = {
     process_flag_type: { default: "both", valid: ["both", "improvement", "deterioration"]},
     improvement_direction: { default: "increase", valid: ["increase", "neutral", "decrease"]},
     three_sigma: { default: false },
-    three_sigma_colour_improvement: { default: "#289DE0" },
-    three_sigma_colour_deterioration: { default: "#FAB428" },
-    three_sigma_colour_neutral_low: { default: "#361475" },
-    three_sigma_colour_neutral_high: { default: "#361475" },
+    three_sigma_colour_improvement: { default: "#00B0F0" },
+    three_sigma_colour_deterioration: { default: "#E46C0A" },
+    three_sigma_colour_neutral_low: { default: "#490092" },
+    three_sigma_colour_neutral_high: { default: "#490092" },
     two_sigma: { default: false },
-    two_sigma_colour_improvement: { default: "#289DE0" },
-    two_sigma_colour_deterioration: { default: "#FAB428" },
-    two_sigma_colour_neutral_low: { default: "#361475" },
-    two_sigma_colour_neutral_high: { default: "#361475" }
+    two_sigma_colour_improvement: { default: "#00B0F0" },
+    two_sigma_colour_deterioration: { default: "#E46C0A" },
+    two_sigma_colour_neutral_low: { default: "#490092" },
+    two_sigma_colour_neutral_high: { default: "#490092" }
   }
 }
 
