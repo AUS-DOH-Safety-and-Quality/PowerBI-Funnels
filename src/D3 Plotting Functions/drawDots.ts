@@ -22,19 +22,20 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
       (enter) => {
         const dataPoint = enter.append("g").classed("dotsgroup-child", true);
 
-        dataPoint.append("circle").call(dot_attributes, visualObj);
         if (use_group_text) {
           dataPoint.append("text").call(text_attributes, visualObj);
+        } else {
+          dataPoint.append("circle").call(dot_attributes, visualObj);
         }
         dataPoint.call(dot_tooltips, visualObj)
 
         return dataPoint
       },
       (update) => {
-        update.select("circle").call(dot_attributes, visualObj)
-
         let current_text = update.select("text");
+        let current_circle = update.select("circle");
         if (use_group_text) {
+          current_circle.remove();
           // The text element may not exist if use_group_text was previously false
           if (!(current_text.node())) {
             current_text = update.append("text");
@@ -42,6 +43,10 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
           current_text.call(text_attributes, visualObj)
         } else {
           current_text.remove();
+          if (!(current_circle.node())) {
+            current_circle = update.append("circle");
+          }
+          current_circle.call(dot_attributes, visualObj)
         }
 
         return update
@@ -92,21 +97,16 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
 //   - Tricky as the plotProperties get updated when rendering X & Y axes
 //      to add padding when rendering out of frame
 function dot_attributes(selection: aestheticSelection, visualObj: Visual): void {
-  const scatter_settings = visualObj.viewModel.inputSettings.settings.scatter;
-  const display_text: boolean = scatter_settings.use_group_text;
-
-  // If group text is displayed, then the dots are set to white backgrounds for
-  // the labels - avoids readability issues when intersecting with lines
   selection
     .attr("cy", (d: plotData) => visualObj.viewModel.plotProperties.yScale(d.value))
     .attr("cx", (d: plotData) => visualObj.viewModel.plotProperties.xScale(d.x))
-    .attr("r", (d: plotData) => display_text ? scatter_settings.scatter_text_size * 0.6 : d.aesthetics.size)
+    .attr("r", (d: plotData) => d.aesthetics.size)
     .style("fill", (d: plotData) => {
       const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
       const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
       const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
       const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
-      return (between(d.value, ylower, yupper) && between(d.x, xlower, xupper) && !display_text)
+      return (between(d.value, ylower, yupper) && between(d.x, xlower, xupper))
               ? d.aesthetics.colour
               : "#FFFFFF";
     })
