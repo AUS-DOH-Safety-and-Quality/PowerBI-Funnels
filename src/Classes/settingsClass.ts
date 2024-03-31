@@ -9,6 +9,7 @@ import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import { extractConditionalFormatting } from "../Functions";
 import { default as defaultSettings, type settingsValueTypes, settingsPaneGroupings, settingsPaneToggles } from "../defaultSettings";
 import derivedSettingsClass from "./derivedSettingsClass";
+import { type ConditionalReturnT, type SettingsValidationT } from "../Functions/extractConditionalFormatting";
 
 export type defaultSettingsType = settingsValueTypes;
 export type defaultSettingsKey = keyof defaultSettingsType;
@@ -23,7 +24,8 @@ export type settingsScalarTypes = number | string | boolean;
  */
 export default class settingsClass {
   settings: defaultSettingsType;
-  derivedSettings: derivedSettingsClass
+  derivedSettings: derivedSettingsClass;
+  validationStatus: SettingsValidationT;
 
   /**
    * Function to read the values from the settings pane and update the
@@ -32,20 +34,41 @@ export default class settingsClass {
    * @param inputObjects
    */
   update(inputView: DataView): void {
+    this.validationStatus
+      = JSON.parse(JSON.stringify({ status: 0, messages: new Array<string[]>(), error: "" }))
     // Get the names of all classes in settingsObject which have values to be updated
     const allSettingGroups: string[] = Object.keys(this.settings);
 
     allSettingGroups.forEach(settingGroup => {
       const categoricalView: DataViewCategorical = inputView.categorical ? inputView.categorical : null;
-      const condFormatting: defaultSettingsType[defaultSettingsKey] = extractConditionalFormatting(categoricalView, settingGroup, this.settings)[0];
+      const condFormatting: ConditionalReturnT<defaultSettingsType[defaultSettingsKey]>
+        = extractConditionalFormatting(categoricalView, settingGroup, this.settings);
+
+      if (condFormatting.validation.status !== 0) {
+        this.validationStatus.status = condFormatting.validation.status;
+        this.validationStatus.error = condFormatting.validation.error;
+      }
+
+      if (this.validationStatus.messages.length === 0) {
+        this.validationStatus.messages = condFormatting.validation.messages;
+      } else if (!condFormatting.validation.messages.every(d => d.length === 0)) {
+        condFormatting.validation.messages.forEach((message, idx) => {
+          if (message.length > 0) {
+            this.validationStatus.messages[idx] = this.validationStatus.messages[idx].concat(message)
+          }
+        });
+      }
+
       // Get the names of all settings in a given class and
       // use those to extract and update the relevant values
       const settingNames: string[] = Object.keys(this.settings[settingGroup]);
       settingNames.forEach(settingName => {
-        this.settings[settingGroup][settingName] = condFormatting ? condFormatting[settingName] : defaultSettings[settingGroup][settingName]["default"]
+        this.settings[settingGroup][settingName]
+          = condFormatting?.values
+            ? condFormatting?.values[0][settingName]
+            : defaultSettings[settingGroup][settingName]["default"]
       })
     })
-
     this.derivedSettings.update(this.settings)
   }
 
