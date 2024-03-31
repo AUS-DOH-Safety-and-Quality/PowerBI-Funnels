@@ -39,7 +39,6 @@ export class Visual implements powerbi.extensibility.IVisual {
               .attr("height", options.viewport.height)
 
       this.viewModel.inputSettings.update(options.dataViews[0]);
-      console.log(this.viewModel.inputSettings)
       if (this.viewModel.inputSettings.validationStatus.error !== "") {
         this.svg.call(drawErrors, options, this.viewModel.inputSettings.validationStatus.error, "settings");
         this.host.eventService.renderingFinished(options);
@@ -53,26 +52,29 @@ export class Visual implements powerbi.extensibility.IVisual {
         } else {
           this.svg.call(initialiseSVG, true);
         }
-      } else {
-        this.viewModel.update(options, this.host);
-
-        if (this.viewModel.inputData.validationStatus.status === 0) {
-          this.svg.call(drawXAxis, this)
-                  .call(drawYAxis, this)
-                  .call(drawTooltipLine, this)
-                  .call(drawLines, this)
-                  .call(drawDots, this)
-                  .call(updateHighlighting, this)
-                  .call(addContextMenu, this);
-
-          if (this.viewModel.inputData.warningMessage !== "") {
-            this.host.displayWarningIcon("Invalid inputs have been removed",
-                                        this.viewModel.inputData.warningMessage);
-          }
-        } else {
-          this.svg.call(drawErrors, options, this.viewModel.inputData.validationStatus.error);
-        }
+        this.host.eventService.renderingFinished(options);
+        return;
       }
+
+      this.viewModel.update(options, this.host);
+
+      if (this.viewModel.inputData.validationStatus.status === 0) {
+        this.svg.call(drawXAxis, this)
+                .call(drawYAxis, this)
+                .call(drawTooltipLine, this)
+                .call(drawLines, this)
+                .call(drawDots, this)
+                .call(updateHighlighting, this)
+                .call(addContextMenu, this);
+
+        if (this.viewModel.inputData.warningMessage !== "") {
+          this.host.displayWarningIcon("Invalid inputs have been removed",
+                                      this.viewModel.inputData.warningMessage);
+        }
+      } else {
+        this.svg.call(drawErrors, options, this.viewModel.inputData.validationStatus.error);
+      }
+
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
       this.svg.call(drawErrors, options, caught_error.message, "internal");

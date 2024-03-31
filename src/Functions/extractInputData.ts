@@ -59,7 +59,11 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
       valid_x += 1;
 
       if (settingsMessages[i].length > 0) {
-        settingsMessages[i].forEach(setting_removal_message => removalMessages.push(`Conditional formatting for ${groupVarName} ${keys[i]} ignored due to: ${setting_removal_message}.`));
+        settingsMessages[i].forEach(setting_removal_message => {
+          removalMessages.push(
+            `Conditional formatting for ${groupVarName} ${keys[i]} ignored due to: ${setting_removal_message}.`
+          )}
+        );
       }
     } else {
       removalMessages.push(`${groupVarName} ${keys[i]} removed due to: ${inputValidStatus.messages[i]}.`)
