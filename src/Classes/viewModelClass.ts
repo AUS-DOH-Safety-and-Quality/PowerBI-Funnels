@@ -56,7 +56,7 @@ export default class viewModelClass {
     if (options.type === 2 || this.firstRun) {
       const chart_type: string = this.inputSettings.settings.funnel.chart_type
 
-      this.inputData = extractInputData(options.dataViews[0].categorical, this.inputSettings.settings);
+      this.inputData = extractInputData(options.dataViews[0].categorical, this.inputSettings);
       if (this.inputData.validationStatus.status === 0) {
         this.chartBase = new chartObjects[chart_type](this.inputData, this.inputSettings);
         this.calculatedLimits = this.chartBase.getLimits();

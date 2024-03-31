@@ -1,7 +1,7 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import { extractValues, validateInputData, extractDataColumn, extractConditionalFormatting, rep } from "../Functions"
-import { type defaultSettingsType } from "../Classes"
+import { settingsClass, type defaultSettingsType } from "../Classes"
 import { type ValidationT } from "./validateInputData";
 
 export type dataObject = {
@@ -18,12 +18,13 @@ export type dataObject = {
   validationStatus: ValidationT;
 }
 
-export default function extractInputData(inputView: powerbi.DataViewCategorical, inputSettings: defaultSettingsType): dataObject {
+export default function extractInputData(inputView: powerbi.DataViewCategorical, inputSettingsClass: settingsClass): dataObject {
+  const inputSettings: defaultSettingsType = inputSettingsClass.settings;
   const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
   const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
   const keys: string[] = extractDataColumn<string[]>(inputView, "key");
-  let scatter_cond = extractConditionalFormatting<defaultSettingsType["scatter"]>(inputView, "scatter", inputSettings);
-  scatter_cond = scatter_cond[0] === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
+  let scatter_cond = extractConditionalFormatting<defaultSettingsType["scatter"]>(inputView, "scatter", inputSettings)?.values;
+  scatter_cond = scatter_cond === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
   const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
   const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
 
@@ -49,12 +50,17 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const valid_keys: { x: number, id: number, label: string }[] = new Array<{ x: number, id: number, label: string }>();
   const removalMessages: string[] = new Array<string>();
   const groupVarName: string = inputView.categories[0].source.displayName;
+  const settingsMessages = inputSettingsClass.validationStatus.messages;
   let valid_x: number = 0;
   for (let i: number = 0; i < numerators.length; i++) {
     if (inputValidStatus.messages[i] === "") {
       valid_ids.push(i);
       valid_keys.push({ x: valid_x, id: i, label: keys[i] })
       valid_x += 1;
+
+      if (settingsMessages[i].length > 0) {
+        settingsMessages[i].forEach(setting_removal_message => removalMessages.push(`Conditional formatting for ${groupVarName} ${keys[i]} ignored due to: ${setting_removal_message}.`));
+      }
     } else {
       removalMessages.push(`${groupVarName} ${keys[i]} removed due to: ${inputValidStatus.messages[i]}.`)
     }

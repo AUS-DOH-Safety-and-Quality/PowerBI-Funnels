@@ -39,6 +39,13 @@ export class Visual implements powerbi.extensibility.IVisual {
               .attr("height", options.viewport.height)
 
       this.viewModel.inputSettings.update(options.dataViews[0]);
+      console.log(this.viewModel.inputSettings)
+      if (this.viewModel.inputSettings.validationStatus.error !== "") {
+        this.svg.call(drawErrors, options, this.viewModel.inputSettings.validationStatus.error, "settings");
+        this.host.eventService.renderingFinished(options);
+        return;
+      }
+
       const checkDV: string = validateDataView(options.dataViews);
       if (checkDV !== "valid") {
         if (this.viewModel.inputSettings.settings.canvas.show_errors) {
@@ -68,7 +75,7 @@ export class Visual implements powerbi.extensibility.IVisual {
       }
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
-      this.svg.call(drawErrors, options, caught_error.message, true);
+      this.svg.call(drawErrors, options, caught_error.message, "internal");
       console.error(caught_error)
       this.host.eventService.renderingFailed(options);
     }
