@@ -12,24 +12,27 @@
     "@stdlib/stats-base-dists-normal-quantile": "^0.2.2",
     "d3-array": "^3.2.4",
     "d3-axis": "^3.0.0",
+    "d3-drag": "^3.0.0",
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
     "d3-shape": "^3.2.0",
     "powerbi-visuals-api": "~4.7.0",
+    "powerbi-visuals-utils-typeutils": "^6.0.3",
     "powerbi-visuals-utils-dataviewutils": "^6.1.0"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.1",
     "@types/d3-axis": "^3.0.6",
-    "@types/d3-scale": "^4.0.8",
-    "@types/d3-selection": "^3.0.10",
-    "@types/d3-shape": "^3.1.6",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-powerbi-visuals": "^0.8.1",
-    "ts-loader": "9.5.1",
-    "typescript": "5.5.4"
+    "@types/d3-drag": "^3.0.7",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-selection": "^3.0.11",
+    "@types/d3-shape": "^3.1.7",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
+    "eslint": "^9.21.0",
+    "eslint-plugin-powerbi-visuals": "^1.0.0",
+    "ts-loader": "9.5.2",
+    "typescript": "5.7.3"
   },
   "override": {
     "powerbi-visuals-api": "$powerbi-visuals-api"

@@ -2,24 +2,18 @@ import { chartClass, type limitArgs, type settingsClass } from "../Classes"
 import { chisq_quantile, normal_cdf, winsorise, sqrt,
           inv, square, multiply, divide, type dataObject } from '../Functions';
 
-// ESLint errors due to unused input, but needed for agnostic use with other charts
-/* eslint-disable */
 const smrSE = function(inputData: dataObject): number[] {
   return [];
 }
-/* eslint-enable */
 
 const smrSEOD = function(inputData: dataObject): number[] {
   const denominators: number[] = inputData.denominators;
   return inv(multiply(2, sqrt(denominators)));
 }
 
-// ESLint errors due to unused input, but needed for agnostic use with other charts
-/* eslint-disable */
 const smrTarget = function(inputData: dataObject): number {
   return 1;
 }
-/* eslint-enable */
 
 const smrY = function(inputData: dataObject): number[] {
   const numerators: number[] = inputData.numerators;
