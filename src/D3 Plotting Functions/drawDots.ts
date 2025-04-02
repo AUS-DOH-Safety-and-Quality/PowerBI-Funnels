@@ -2,10 +2,10 @@ import type { plotData } from "../Classes";
 import { between } from "../Functions";
 import type { svgBaseType, Visual } from "../visual";
 import { updateHighlighting } from "../D3 Plotting Functions";
-import { select, type Selection, type BaseType } from "./D3 Modules"
+import * as d3 from "./D3 Modules"
 
-type aestheticSelection = Selection<SVGGraphicsElement, plotData, BaseType, any>;
-type dataPointSelection = Selection<SVGGraphicsElement, plotData, BaseType, any>;
+type aestheticSelection = d3.Selection<SVGGraphicsElement, plotData, d3.BaseType, any>;
+type dataPointSelection = d3.Selection<SVGGraphicsElement, plotData, d3.BaseType, any>;
 
 export default function drawDots(selection: svgBaseType, visualObj: Visual): void {
   const use_group_text: boolean = visualObj.viewModel.inputSettings.settings.scatter.use_group_text;
@@ -25,7 +25,7 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
         if (use_group_text) {
           dataPoint.append("text").call(text_attributes, visualObj);
         } else {
-          dataPoint.append("circle").call(dot_attributes, visualObj);
+          dataPoint.append("path").call(dot_attributes, visualObj);
         }
         dataPoint.call(dot_tooltips, visualObj)
 
@@ -33,7 +33,7 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
       },
       (update) => {
         let current_text = update.select("text");
-        let current_circle = update.select("circle");
+        let current_circle = update.select("path");
         if (use_group_text) {
           current_circle.remove();
           // The text element may not exist if use_group_text was previously false
@@ -44,7 +44,7 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
         } else {
           current_text.remove();
           if (!(current_circle.node())) {
-            current_circle = update.append("circle");
+            current_circle = update.append("path");
           }
           current_circle.call(dot_attributes, visualObj)
         }
@@ -67,7 +67,7 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
           .selectionManager
           .select(d.identity, (event.ctrlKey || event.metaKey))
           // Change opacity of non-selected dots
-          .then(() => { select("svg").call(updateHighlighting, visualObj); });
+          .then(() => { d3.select("svg").call(updateHighlighting, visualObj); });
       event.stopPropagation();
     })
     // Display tooltip content on mouseover
@@ -98,9 +98,14 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
 //      to add padding when rendering out of frame
 function dot_attributes(selection: aestheticSelection, visualObj: Visual): void {
   selection
-    .attr("cy", (d: plotData) => visualObj.viewModel.plotProperties.yScale(d.value))
-    .attr("cx", (d: plotData) => visualObj.viewModel.plotProperties.xScale(d.x))
-    .attr("r", (d: plotData) => d.aesthetics.size)
+    .attr("d", (d: plotData) => {
+      const shape: string = d.aesthetics.shape;
+      const size: number = d.aesthetics.size;
+      return d3.symbol().type(d3[`symbol${shape}`]).size((size*size) * Math.PI)()
+    })
+    .attr("transform", (d: plotData) => {
+      return `translate(${visualObj.viewModel.plotProperties.xScale(d.x)}, ${visualObj.viewModel.plotProperties.yScale(d.value)})`
+    })
     .style("fill", (d: plotData) => {
       const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
       const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
