@@ -64,6 +64,7 @@ const defaultSettings = {
     scatter_text_colour: { default: "#000000" },
     scatter_text_opacity: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
     scatter_text_opacity_unselected: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } },
+    shape: { default: "Circle" },
     size: { default: 3, valid: { numberRange: { min: 0, max: 100 }}},
     colour: { default: "#000000" },
     opacity: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },

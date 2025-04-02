@@ -220,6 +220,20 @@
           "displayName": "Group Text Opacity if Unselected",
           "type": { "numeric": true }
         },
+        "shape": {
+          "displayName": "Dot Shape",
+          "type": {
+            "enumeration" : [
+              { "displayName" : "Circle", "value" : "Circle" },
+              { "displayName" : "Cross", "value" : "Cross" },
+              { "displayName" : "Diamond", "value" : "Diamond" },
+              { "displayName" : "Square", "value" : "Square" },
+              { "displayName" : "Star", "value" : "Star" },
+              { "displayName" : "Triangle", "value" : "Triangle" },
+              { "displayName" : "Wye", "value" : "Wye" }
+            ]
+          }
+        },
         "size": {
           "displayName": "Dot Size",
           "type": { "numeric": true }
