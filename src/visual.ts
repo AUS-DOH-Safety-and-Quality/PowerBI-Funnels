@@ -41,8 +41,7 @@ export class Visual implements powerbi.extensibility.IVisual {
       // update status to false
       const update_status: viewModelValidationT = this.viewModel.update(options, this.host);
       if (!update_status.status) {
-        this.svg.attr("width", options.viewport.width)
-                .attr("height", options.viewport.height)
+        this.resizeCanvas(options.viewport.width, options.viewport.height);
         if (this.viewModel?.inputSettings?.settings?.canvas?.show_errors ?? true) {
           this.svg.call(drawErrors, options, update_status?.error, update_status?.type);
         } else {
@@ -66,15 +65,8 @@ export class Visual implements powerbi.extensibility.IVisual {
       }
 
 
-      this.svg.attr("width", options.viewport.width)
-              .attr("height", options.viewport.height)
-        this.svg.call(drawXAxis, this)
-                .call(drawYAxis, this)
-                .call(drawTooltipLine, this)
-                .call(drawLines, this)
-                .call(drawDots, this)
-                .call(updateHighlighting, this)
-                .call(addContextMenu, this);
+      this.resizeCanvas(options.viewport.width, options.viewport.height);
+      this.drawVisual();
 
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
@@ -82,6 +74,20 @@ export class Visual implements powerbi.extensibility.IVisual {
       console.error(caught_error)
       this.host.eventService.renderingFailed(options);
     }
+  }
+
+  resizeCanvas(width: number, height: number): void {
+    this.svg.attr("width", width).attr("height", height);
+  }
+
+  drawVisual(): void {
+    this.svg.call(drawXAxis, this)
+            .call(drawYAxis, this)
+            .call(drawTooltipLine, this)
+            .call(drawLines, this)
+            .call(drawDots, this)
+            .call(updateHighlighting, this)
+            .call(addContextMenu, this);
   }
 
   // Function to render the properties specified in capabilities.json to the properties pane
