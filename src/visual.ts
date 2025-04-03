@@ -67,6 +67,7 @@ export class Visual implements powerbi.extensibility.IVisual {
 
       this.resizeCanvas(options.viewport.width, options.viewport.height);
       this.drawVisual();
+      this.adjustPaddingForOverflow();
 
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
@@ -88,6 +89,42 @@ export class Visual implements powerbi.extensibility.IVisual {
             .call(drawDots, this)
             .call(updateHighlighting, this)
             .call(addContextMenu, this);
+  }
+
+  adjustPaddingForOverflow(): void {
+    let xLeftOverflow: number = 0;
+    let xRightOverflow: number = 0;
+    let yBottomOverflow: number = 0;
+    let yTopOverflow: number = 0;
+    const svgWidth: number = this.viewModel.svgWidth;
+    const svgHeight: number = this.viewModel.svgHeight;
+    this.svg.selectChildren().each(function() {
+      const currentClass: string = d3.select(this).attr("class");
+      if (currentClass === "yaxislabel" || currentClass === "xaxislabel") {
+        return;
+      }
+      const boundRect = (this as SVGGraphicsElement).getBoundingClientRect();
+      const bbox = (this as SVGGraphicsElement).getBBox();
+      xLeftOverflow = Math.min(xLeftOverflow, bbox.x);
+      xRightOverflow = Math.max(xRightOverflow, boundRect.right - svgWidth);
+      yBottomOverflow = Math.max(yBottomOverflow, boundRect.bottom - svgHeight);
+      yTopOverflow = Math.min(yTopOverflow, boundRect.top);
+    });
+
+    xLeftOverflow = Math.abs(xLeftOverflow);
+    xRightOverflow = Math.abs(xRightOverflow);
+    yBottomOverflow = Math.abs(yBottomOverflow);
+    yTopOverflow = Math.abs(yTopOverflow);
+
+    // Only redraw plot if overflow occurred
+    if ((xLeftOverflow + xRightOverflow + yBottomOverflow + yTopOverflow) > 0) {
+      this.viewModel.plotProperties.xAxis.start_padding += xLeftOverflow + this.viewModel.plotProperties.xAxis.start_padding;
+      this.viewModel.plotProperties.xAxis.end_padding += xRightOverflow + this.viewModel.plotProperties.xAxis.end_padding;
+      this.viewModel.plotProperties.yAxis.start_padding += yBottomOverflow + this.viewModel.plotProperties.yAxis.start_padding;
+      this.viewModel.plotProperties.yAxis.end_padding += yTopOverflow + this.viewModel.plotProperties.yAxis.end_padding;
+      this.viewModel.plotProperties.initialiseScale(svgWidth, svgHeight);
+      this.drawVisual();
+    }
   }
 
   // Function to render the properties specified in capabilities.json to the properties pane

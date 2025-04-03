@@ -46,6 +46,8 @@ export default class viewModelClass {
   groupedLines: [string, lineData[]][];
   plotProperties: plotPropertiesClass;
   firstRun: boolean;
+  svgWidth: number;
+  svgHeight: number;
 
   constructor() {
     this.inputData = <dataObject>null;
@@ -76,6 +78,9 @@ export default class viewModelClass {
       res.error = checkDV;
       return res;
     }
+
+    this.svgWidth = options.viewport.width;
+    this.svgHeight = options.viewport.height;
 
     // Only re-construct data and re-calculate limits if they have changed
     if (options.type === 2 || this.firstRun) {
