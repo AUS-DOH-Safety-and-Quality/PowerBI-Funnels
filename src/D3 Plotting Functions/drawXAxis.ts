@@ -47,25 +47,6 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
     return;
   }
   const xAxisCoordinates: DOMRect = xAxisNode.getBoundingClientRect() as DOMRect;
-
-  // Update padding and re-draw axis if large tick values rendered outside of plot
-  const tickBelowPadding: number = xAxisCoordinates.bottom - xAxisHeight;
-  const tickLeftofPadding: number = xAxisCoordinates.left - xAxisProperties.start_padding;
-
-  if ((tickBelowPadding > 0 || tickLeftofPadding < 0)) {
-    if (!refresh) {
-      if (tickBelowPadding > 0) {
-        visualObj.viewModel.plotProperties.yAxis.start_padding += abs(tickBelowPadding);
-      }
-      if (tickLeftofPadding < 0) {
-        visualObj.viewModel.plotProperties.xAxis.start_padding += abs(tickLeftofPadding)
-      }
-      visualObj.viewModel.plotProperties.initialiseScale();
-      selection.call(drawXAxis, visualObj, true);
-      return;
-    }
-  }
-
   const bottomMidpoint: number = plotHeight - ((plotHeight - xAxisCoordinates.bottom) / 2);
 
   selection.select(".xaxislabel")

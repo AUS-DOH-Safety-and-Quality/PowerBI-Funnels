@@ -32,16 +32,16 @@ export default class plotPropertiesClass {
   yScale: d3.ScaleLinear<number, number, never>;
 
   // Separate function so that the axis can be re-calculated on changes to padding
-  initialiseScale() {
+  initialiseScale(svgWidth: number, svgHeight: number): void {
     this.xScale = d3.scaleLinear()
                     .domain([this.xAxis.lower, this.xAxis.upper])
                     .range([this.xAxis.start_padding,
-                            this.width - this.xAxis.end_padding]);
+                            svgWidth - this.xAxis.end_padding]);
 
     this.yScale = d3.scaleLinear()
-                            .domain([this.yAxis.lower, this.yAxis.upper])
-                            .range([this.height - this.yAxis.start_padding,
-                                    this.yAxis.end_padding]);
+                    .domain([this.yAxis.lower, this.yAxis.upper])
+                    .range([svgHeight - this.yAxis.start_padding,
+                            this.yAxis.end_padding]);
   }
 
   update(options: VisualUpdateOptions,
@@ -112,6 +112,6 @@ export default class plotPropertiesClass {
       label_font: inputSettings.y_axis.ylimit_label_font,
       label_colour: inputSettings.y_axis.ylimit_label_colour
     };
-    this.initialiseScale();
+    this.initialiseScale(options.viewport.width, options.viewport.height);
   }
 }
