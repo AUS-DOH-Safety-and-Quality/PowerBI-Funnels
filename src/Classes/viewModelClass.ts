@@ -5,11 +5,18 @@ type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import { chartClass, settingsClass, type limitData, plotPropertiesClass, type defaultSettingsType } from "../Classes"
-import { extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply } from "../Functions";
+import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
+
+export type viewModelValidationT = {
+  status: boolean,
+  error?: string,
+  warning?: string,
+  type?: string
+}
 
 export type lineData = {
   x: number;
@@ -51,7 +58,25 @@ export default class viewModelClass {
     this.firstRun = true
   }
 
-  update(options: VisualUpdateOptions, host: IVisualHost) {
+  update(options: VisualUpdateOptions, host: IVisualHost): viewModelValidationT {
+    const res: viewModelValidationT = { status: true };
+
+    if (options.type === 2 || this.firstRun) {
+      this.inputSettings.update(options.dataViews[0]);
+    }
+    if (this.inputSettings.validationStatus.error !== "") {
+      res.status = false;
+      res.error = this.inputSettings.validationStatus.error;
+      res.type = "settings";
+      return res;
+    }
+    const checkDV: string = validateDataView(options.dataViews);
+    if (checkDV !== "valid") {
+      res.status = false;
+      res.error = checkDV;
+      return res;
+    }
+
     // Only re-construct data and re-calculate limits if they have changed
     if (options.type === 2 || this.firstRun) {
       const chart_type: string = this.inputSettings.settings.funnel.chart_type
@@ -75,6 +100,15 @@ export default class viewModelClass {
       this.inputSettings.derivedSettings
     )
     this.firstRun = false;
+    if (this.inputData.validationStatus.status !== 0) {
+      res.status = false;
+      res.error = this.inputData.validationStatus.error;
+      return res;
+    }
+    if (this.inputData.warningMessage !== "") {
+      res.warning = this.inputData.warningMessage;
+    }
+    return res;
   }
 
   initialisePlotData(host: IVisualHost): void {
@@ -181,4 +215,3 @@ export default class viewModelClass {
     })
   }
 }
-

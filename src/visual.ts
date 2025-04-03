@@ -7,7 +7,7 @@ import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, updateHighlighting, addContextMenu,
           initialiseSVG, drawErrors } from "./D3 Plotting Functions"
-import { viewModelClass, type defaultSettingsKeys } from "./Classes"
+import { viewModelClass, type defaultSettingsKeys, type viewModelValidationT } from "./Classes"
 import { validateDataView } from "./Functions";
 
 export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -35,8 +35,28 @@ export class Visual implements powerbi.extensibility.IVisual {
       this.host.eventService.renderingStarted(options);
       // Remove printed error if refreshing after a previous error run
       this.svg.select(".errormessage").remove();
-      this.svg.attr("width", options.viewport.width)
-              .attr("height", options.viewport.height)
+
+      // This step handles the updating of both the input data and settings
+      // If there are any errors or failures, the update exits early sets the
+      // update status to false
+      const update_status: viewModelValidationT = this.viewModel.update(options, this.host);
+      if (!update_status.status) {
+        this.svg.attr("width", options.viewport.width)
+                .attr("height", options.viewport.height)
+        if (this.viewModel?.inputSettings?.settings?.canvas?.show_errors ?? true) {
+          this.svg.call(drawErrors, options, update_status?.error, update_status?.type);
+        } else {
+          this.svg.call(initialiseSVG, true);
+        }
+
+        this.host.eventService.renderingFailed(options);
+        return;
+      }
+
+      if (update_status.warning) {
+        this.host.displayWarningIcon("Invalid inputs or settings ignored.\n",
+                                      update_status.warning);
+      }
 
       this.viewModel.inputSettings.update(options.dataViews[0]);
       if (this.viewModel.inputSettings.validationStatus.error !== "") {
@@ -45,20 +65,9 @@ export class Visual implements powerbi.extensibility.IVisual {
         return;
       }
 
-      const checkDV: string = validateDataView(options.dataViews);
-      if (checkDV !== "valid") {
-        if (this.viewModel.inputSettings.settings.canvas.show_errors) {
-          this.svg.call(drawErrors, options, checkDV);
-        } else {
-          this.svg.call(initialiseSVG, true);
-        }
-        this.host.eventService.renderingFinished(options);
-        return;
-      }
 
-      this.viewModel.update(options, this.host);
-
-      if (this.viewModel.inputData.validationStatus.status === 0) {
+      this.svg.attr("width", options.viewport.width)
+              .attr("height", options.viewport.height)
         this.svg.call(drawXAxis, this)
                 .call(drawYAxis, this)
                 .call(drawTooltipLine, this)
@@ -66,14 +75,6 @@ export class Visual implements powerbi.extensibility.IVisual {
                 .call(drawDots, this)
                 .call(updateHighlighting, this)
                 .call(addContextMenu, this);
-
-        if (this.viewModel.inputData.warningMessage !== "") {
-          this.host.displayWarningIcon("Invalid inputs have been removed",
-                                      this.viewModel.inputData.warningMessage);
-        }
-      } else {
-        this.svg.call(drawErrors, options, this.viewModel.inputData.validationStatus.error);
-      }
 
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
