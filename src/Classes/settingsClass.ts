@@ -1,17 +1,22 @@
 import * as powerbi from "powerbi-visuals-api"
 type DataView = powerbi.default.DataView;
-type DataViewCategorical = powerbi.default.DataViewCategorical;
 type DataViewPropertyValue = powerbi.default.DataViewPropertyValue
 type VisualObjectInstanceEnumerationObject = powerbi.default.VisualObjectInstanceEnumerationObject;
 type VisualObjectInstance = powerbi.default.VisualObjectInstance;
 type VisualObjectInstanceContainer = powerbi.default.VisualObjectInstanceContainer;
-import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import { extractConditionalFormatting } from "../Functions";
-import { default as defaultSettings, type settingsValueTypes, settingsPaneGroupings, settingsPaneToggles } from "../defaultSettings";
+import { default as defaultSettings, type defaultSettingsType, settingsPaneGroupings,
+         type defaultSettingsKeys, type defaultSettingsNestedKeys, type NestedKeysOf } from "../defaultSettings";
 import derivedSettingsClass from "./derivedSettingsClass";
 import { type ConditionalReturnT, type SettingsValidationT } from "../Functions/extractConditionalFormatting";
 
-export type defaultSettingsType = settingsValueTypes;
+export { type defaultSettingsType, type defaultSettingsKeys };
+
+export type optionalSettingsTypes = Partial<{
+  [K in keyof typeof defaultSettings]: Partial<defaultSettingsType[K]>;
+}>;
+
+export type paneGroupingsNestedKey = "all" | NestedKeysOf<typeof settingsPaneGroupings[keyof typeof settingsPaneGroupings]>;
 export type defaultSettingsKey = keyof defaultSettingsType;
 export type settingsScalarTypes = number | string | boolean;
 
@@ -39,10 +44,9 @@ export default class settingsClass {
     // Get the names of all classes in settingsObject which have values to be updated
     const allSettingGroups: string[] = Object.keys(this.settings);
 
-    allSettingGroups.forEach(settingGroup => {
-      const categoricalView: DataViewCategorical = inputView.categorical ? inputView.categorical : null;
-      const condFormatting: ConditionalReturnT<defaultSettingsType[defaultSettingsKey]>
-        = extractConditionalFormatting(categoricalView, settingGroup, this.settings);
+    allSettingGroups.forEach((settingGroup: defaultSettingsKeys) => {
+      const condFormatting: ConditionalReturnT<defaultSettingsType[defaultSettingsKeys]>
+        = extractConditionalFormatting(inputView?.categorical, settingGroup, this.settings);
 
       if (condFormatting.validation.status !== 0) {
         this.validationStatus.status = condFormatting.validation.status;
@@ -62,7 +66,7 @@ export default class settingsClass {
       // Get the names of all settings in a given class and
       // use those to extract and update the relevant values
       const settingNames: string[] = Object.keys(this.settings[settingGroup]);
-      settingNames.forEach(settingName => {
+      settingNames.forEach((settingName: defaultSettingsNestedKeys) => {
         this.settings[settingGroup][settingName]
           = condFormatting?.values
             ? condFormatting?.values[0][settingName]
@@ -70,6 +74,15 @@ export default class settingsClass {
       })
     })
     this.derivedSettings.update(this.settings)
+  }
+
+  getSettingNames(settingGroupName: defaultSettingsKeys): Record<paneGroupingsNestedKey, defaultSettingsNestedKeys[]> {
+    const settingsGrouped: boolean = Object.keys(settingsPaneGroupings)
+                                           .includes(settingGroupName);
+
+    return settingsGrouped
+        ? JSON.parse(JSON.stringify(settingsPaneGroupings[settingGroupName]))
+        : { "all" : Object.keys(this.settings[settingGroupName]) as defaultSettingsNestedKeys[] };
   }
 
   /**
@@ -80,34 +93,14 @@ export default class settingsClass {
    * @param inputData
    * @returns An object where each element is the value for a given setting in the named group
    */
-  createSettingsEntry(settingGroupName: string): VisualObjectInstanceEnumerationObject {
-    const settingNames: string[] = Object.keys(this.settings[settingGroupName]);
-    const settingsGrouped: boolean = Object.keys(settingsPaneGroupings).includes(settingGroupName);
-    const paneGroupings: Record<string, string[]>
-      = settingsGrouped ? JSON.parse(JSON.stringify(settingsPaneGroupings[settingGroupName]))
-                        : { "all": settingNames };
-
-    if (Object.keys(settingsPaneToggles).includes(settingGroupName)) {
-      const toggledSettings: Record<string, Record<string, string[]>>
-        = settingsGrouped ? settingsPaneToggles[settingGroupName]
-                          : { "all": settingsPaneToggles[settingGroupName]};
-
-      Object.keys(toggledSettings).forEach(toggleGroup => {
-        const possibleSettings: string[] = paneGroupings[toggleGroup];
-        let settingsToRemove: string[] = new Array<string>();
-        Object.keys(toggledSettings[toggleGroup]).forEach(settingToggle => {
-          if (this.settings[settingGroupName][settingToggle] !== true) {
-            settingsToRemove = settingsToRemove.concat(toggledSettings[toggleGroup][settingToggle])
-          }
-        })
-        paneGroupings[toggleGroup] = possibleSettings.filter(setting => !settingsToRemove.includes(setting))
-      })
-    }
+  createSettingsEntry(settingGroupName: defaultSettingsKeys): VisualObjectInstanceEnumerationObject {
+    const paneGroupings: Record<paneGroupingsNestedKey, defaultSettingsNestedKeys[]>
+      = this.getSettingNames(settingGroupName);
 
     const rtnInstances = new Array<VisualObjectInstance>();
     const rtnContainers = new Array<VisualObjectInstanceContainer>();
 
-    Object.keys(paneGroupings).forEach((currKey, idx) => {
+    Object.keys(paneGroupings).forEach((currKey: paneGroupingsNestedKey, idx) => {
       const props = Object.fromEntries(
         paneGroupings[currKey].map(currSetting => {
           const settingValue: DataViewPropertyValue = this.settings[settingGroupName][currSetting]
@@ -128,8 +121,8 @@ export default class settingsClass {
         objectName: settingGroupName,
         properties: props,
         propertyInstanceKind: Object.fromEntries(propertyKinds),
-        selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals),
-        validValues: Object.fromEntries(Object.keys(defaultSettings[settingGroupName]).map((settingName) => {
+        selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] },
+        validValues: Object.fromEntries(Object.keys(defaultSettings[settingGroupName]).map((settingName: defaultSettingsNestedKeys) => {
           return [settingName, defaultSettings[settingGroupName][settingName]?.["valid"]]
         }))
       })
@@ -148,7 +141,7 @@ export default class settingsClass {
       return [settingGroupName, Object.fromEntries(Object.keys(defaultSettings[settingGroupName]).map((settingName) => {
         return [settingName, defaultSettings[settingGroupName][settingName]];
       }))];
-    })) as settingsValueTypes;
+    })) as defaultSettingsType;
     this.derivedSettings = new derivedSettingsClass();
   }
 }
