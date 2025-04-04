@@ -5,7 +5,7 @@ type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import { chartClass, settingsClass, type limitData, plotPropertiesClass, type defaultSettingsType } from "../Classes"
-import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply } from "../Functions";
+import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply, isNullOrUndefined } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
@@ -37,6 +37,14 @@ export type plotData = {
   tooltip: VisualTooltipDataItem[];
 }
 
+export type colourPaletteType = {
+  isHighContrast: boolean,
+  foregroundColour: string,
+  backgroundColour: string,
+  foregroundSelectedColour: string,
+  hyperlinkColour: string
+};
+
 export default class viewModelClass {
   inputData: dataObject;
   inputSettings: settingsClass;
@@ -46,6 +54,7 @@ export default class viewModelClass {
   groupedLines: [string, lineData[]][];
   plotProperties: plotPropertiesClass;
   firstRun: boolean;
+  colourPalette: colourPaletteType;
   svgWidth: number;
   svgHeight: number;
 
@@ -57,7 +66,8 @@ export default class viewModelClass {
     this.plotPoints = new Array<plotData>();
     this.groupedLines = new Array<[string, lineData[]]>();
     this.plotProperties = new plotPropertiesClass();
-    this.firstRun = true
+    this.firstRun = true;
+    this.colourPalette = null;
   }
 
   update(options: VisualUpdateOptions, host: IVisualHost): viewModelValidationT {
@@ -77,6 +87,15 @@ export default class viewModelClass {
       res.status = false;
       res.error = checkDV;
       return res;
+    }
+    if (isNullOrUndefined(this.colourPalette)) {
+      this.colourPalette = {
+        isHighContrast: host.colorPalette.isHighContrast,
+        foregroundColour: host.colorPalette.foreground.value,
+        backgroundColour: host.colorPalette.background.value,
+        foregroundSelectedColour: host.colorPalette.foregroundSelected.value,
+        hyperlinkColour: host.colorPalette.hyperlink.value
+      }
     }
 
     this.svgWidth = options.viewport.width;
@@ -102,7 +121,8 @@ export default class viewModelClass {
       this.plotPoints,
       this.inputData,
       this.inputSettings.settings,
-      this.inputSettings.derivedSettings
+      this.inputSettings.derivedSettings,
+      this.colourPalette
     )
     this.firstRun = false;
     if (this.inputData.validationStatus.status !== 0) {
@@ -131,6 +151,9 @@ export default class viewModelClass {
       const value: number = transform((numerator / denominator) * multiplier);
       const limits: limitData = this.calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null)[0];
       const aesthetics: defaultSettingsType["scatter"] = this.inputData.scatter_formatting[i]
+      if (this.colourPalette.isHighContrast) {
+        aesthetics.colour = this.colourPalette.foregroundColour;
+      }
       const two_sigma_outlier: string = flag_two_sigma ? two_sigma(value, limits) : "none";
       const three_sigma_outlier: string = flag_three_sigma ? three_sigma(value, limits) : "none";
       const category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
