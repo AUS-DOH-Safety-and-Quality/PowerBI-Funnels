@@ -58,10 +58,8 @@ export class Visual implements powerbi.extensibility.IVisual {
       this.resizeCanvas(options.viewport.width, options.viewport.height);
       this.drawVisual();
       this.adjustPaddingForOverflow();
-      console.log("e")
 
       this.updateHighlighting();
-      console.log("f")
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
       this.svg.call(drawErrors, options, caught_error.message, "internal");
