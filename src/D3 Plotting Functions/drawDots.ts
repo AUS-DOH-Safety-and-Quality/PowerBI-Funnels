@@ -1,7 +1,6 @@
 import type { plotData } from "../Classes";
 import { between } from "../Functions";
 import type { svgBaseType, Visual } from "../visual";
-import { updateHighlighting } from "../D3 Plotting Functions";
 import * as d3 from "./D3 Modules"
 
 type aestheticSelection = d3.Selection<SVGGraphicsElement, plotData, d3.BaseType, any>;
@@ -55,7 +54,7 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
 
   selection.on('click', () => {
     visualObj.selectionManager.clear();
-    selection.call(updateHighlighting, visualObj);
+    visualObj.updateHighlighting();
   });
 }
 
@@ -67,7 +66,7 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
           .selectionManager
           .select(d.identity, (event.ctrlKey || event.metaKey))
           // Change opacity of non-selected dots
-          .then(() => { d3.select("svg").call(updateHighlighting, visualObj); });
+          .then(() => visualObj.updateHighlighting());
       event.stopPropagation();
     })
     // Display tooltip content on mouseover
