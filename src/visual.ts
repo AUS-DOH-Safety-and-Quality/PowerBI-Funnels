@@ -3,12 +3,13 @@
 import type powerbi from "powerbi-visuals-api";
 type EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 type VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
+type ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
-          drawDots, updateHighlighting, addContextMenu,
+          drawDots, addContextMenu,
           initialiseSVG, drawErrors } from "./D3 Plotting Functions"
-import { viewModelClass, type defaultSettingsKeys, type viewModelValidationT } from "./Classes"
-import { validateDataView } from "./Functions";
+import { viewModelClass, type defaultSettingsKeys, type viewModelValidationT, type plotData } from "./Classes"
+import { identitySelected } from "./Functions";
 
 export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
 
@@ -24,9 +25,7 @@ export class Visual implements powerbi.extensibility.IVisual {
     this.viewModel = new viewModelClass();
 
     this.selectionManager = this.host.createSelectionManager();
-    this.selectionManager.registerOnSelectCallback(() => {
-      this.svg.call(updateHighlighting, this);
-    });
+    this.selectionManager.registerOnSelectCallback(() => this.updateHighlighting());
     this.svg.call(initialiseSVG);
   }
 
@@ -51,24 +50,16 @@ export class Visual implements powerbi.extensibility.IVisual {
         this.host.eventService.renderingFailed(options);
         return;
       }
-
       if (update_status.warning) {
         this.host.displayWarningIcon("Invalid inputs or settings ignored.\n",
                                       update_status.warning);
       }
 
-      this.viewModel.inputSettings.update(options.dataViews[0]);
-      if (this.viewModel.inputSettings.validationStatus.error !== "") {
-        this.svg.call(drawErrors, options, this.viewModel.inputSettings.validationStatus.error, "settings");
-        this.host.eventService.renderingFinished(options);
-        return;
-      }
-
-
       this.resizeCanvas(options.viewport.width, options.viewport.height);
       this.drawVisual();
       this.adjustPaddingForOverflow();
 
+      this.updateHighlighting();
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
       this.svg.call(drawErrors, options, caught_error.message, "internal");
@@ -81,13 +72,37 @@ export class Visual implements powerbi.extensibility.IVisual {
     this.svg.attr("width", width).attr("height", height);
   }
 
+  updateHighlighting(): void {
+    const anyHighlights: boolean = this.viewModel.inputData ? this.viewModel.inputData.anyHighlights : false;
+    const allSelectionIDs: ISelectionId[] = this.selectionManager.getSelectionIds() as ISelectionId[];
+    const opacityFull: number = this.viewModel.inputSettings.settings.scatter.opacity;
+    const opacityReduced: number = this.viewModel.inputSettings.settings.scatter.opacity_unselected;
+
+    const defaultOpacity: number = (anyHighlights || (allSelectionIDs.length > 0))
+                                      ? opacityReduced
+                                      : opacityFull;
+    this.svg.selectAll(".linesgroup").style("stroke-opacity", defaultOpacity);
+
+    const dotsSelection = this.svg.selectAll(".dotsgroup").selectChildren();
+
+    dotsSelection.style("fill-opacity", defaultOpacity);
+    if (anyHighlights || (allSelectionIDs.length > 0)) {
+      dotsSelection.nodes().forEach(currentDotNode => {
+        const dot: plotData = d3.select(currentDotNode).datum() as plotData;
+        const currentPointSelected: boolean = identitySelected(dot.identity, this.selectionManager);
+        const currentPointHighlighted: boolean = dot.highlighted;
+        const newDotOpacity: number = (currentPointSelected || currentPointHighlighted) ? dot.aesthetics.opacity : dot.aesthetics.opacity_unselected;
+        d3.select(currentDotNode).style("fill-opacity", newDotOpacity);
+      })
+    }
+  }
+
   drawVisual(): void {
     this.svg.call(drawXAxis, this)
             .call(drawYAxis, this)
             .call(drawTooltipLine, this)
             .call(drawLines, this)
             .call(drawDots, this)
-            .call(updateHighlighting, this)
             .call(addContextMenu, this);
   }
 
