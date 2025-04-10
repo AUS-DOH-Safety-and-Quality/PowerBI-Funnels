@@ -38,7 +38,6 @@ export default class plotPropertiesClass {
                     .domain([this.xAxis.lower, this.xAxis.upper])
                     .range([this.xAxis.start_padding,
                             svgWidth - this.xAxis.end_padding]);
-
     this.yScale = d3.scaleLinear()
                     .domain([this.yAxis.lower, this.yAxis.upper])
                     .range([svgHeight - this.yAxis.start_padding,
@@ -70,11 +69,17 @@ export default class plotPropertiesClass {
     if (inputData) {
       xUpperLimit = xUpperLimit ? xUpperLimit : max(inputData.denominators) * 1.1;
     }
+    const leftLabelPadding: number = inputSettings.y_axis.ylimit_label
+                                      ? inputSettings.y_axis.ylimit_label_size
+                                      : 0;
 
+    const lowerLabelPadding: number = inputSettings.x_axis.xlimit_label
+                                      ? inputSettings.x_axis.xlimit_label_size
+                                      : 0;
     this.xAxis = {
       lower: xLowerLimit ?? 0,
       upper: xUpperLimit,
-      start_padding: inputSettings.canvas.left_padding,
+      start_padding: inputSettings.canvas.left_padding + leftLabelPadding,
       end_padding: inputSettings.canvas.right_padding,
       colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.x_axis.xlimit_colour,
       ticks: (xTicksCount !== null) ? (xTicksCount > 0) : inputSettings.x_axis.xlimit_ticks,
@@ -100,7 +105,7 @@ export default class plotPropertiesClass {
     this.yAxis = {
       lower: yLowerLimit ?? 0,
       upper: yUpperLimit,
-      start_padding: inputSettings.canvas.lower_padding,
+      start_padding: inputSettings.canvas.lower_padding + lowerLabelPadding,
       end_padding: inputSettings.canvas.upper_padding,
       colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.y_axis.ylimit_colour,
       ticks: (yTicksCount !== null) ? (yTicksCount > 0) : inputSettings.y_axis.ylimit_ticks,
