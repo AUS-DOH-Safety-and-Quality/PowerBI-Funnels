@@ -86,7 +86,7 @@ export class Visual implements powerbi.extensibility.IVisual {
     const dotsSelection = this.svg.selectAll(".dotsgroup").selectChildren();
 
     // Set the default opacity for all dots
-    dotsSelection.style("fill-opacity", (d: plotData) => { return d.aesthetics.opacity });
+    dotsSelection.style("fill-opacity", (d: plotData) => d.aesthetics.opacity);
 
     if (anyHighlights || (allSelectionIDs.length > 0)) {
       dotsSelection.nodes().forEach(currentDotNode => {
