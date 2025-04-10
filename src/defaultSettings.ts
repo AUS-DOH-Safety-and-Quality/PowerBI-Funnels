@@ -71,6 +71,16 @@ const defaultSettings = {
     ttip_label_68: { default: "68% Limit" },
     ttip_label_target: { default: "Centerline" },
     ttip_label_alt_target: { default: "Additional Target" },
+    opacity_99: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_unselected_99: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_95: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_unselected_95: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_68: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_unselected_68: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_target: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_unselected_target: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_alt_target: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_unselected_alt_target: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } },
     alt_target: { default: <number>null }
   },
   x_axis: {
@@ -136,11 +146,11 @@ export type defaultSettingsNestedKeys = NestedKeysOf<defaultSettingsType[default
 
 export const settingsPaneGroupings: Partial<Record<defaultSettingsKeys, Record<string, defaultSettingsNestedKeys[]>>> = {
   lines: {
-    "Target": ["show_target", "width_target", "type_target", "colour_target", "ttip_show_target", "ttip_label_target"],
-    "Alt. Target": ["show_alt_target", "alt_target", "width_alt_target", "type_alt_target", "colour_alt_target", "ttip_show_alt_target", "ttip_label_alt_target"],
-    "68% Limits": ["show_68", "width_68", "type_68", "colour_68", "ttip_show_68", "ttip_label_68"],
-    "95% Limits": ["show_95", "width_95", "type_95", "colour_95", "ttip_show_95", "ttip_label_95"],
-    "99% Limits": ["show_99", "width_99", "type_99", "colour_99", "ttip_show_99", "ttip_label_99"]
+    "Target": ["show_target", "width_target", "type_target", "colour_target", "opacity_target", "opacity_unselected_target", "ttip_show_target", "ttip_label_target"],
+    "Alt. Target": ["show_alt_target", "alt_target", "width_alt_target", "type_alt_target", "colour_alt_target", "opacity_alt_target", "opacity_unselected_alt_target", "ttip_show_alt_target", "ttip_label_alt_target"],
+    "68% Limits": ["show_68", "width_68", "type_68", "colour_68", "opacity_68", "opacity_unselected_68", "ttip_show_68", "ttip_label_68"],
+    "95% Limits": ["show_95", "width_95", "type_95", "colour_95", "opacity_95", "opacity_unselected_95", "ttip_show_95", "ttip_label_95"],
+    "99% Limits": ["show_99", "width_99", "type_99", "colour_99", "opacity_99", "opacity_unselected_99", "ttip_show_99", "ttip_label_99"]
   },
   x_axis: {
     "Axis": ["xlimit_colour", "xlimit_l", "xlimit_u"],
@@ -153,8 +163,8 @@ export const settingsPaneGroupings: Partial<Record<defaultSettingsKeys, Record<s
     "Label": ["ylimit_label", "ylimit_label_font", "ylimit_label_size", "ylimit_label_colour"]
   },
   scatter: {
-    "Dots": ["shape", "size", "colour", "opacity", "opacity_selected", "opacity_unselected"],
-    "Text": ["use_group_text", "scatter_text_font", "scatter_text_size", "scatter_text_colour", "scatter_text_opacity", "scatter_text_opacity_selected", "scatter_text_opacity_unselected"]
+    "Dots": ["shape", "size", "colour", "opacity", "opacity_unselected", "opacity_unselected"],
+    "Text": ["use_group_text", "scatter_text_font", "scatter_text_size", "scatter_text_colour", "scatter_text_opacity", "scatter_text_opacity_unselected", "scatter_text_opacity_unselected"]
   }
 }
 

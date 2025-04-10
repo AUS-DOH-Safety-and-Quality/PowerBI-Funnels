@@ -1,5 +1,4 @@
 import * as d3 from "./D3 Modules";
-import { abs } from "../Functions";
 import type { axisProperties } from "../Classes";
 import type { svgBaseType, Visual } from "../visual";
 

@@ -8,8 +8,8 @@ import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, addContextMenu,
           initialiseSVG, drawErrors } from "./D3 Plotting Functions"
-import { viewModelClass, type defaultSettingsKeys, type viewModelValidationT, type plotData } from "./Classes"
-import { identitySelected } from "./Functions";
+import { viewModelClass, type defaultSettingsKeys, type viewModelValidationT, type plotData, lineData } from "./Classes"
+import { getAesthetic, identitySelected } from "./Functions";
 
 export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
 
@@ -75,20 +75,20 @@ export class Visual implements powerbi.extensibility.IVisual {
   updateHighlighting(): void {
     const anyHighlights: boolean = this.viewModel.inputData ? this.viewModel.inputData.anyHighlights : false;
     const allSelectionIDs: ISelectionId[] = this.selectionManager.getSelectionIds() as ISelectionId[];
-    const opacityFull: number = this.viewModel.inputSettings.settings.scatter.opacity;
-    const opacityReduced: number = this.viewModel.inputSettings.settings.scatter.opacity_unselected;
-
-    const defaultOpacity: number = (anyHighlights || (allSelectionIDs.length > 0))
-                                      ? opacityReduced
-                                      : opacityFull;
-    this.svg.selectAll(".linesgroup").style("stroke-opacity", defaultOpacity);
 
     const dotsSelection = this.svg.selectAll(".dotsgroup").selectChildren();
+    const linesSelection = this.svg.selectAll(".linesgroup").selectChildren();
 
-    // Set the default opacity for all dots
+    // Set the default opacity for all lines and dots
+    linesSelection.style("stroke-opacity", (d: [string, lineData[]]) => {
+      return getAesthetic(d[0], "lines", "opacity", this.viewModel.inputSettings.settings)
+    });
     dotsSelection.style("fill-opacity", (d: plotData) => d.aesthetics.opacity);
 
     if (anyHighlights || (allSelectionIDs.length > 0)) {
+      linesSelection.style("stroke-opacity", (d: [string, lineData[]]) => {
+        return getAesthetic(d[0], "lines", "opacity_unselected", this.viewModel.inputSettings.settings)
+      });
       dotsSelection.nodes().forEach(currentDotNode => {
         const dot: plotData = d3.select(currentDotNode).datum() as plotData;
         const currentPointSelected: boolean = identitySelected(dot.identity, this.selectionManager);
@@ -115,9 +115,10 @@ export class Visual implements powerbi.extensibility.IVisual {
     let yTopOverflow: number = 0;
     const svgWidth: number = this.viewModel.svgWidth;
     const svgHeight: number = this.viewModel.svgHeight;
+    // Select xaxisgroup and y
     this.svg.selectChildren().each(function() {
       const currentClass: string = d3.select(this).attr("class");
-      if (currentClass === "yaxislabel" || currentClass === "xaxislabel") {
+      if (["yaxislabel", "xaxislabel", "dotsgroup", "linesgroup"].includes(currentClass)) {
         return;
       }
       const boundRect = (this as SVGGraphicsElement).getBoundingClientRect();
