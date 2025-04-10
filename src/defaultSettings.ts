@@ -31,11 +31,13 @@ const defaultSettings = {
     scatter_text_size: textOptions.size,
     scatter_text_colour: colourOptions.standard,
     scatter_text_opacity: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
+    scatter_text_opacity_selected: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
     scatter_text_opacity_unselected: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } },
     shape: { default: "Circle", valid: ["Circle", "Cross", "Diamond", "Square", "Star", "Triangle", "Wye"]},
     size: { default: 3, valid: { numberRange: { min: 0, max: 100 }}},
     colour: colourOptions.common_cause,
     opacity: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
+    opacity_selected: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
     opacity_unselected: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } }
   },
   lines: {
@@ -150,9 +152,9 @@ export const settingsPaneGroupings: Partial<Record<defaultSettingsKeys, Record<s
     "Ticks": ["ylimit_ticks", "ylimit_tick_count", "ylimit_tick_font", "ylimit_tick_size", "ylimit_tick_colour", "ylimit_tick_rotation"],
     "Label": ["ylimit_label", "ylimit_label_font", "ylimit_label_size", "ylimit_label_colour"]
   },
-  "scatter": {
-    "Dots": ["shape", "size", "colour", "opacity", "opacity_unselected"],
-    "Text": ["use_group_text", "scatter_text_font", "scatter_text_size", "scatter_text_colour", "scatter_text_opacity", "scatter_text_opacity_unselected"]
+  scatter: {
+    "Dots": ["shape", "size", "colour", "opacity", "opacity_selected", "opacity_unselected"],
+    "Text": ["use_group_text", "scatter_text_font", "scatter_text_size", "scatter_text_colour", "scatter_text_opacity", "scatter_text_opacity_selected", "scatter_text_opacity_unselected"]
   }
 }
 

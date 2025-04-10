@@ -214,7 +214,11 @@
           "type": { "fill": { "solid": { "color": true } } }
         },
         "scatter_text_opacity": {
-          "displayName": "Group Text Opacity",
+          "displayName": "Group Text Default Opacity",
+          "type": { "numeric": true }
+        },
+        "scatter_text_opacity_selected": {
+          "displayName": "Group Text Opacity if Selected",
           "type": { "numeric": true }
         },
         "scatter_text_opacity_unselected": {
@@ -240,7 +244,11 @@
           "type": { "numeric": true }
         },
         "opacity": {
-          "displayName": "Opacity",
+          "displayName": "Default Opacity",
+          "type": { "numeric": true }
+        },
+        "opacity_selected": {
+          "displayName": "Opacity if Selected",
           "type": { "numeric": true }
         },
         "opacity_unselected": {
