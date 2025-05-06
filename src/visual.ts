@@ -7,7 +7,7 @@ type ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, addContextMenu,
-          initialiseSVG, drawErrors, drawValueLabels } from "./D3 Plotting Functions"
+          initialiseSVG, drawErrors, drawValueLabels, drawLineLabels } from "./D3 Plotting Functions"
 import { viewModelClass, type defaultSettingsKeys, type viewModelValidationT, type plotData, lineData } from "./Classes"
 import { getAesthetic, identitySelected } from "./Functions";
 
@@ -54,7 +54,6 @@ export class Visual implements powerbi.extensibility.IVisual {
         this.host.displayWarningIcon("Invalid inputs or settings ignored.\n",
                                       update_status.warning);
       }
-      console.log(this.viewModel)
 
       this.resizeCanvas(options.viewport.width, options.viewport.height);
       this.drawVisual();
@@ -105,6 +104,7 @@ export class Visual implements powerbi.extensibility.IVisual {
             .call(drawYAxis, this)
             .call(drawTooltipLine, this)
             .call(drawLines, this)
+            .call(drawLineLabels, this)
             .call(drawDots, this)
             .call(addContextMenu, this)
             .call(drawValueLabels, this);
@@ -120,7 +120,7 @@ export class Visual implements powerbi.extensibility.IVisual {
     // Select xaxisgroup and y
     this.svg.selectChildren().each(function() {
       const currentClass: string = d3.select(this).attr("class");
-      if (["yaxislabel", "xaxislabel", "dotsgroup", "linesgroup"].includes(currentClass)) {
+      if (["yaxislabel", "xaxislabel", "dotsgroup"].includes(currentClass)) {
         return;
       }
       const boundRect = (this as SVGGraphicsElement).getBoundingClientRect();
