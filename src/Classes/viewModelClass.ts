@@ -35,6 +35,14 @@ export type plotData = {
   highlighted: boolean;
   // Tooltip data to print
   tooltip: VisualTooltipDataItem[];
+  label: {
+    text_value: string,
+    aesthetics: defaultSettingsType["labels"],
+    angle: number,
+    distance: number,
+    line_offset: number,
+    marker_offset: number
+  };
 }
 
 export type colourPaletteType = {
@@ -191,7 +199,15 @@ export default class viewModelClass {
           this.inputData,
           this.inputSettings.settings,
           this.inputSettings.derivedSettings
-        )
+        ),
+        label: {
+          text_value: this.inputData.labels?.[i],
+          aesthetics: this.inputData.label_formatting[i],
+          angle: null,
+          distance: null,
+          line_offset: null,
+          marker_offset: null
+        }
       })
     }
   }

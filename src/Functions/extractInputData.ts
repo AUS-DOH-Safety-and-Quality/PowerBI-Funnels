@@ -13,7 +13,9 @@ export type dataObject = {
   anyHighlights: boolean;
   categories: powerbi.DataViewCategoryColumn;
   scatter_formatting: defaultSettingsType["scatter"][];
+  label_formatting: defaultSettingsType["labels"][];
   tooltips: VisualTooltipDataItem[][];
+  labels: string[];
   warningMessage: string;
   validationStatus: ValidationT;
 }
@@ -23,8 +25,11 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
   const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
   const keys: string[] = extractDataColumn<string[]>(inputView, "key");
+  const labels: string[] = extractDataColumn<string[]>(inputView, "labels");
   let scatter_cond = extractConditionalFormatting<defaultSettingsType["scatter"]>(inputView, "scatter", inputSettings)?.values;
   scatter_cond = scatter_cond === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
+  let labels_cond = extractConditionalFormatting<defaultSettingsType["labels"]>(inputView, "labels", inputSettings)?.values;
+  labels_cond = labels_cond === null ? rep(inputSettings.labels, numerators.length) : labels_cond;
   const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
   const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
 
@@ -40,7 +45,9 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
       anyHighlights: null,
       categories: null,
       scatter_formatting: null,
+      label_formatting: null,
       tooltips: null,
+      labels: null,
       warningMessage: inputValidStatus.error,
       validationStatus: inputValidStatus
     }
@@ -76,10 +83,12 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
     numerators: extractValues(numerators, valid_ids),
     denominators: extractValues(denominators, valid_ids),
     tooltips: extractValues(tooltips, valid_ids),
+    labels: extractValues(labels, valid_ids),
     highlights: extractValues(highlights, valid_ids),
     anyHighlights: highlights != null,
     categories: inputView.categories[0],
     scatter_formatting: extractValues(scatter_cond, valid_ids),
+    label_formatting: extractValues(labels_cond, valid_ids),
     warningMessage: removalMessages.length >0 ? removalMessages.join("\n") : "",
     validationStatus: inputValidStatus
   }
