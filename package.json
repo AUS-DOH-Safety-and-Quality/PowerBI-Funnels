@@ -4,7 +4,8 @@
     "pbiviz": "pbiviz",
     "start": "pbiviz start",
     "package": "pbiviz package",
-    "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx"
+    "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
+    "bundle": "npx rollup --config rollup.config.js --configPlugin typescript"
   },
   "dependencies": {
     "@stdlib/stats-base-dists-chisquare-quantile": "^0.2.2",
@@ -21,6 +22,10 @@
     "powerbi-visuals-utils-typeutils": "^6.0.3"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.4",
     "@types/d3-array": "^3.2.1",
     "@types/d3-axis": "^3.0.6",
     "@types/d3-drag": "^3.0.7",
@@ -31,7 +36,10 @@
     "@typescript-eslint/parser": "^8.31.1",
     "eslint": "^9.21.0",
     "eslint-plugin-powerbi-visuals": "^1.0.0",
+    "linkedom": "^0.18.11",
+    "rollup": "^4.44.2",
     "ts-loader": "9.5.2",
+    "tslib": "^2.8.1",
     "typescript": "5.8.3"
   },
   "override": {
