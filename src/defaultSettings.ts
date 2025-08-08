@@ -36,6 +36,8 @@ const defaultSettings = {
     shape: { default: "Circle", valid: ["Circle", "Cross", "Diamond", "Square", "Star", "Triangle", "Wye"]},
     size: { default: 3, valid: { numberRange: { min: 0, max: 100 }}},
     colour: colourOptions.common_cause,
+    colour_outline: colourOptions.common_cause,
+    width_outline: { default: 1, valid: lineOptions.width.valid },
     opacity: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
     opacity_selected: { default: 1, valid: { numberRange: { min: 0, max: 1 } } },
     opacity_unselected: { default: 0.2, valid: { numberRange: { min: 0, max: 1 } } }
@@ -222,7 +224,7 @@ export const settingsPaneGroupings: Partial<Record<defaultSettingsKeys, Record<s
     "Label": ["ylimit_label", "ylimit_label_font", "ylimit_label_size", "ylimit_label_colour"]
   },
   scatter: {
-    "Dots": ["shape", "size", "colour", "opacity", "opacity_unselected", "opacity_unselected"],
+    "Dots": ["shape", "size", "colour", "colour_outline", "width_outline", "opacity", "opacity_selected", "opacity_unselected"],
     "Text": ["use_group_text", "scatter_text_font", "scatter_text_size", "scatter_text_colour", "scatter_text_opacity", "scatter_text_opacity_unselected", "scatter_text_opacity_unselected"]
   }
 }

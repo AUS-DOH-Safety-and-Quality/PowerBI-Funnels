@@ -7,7 +7,7 @@ export default function validateInputData(keys: string[], numerators: number[], 
 
   keys.forEach((d, idx) => {
     validationRtn.messages[idx] = validationRtn.messages[idx] === ""
-                                  ? ((d != null) ? "" : "Date missing")
+                                  ? ((d != null) ? "" : "Group missing")
                                   : validationRtn.messages[idx]});
   if (!validationRtn.messages.some(d => d == "")) {
     validationRtn.status = 1;

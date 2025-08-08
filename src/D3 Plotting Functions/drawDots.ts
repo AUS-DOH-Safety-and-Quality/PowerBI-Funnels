@@ -114,6 +114,16 @@ function dot_attributes(selection: aestheticSelection, visualObj: Visual): void 
               ? d.aesthetics.colour
               : "#FFFFFF";
     })
+    .style("stroke", (d: plotData) => {
+      const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
+      const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
+      const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
+      const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
+      return (between(d.value, ylower, yupper) && between(d.x, xlower, xupper))
+              ? d.aesthetics.colour_outline
+              : "#FFFFFF";
+    })
+    .style("stroke-width", (d: plotData) => d.aesthetics.width_outline);
 }
 
 function text_attributes(selection: aestheticSelection, visualObj: Visual): void {
