@@ -127,7 +127,6 @@ export class Visual implements powerbi.extensibility.IVisual {
       if (["yaxislabel", "xaxislabel", "dotsgroup", "text-labels"].includes(currentClass)) {
         return;
       }
-      console.log(currentClass)
       const boundRect = (this as SVGGraphicsElement).getBoundingClientRect();
       const bbox = (this as SVGGraphicsElement).getBBox();
       xLeftOverflow = Math.min(xLeftOverflow, bbox.x);
