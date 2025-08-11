@@ -124,9 +124,10 @@ export class Visual implements powerbi.extensibility.IVisual {
     // Select xaxisgroup and y
     this.svg.selectChildren().each(function() {
       const currentClass: string = d3.select(this).attr("class");
-      if (["yaxislabel", "xaxislabel", "dotsgroup"].includes(currentClass)) {
+      if (["yaxislabel", "xaxislabel", "dotsgroup", "text-labels"].includes(currentClass)) {
         return;
       }
+      console.log(currentClass)
       const boundRect = (this as SVGGraphicsElement).getBoundingClientRect();
       const bbox = (this as SVGGraphicsElement).getBBox();
       xLeftOverflow = Math.min(xLeftOverflow, bbox.x);
