@@ -26,6 +26,15 @@ export default function validateInputData(keys: string[], numerators: number[], 
   }
   numerators.forEach((d, idx) => {
     validationRtn.messages[idx] = validationRtn.messages[idx] === ""
+                                  ? (!isNaN(d) ? "" : "Numerator is not a number")
+                                  : validationRtn.messages[idx]});
+  if (!validationRtn.messages.some(d => d == "")) {
+    validationRtn.status = 1;
+    validationRtn.error = "All numerators are not numbers!";
+    return validationRtn;
+  }
+  numerators.forEach((d, idx) => {
+    validationRtn.messages[idx] = validationRtn.messages[idx] === ""
                                   ? ((d >= 0) ? "" : "Numerator negative")
                                   : validationRtn.messages[idx]});
   if (!validationRtn.messages.some(d => d == "")) {
@@ -43,6 +52,17 @@ export default function validateInputData(keys: string[], numerators: number[], 
     validationRtn.error = "All denominators missing or null!";
     return validationRtn;
   }
+
+  denominators.forEach((d, idx) => {
+    validationRtn.messages[idx] = validationRtn.messages[idx] === ""
+                                  ? (!isNaN(d) ? "" : "Denominator is not a number")
+                                  : validationRtn.messages[idx]});
+  if (!validationRtn.messages.some(d => d == "")) {
+    validationRtn.status = 1;
+    validationRtn.error = "All denominators are not numbers!";
+    return validationRtn;
+  }
+
   denominators.forEach((d, idx) => {
     validationRtn.messages[idx] = validationRtn.messages[idx] === ""
                                   ? ((d >= 0) ? "" : "Denominator negative")

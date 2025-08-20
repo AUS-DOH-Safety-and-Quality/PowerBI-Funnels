@@ -2,7 +2,7 @@ import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import type { plotData, defaultSettingsType, derivedSettingsClass } from "../Classes";
-import { divide, max, type dataObject } from "../Functions";
+import { divide, isNullOrUndefined, max, type dataObject } from "../Functions";
 import { colourPaletteType } from "./viewModelClass";
 
 export type axisProperties = {
@@ -66,7 +66,7 @@ export default class plotPropertiesClass {
     const xLowerLimit: number = inputSettings.x_axis.xlimit_l;
     let xUpperLimit: number = inputSettings.x_axis.xlimit_u;
 
-    if (inputData) {
+    if (!isNullOrUndefined(inputData?.denominators)) {
       xUpperLimit = xUpperLimit ? xUpperLimit : max(inputData.denominators) * 1.1;
     }
     const leftLabelPadding: number = inputSettings.y_axis.ylimit_label
@@ -97,7 +97,7 @@ export default class plotPropertiesClass {
     const yLowerLimit: number = inputSettings.y_axis.ylimit_l;
     let yUpperLimit: number = inputSettings.y_axis.ylimit_u;
 
-    if (inputData) {
+    if (!isNullOrUndefined(inputData?.numerators) && !isNullOrUndefined(inputData?.denominators)) {
       const maxRatio: number = max(divide(inputData.numerators, inputData.denominators));
       yUpperLimit ??= maxRatio * derivedSettings.multiplier
     }
