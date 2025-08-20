@@ -66,7 +66,6 @@ export default class plotPropertiesClass {
     const xLowerLimit: number = inputSettings.x_axis.xlimit_l;
     let xUpperLimit: number = inputSettings.x_axis.xlimit_u;
 
-    console.log(inputData)
     if (!isNullOrUndefined(inputData?.denominators)) {
       xUpperLimit = xUpperLimit ? xUpperLimit : max(inputData.denominators) * 1.1;
     }

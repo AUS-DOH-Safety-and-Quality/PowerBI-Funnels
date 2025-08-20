@@ -34,7 +34,6 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
 
   const inputValidStatus: ValidationT = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
-  console.log(inputValidStatus)
 
   if (inputValidStatus.status !== 0) {
     return {
