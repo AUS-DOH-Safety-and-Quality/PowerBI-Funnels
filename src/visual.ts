@@ -1,14 +1,12 @@
 "use strict";
 
 import type powerbi from "powerbi-visuals-api";
-type EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-type VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, addContextMenu,
           initialiseSVG, drawErrors, drawValueLabels, drawLineLabels } from "./D3 Plotting Functions"
-import { viewModelClass, type defaultSettingsKeys, type viewModelValidationT, type plotData, lineData } from "./Classes"
+import { viewModelClass, type viewModelValidationT, type plotData, lineData } from "./Classes"
 import { getAesthetic, identitySelected } from "./Functions";
 
 export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -151,8 +149,7 @@ export class Visual implements powerbi.extensibility.IVisual {
     }
   }
 
-  // Function to render the properties specified in capabilities.json to the properties pane
-  public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumerationObject {
-    return this.viewModel.inputSettings.createSettingsEntry(options.objectName as defaultSettingsKeys);
+  public getFormattingModel(): powerbi.visuals.FormattingModel {
+    return this.viewModel.inputSettings.getFormattingModel();
   }
 }
