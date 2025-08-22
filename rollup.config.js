@@ -9,7 +9,7 @@ export default {
   output: {
     format: 'umd',
     name: 'funnel',
-    file: './.tmp/build/bundle.js'
+    file: './.tmp/build/frontend.js'
   },
   plugins: [
     typescript({ tsconfig: 'tsconfig.json' }),
