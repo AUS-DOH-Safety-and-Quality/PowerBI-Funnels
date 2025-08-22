@@ -46,7 +46,7 @@ const textOptions = {
   },
   size: {
     default: 10,
-    valid: { numberRange: { min: 0, max: 100 } }
+    options: { minValue: { value: 0 }, maxValue: { value: 100 } }
   },
   weight: {
     default: "normal",
@@ -131,13 +131,13 @@ const settingsModel = {
           displayName: "Multiplier",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0 } }
+          options: { minValue: { value: 0 } }
         },
         sig_figs: {
           displayName: "Decimals to Report:",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 2,
-          valid: { numberRange: { min: 0, max: 20 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 20 } }
         },
         perc_labels: {
           displayName: "Report as percentage",
@@ -313,7 +313,7 @@ const settingsModel = {
           displayName: "Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 2.5,
-          valid: { numberRange: { min: 0, max: 100 }}
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         colour: {
           displayName: "Colour",
@@ -329,25 +329,25 @@ const settingsModel = {
           displayName: "Outline Width",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 100 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         opacity: {
           displayName: "Default Opacity",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         opacity_selected: {
           displayName: "Opacity if Selected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         opacity_unselected: {
           displayName: "Opacity if Unselected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0.2,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         }
       },
       "Group Text": {
@@ -366,7 +366,7 @@ const settingsModel = {
           displayName: "Group Text Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         scatter_text_colour: {
           displayName: "Group Text Colour",
@@ -377,19 +377,19 @@ const settingsModel = {
           displayName: "Group Text Default Opacity",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         scatter_text_opacity_selected: {
           displayName: "Group Text Opacity if Selected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         scatter_text_opacity_unselected: {
           displayName: "Group Text Opacity if Unselected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0.2,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         }
       }
     }
@@ -408,7 +408,7 @@ const settingsModel = {
           displayName: "Line Width",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1.5,
-          valid: { numberRange: { min: 0, max: 100 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         type_target: {
           displayName: "Line Type",
@@ -430,13 +430,13 @@ const settingsModel = {
           displayName: "Default Opacity",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         opacity_unselected_target: {
           displayName: "Opacity if Any Selected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0.2,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         ttip_show_target: {
           displayName: "Show value in tooltip",
@@ -484,7 +484,7 @@ const settingsModel = {
           displayName: "Value Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         plot_label_colour_target: {
           displayName: "Value Colour",
@@ -512,7 +512,7 @@ const settingsModel = {
           displayName: "Line Width",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1.5,
-          valid: { numberRange: { min: 0, max: 100 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         type_alt_target: {
           displayName: "Line Type",
@@ -534,13 +534,13 @@ const settingsModel = {
           displayName: "Default Opacity",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         opacity_unselected_alt_target: {
           displayName: "Opacity if Any Selected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0.2,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         join_rebaselines_alt_target: {
           displayName: "Connect Rebaselined Limits",
@@ -593,7 +593,7 @@ const settingsModel = {
           displayName: "Value Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         plot_label_colour_alt_target: {
           displayName: "Value Colour",
@@ -616,7 +616,7 @@ const settingsModel = {
           displayName: "Line Width",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 2,
-          valid: { numberRange: { min: 0, max: 100 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         type_68: {
           displayName: "Line Type",
@@ -638,13 +638,13 @@ const settingsModel = {
           displayName: "Default Opacity",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         opacity_unselected_68: {
           displayName: "Opacity if Any Selected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0.2,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         ttip_show_68: {
           displayName: "Show value in tooltip",
@@ -694,7 +694,7 @@ const settingsModel = {
           displayName: "Value Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         plot_label_colour_68: {
           displayName: "Value Colour",
@@ -717,7 +717,7 @@ const settingsModel = {
           displayName: "Line Width",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 2,
-          valid: { numberRange: { min: 0, max: 100 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         type_95: {
           displayName: "Line Type",
@@ -739,13 +739,13 @@ const settingsModel = {
           displayName: "Default Opacity",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         opacity_unselected_95: {
           displayName: "Opacity if Any Selected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0.2,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         ttip_show_95: {
           displayName: "Show value in tooltip",
@@ -795,7 +795,7 @@ const settingsModel = {
           displayName: "Value Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         plot_label_colour_95: {
           displayName: "Value Colour",
@@ -818,7 +818,7 @@ const settingsModel = {
           displayName: "Line Width",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 2,
-          valid: { numberRange: { min: 0, max: 100 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         type_99: {
           displayName: "Line Type",
@@ -840,13 +840,13 @@ const settingsModel = {
           displayName: "Default Opacity",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         opacity_unselected_99: {
           displayName: "Opacity if Any Selected",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0.2,
-          valid: { numberRange: { min: 0, max: 1 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 1 } }
         },
         ttip_show_99: {
           displayName: "Show value in tooltip",
@@ -896,7 +896,7 @@ const settingsModel = {
           displayName: "Value Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         plot_label_colour_99: {
           displayName: "Value Colour",
@@ -942,7 +942,7 @@ const settingsModel = {
           displayName: "Maximum Ticks",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 10,
-          valid: { numberRange: { min: 0, max: 100 }}
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         xlimit_tick_font: {
           displayName: "Tick Font",
@@ -954,7 +954,7 @@ const settingsModel = {
           displayName: "Tick Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         xlimit_tick_colour: {
           displayName: "Tick Font Colour",
@@ -965,7 +965,7 @@ const settingsModel = {
           displayName: "Tick Rotation (Degrees)",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0,
-          valid: { numberRange: { min: -360, max: 360 }}
+          options: { minValue: { value: -360 }, maxValue: { value: 360 } }
         }
       },
       "Label": {
@@ -984,7 +984,7 @@ const settingsModel = {
           displayName: "Label Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         xlimit_label_colour: {
           displayName: "Label Font Colour",
@@ -1030,7 +1030,7 @@ const settingsModel = {
           displayName: "Maximum Ticks",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 10,
-          valid: { numberRange: { min: 0, max: 100 }}
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         ylimit_tick_font: {
           displayName: "Tick Font",
@@ -1042,7 +1042,7 @@ const settingsModel = {
           displayName: "Tick Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         ylimit_tick_colour: {
           displayName: "Tick Font Colour",
@@ -1053,7 +1053,7 @@ const settingsModel = {
           displayName: "Tick Rotation (Degrees)",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0,
-          valid: { numberRange: { min: -360, max: 360 }}
+          options: { minValue: { value: -360 }, maxValue: { value: 360 } }
         }
       },
       "Label": {
@@ -1072,7 +1072,7 @@ const settingsModel = {
           displayName: "Label Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         ylimit_label_colour: {
           displayName: "Label Font Colour",
@@ -1116,7 +1116,7 @@ const settingsModel = {
           displayName: "Label Angle Offset (degrees)",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 0,
-          valid: { numberRange: { min: -90, max: 90 }}
+          options: { minValue: { value: -90 }, maxValue: { value: 90 } }
         },
         label_font: {
           displayName: "Label Font",
@@ -1128,7 +1128,7 @@ const settingsModel = {
           displayName: "Label Font Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: textOptions.size.default,
-          valid: textOptions.size.valid
+          options: textOptions.size.options
         },
         label_colour: {
           displayName: "Label Font Colour",
@@ -1144,7 +1144,7 @@ const settingsModel = {
           displayName: "Connecting Line Width",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1,
-          valid: { numberRange: { min: 0, max: 100 } }
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         label_line_type: {
           displayName: "Connecting Line Type",
@@ -1161,7 +1161,7 @@ const settingsModel = {
           displayName: "Max Connecting Line Length (px)",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 1000,
-          valid: { numberRange: { min: 0, max: 10000 }}
+          options: { minValue: { value: 0 }, maxValue: { value: 10000 } }
         },
         label_marker_show: {
           displayName: "Show Line Markers",
@@ -1177,7 +1177,7 @@ const settingsModel = {
           displayName: "Marker Size",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
           default: 3,
-          valid: { numberRange: { min: 0, max: 100 }}
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         label_marker_colour: {
           displayName: "Marker Fill Colour",
