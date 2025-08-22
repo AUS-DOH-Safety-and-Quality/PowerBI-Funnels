@@ -17,3 +17,6 @@ doc/*
 
 # OS generated files
 .DS_Store
+
+# Coverage reports
+coverage
