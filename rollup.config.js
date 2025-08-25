@@ -3,6 +3,7 @@ import typescript from '@rollup/plugin-typescript';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import json from "@rollup/plugin-json";
+import terser from '@rollup/plugin-terser';
 
 export default {
   input: 'src/frontend.ts',
@@ -15,6 +16,7 @@ export default {
     typescript({ tsconfig: 'tsconfig.json' }),
     json(),
     nodeResolve({ browser: true }),
-    commonjs()
+    commonjs(),
+    terser({ compress: { warnings: false }})
   ]
 };
