@@ -2,7 +2,7 @@ name: Test Build PowerBI visual
 
 on:
   push:
-    branches: [bundle-test]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
     paths-ignore:
