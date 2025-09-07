@@ -65,6 +65,7 @@ export default class viewModelClass {
   colourPalette: colourPaletteType;
   svgWidth: number;
   svgHeight: number;
+  headless: boolean;
 
   constructor() {
     this.inputData = <dataObject>null;
@@ -76,6 +77,7 @@ export default class viewModelClass {
     this.plotProperties = new plotPropertiesClass();
     this.firstRun = true;
     this.colourPalette = null;
+    this.headless = false;
   }
 
   update(options: VisualUpdateOptions, host: IVisualHost): viewModelValidationT {
@@ -108,6 +110,7 @@ export default class viewModelClass {
 
     this.svgWidth = options.viewport.width;
     this.svgHeight = options.viewport.height;
+    this.headless = options?.["headless"] ?? false;
 
     // Only re-construct data and re-calculate limits if they have changed
     if (options.type === 2 || this.firstRun) {
