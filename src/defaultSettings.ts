@@ -143,7 +143,7 @@ const defaultSettings = {
   y_axis: {
     ylimit_colour: colourOptions.standard,
     ylimit_ticks: { default: true },
-    ylimit_sig_figs: { default: <number>null },
+    ylimit_sig_figs: { default: <number>null, valid: { numberRange: { min: 0, max: 100 }} },
     ylimit_tick_font: textOptions.font,
     ylimit_tick_size: textOptions.size,
     ylimit_tick_colour: colourOptions.standard,
