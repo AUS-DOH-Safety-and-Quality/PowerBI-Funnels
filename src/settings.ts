@@ -162,6 +162,16 @@ const settingsModel = {
             { displayName : "Square-Root",       value : "sqrt" }
           ]
         },
+        ttip_show_group: {
+          displayName: "Show Group in Tooltip",
+          type: powerbi.visuals.FormattingComponent.ToggleSwitch,
+          default: true
+        },
+        ttip_label_group: {
+          displayName: "Group Tooltip Label",
+          type: powerbi.visuals.FormattingComponent.TextInput,
+          default: "Group"
+        },
         ttip_show_numerator: {
           displayName: "Show Numerator in Tooltip",
           type: powerbi.visuals.FormattingComponent.ToggleSwitch,
@@ -1007,7 +1017,8 @@ const settingsModel = {
         ylimit_sig_figs: {
           displayName: "Tick Decimal Places",
           type: powerbi.visuals.FormattingComponent.NumUpDown,
-          default:<number>null
+          default:<number>null,
+          options: { minValue: { value: 0 }, maxValue: { value: 100 } }
         },
         ylimit_l: {
           displayName: "Lower Limit",
