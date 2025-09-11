@@ -33,10 +33,12 @@ export default function buildTooltip(index: number,
   }
 
   const tooltip: VisualTooltipDataItem[] = new Array<VisualTooltipDataItem>();
-  tooltip.push({
-    displayName: "Group",
-    value: group
-  });
+  if (inputSettings.funnel.ttip_show_group) {
+    tooltip.push({
+      displayName: inputSettings.funnel.ttip_label_group,
+      value: group
+    })
+  }
   if (inputSettings.funnel.ttip_show_value) {
     const ttip_label_value: string = inputSettings.funnel.ttip_label_value;
     tooltip.push({

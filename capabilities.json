@@ -45,6 +45,12 @@
         "ul_truncate": {
           "type": { "numeric": true }
         },
+        "ttip_show_group": {
+          "type" : { "bool" : true }
+        },
+        "ttip_label_group": {
+          "type": { "text": true }
+        },
         "ttip_show_numerator": {
           "type" : { "bool" : true }
         },
