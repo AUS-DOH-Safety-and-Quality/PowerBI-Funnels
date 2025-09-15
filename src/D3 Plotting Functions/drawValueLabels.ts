@@ -1,6 +1,7 @@
 import * as d3 from "./D3 Modules";
 import type { svgBaseType, Visual } from "../visual";
 import type { plotData } from "../Classes";
+import { between } from "../Functions";
 
 const labelFormatting = function(selection: d3.Selection<d3.BaseType, plotData, d3.BaseType, unknown>, visualObj: Visual) {
   // -90 degrees for vertically above, 90 degrees for vertically below
@@ -35,27 +36,41 @@ const labelFormatting = function(selection: d3.Selection<d3.BaseType, plotData, 
 
   })
 
+  const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
+  const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
+  const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
+  const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
+
   selection.select("text")
             .text(d => d.label.text_value)
-            .attr("x", (_, i) => initialLabelXY[i].x)
-            .attr("y", (_, i) => initialLabelXY[i].y)
+            .attr("transform", (_, i) => {
+              if (!between(initialLabelXY[i].y, ylower, yupper) || !between(initialLabelXY[i].x, xlower, xupper)) {
+                return "translate(0, 0) scale(0, 0)";
+              }
+              return `translate(${initialLabelXY[i].x}, ${initialLabelXY[i].y}) rotate(${initialLabelXY[i].theta})`;
+            })
             .style("text-anchor", "middle")
             .style("font-size", d => `${d.label.aesthetics.label_size}px`)
             .style("font-family", d => d.label.aesthetics.label_font)
             .style("fill", d => d.label.aesthetics.label_colour);
 
   selection.select("line")
-            .attr("x1", (_, i) => initialLabelXY[i].x)
-            .attr("y1", (_, i) => initialLabelXY[i].y + initialLabelXY[i].line_offset)
+            .attr("x1", (_, i) => between(initialLabelXY[i].x, xlower, xupper) ? initialLabelXY[i].x : 0)
+            .attr("y1", (_, i) => {
+              const newY1 = initialLabelXY[i].y + initialLabelXY[i].line_offset;
+              return between(newY1, ylower, yupper) ? newY1 : 0;
+            })
             .attr("x2", (d, i) => {
               const marker_offset: number = initialLabelXY[i].marker_offset;
               const angle: number = initialLabelXY[i].theta - (d.label.aesthetics.label_position === "top" ? 180 : 0);
-              return visualObj.viewModel.plotProperties.xScale(d.x) + marker_offset * Math.cos(angle * Math.PI / 180);
+              const newX2 = visualObj.viewModel.plotProperties.xScale(d.x) + marker_offset * Math.cos(angle * Math.PI / 180);
+              return between(newX2, xlower, xupper) ? newX2 : 0;
             })
             .attr("y2", (d, i) => {
               const marker_offset: number = initialLabelXY[i].marker_offset;
-              const angle: number = initialLabelXY[i].theta -(d.label.aesthetics.label_position === "top" ? 180 : 0);
-              return visualObj.viewModel.plotProperties.yScale(d.value) + marker_offset * Math.sin(angle * Math.PI / 180);
+              const angle: number = initialLabelXY[i].theta - (d.label.aesthetics.label_position === "top" ? 180 : 0);
+              const newY2 = visualObj.viewModel.plotProperties.yScale(d.value) + marker_offset * Math.sin(angle * Math.PI / 180);
+              return between(newY2, ylower, yupper) ? newY2 : 0;
             })
             .style("stroke", visualObj.viewModel.inputSettings.settings.labels.label_line_colour)
             .style("stroke-width", d => (d.label.text_value ?? "") === "" ? 0 : visualObj.viewModel.inputSettings.settings.labels.label_line_width)
@@ -75,6 +90,9 @@ const labelFormatting = function(selection: d3.Selection<d3.BaseType, plotData, 
               const angle: number = initialLabelXY[i].theta - (d.label.aesthetics.label_position === "top" ? 180 : 0);
               const x_offset: number = marker_offset * Math.cos(angle * Math.PI / 180);
               const y_offset: number = marker_offset * Math.sin(angle * Math.PI / 180);
+              if (!between(x + x_offset, xlower, xupper) || !between(y + y_offset, ylower, yupper)) {
+                return "translate(0, 0) scale(0, 0)";
+              }
 
               return `translate(${x + x_offset}, ${y + y_offset}) rotate(${angle + (d.label.aesthetics.label_position === "top" ? 90 : 270)})`;
             })
