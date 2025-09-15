@@ -96,6 +96,10 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
 //   - Tricky as the plotProperties get updated when rendering X & Y axes
 //      to add padding when rendering out of frame
 function dot_attributes(selection: aestheticSelection, visualObj: Visual): void {
+  const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
+  const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
+  const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
+  const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
   selection
     .attr("d", (d: plotData) => {
       const shape: string = d.aesthetics.shape;
@@ -103,33 +107,32 @@ function dot_attributes(selection: aestheticSelection, visualObj: Visual): void 
       return d3.symbol().type(d3[`symbol${shape}`]).size((size*size) * Math.PI)()
     })
     .attr("transform", (d: plotData) => {
+      if (!between(d.value, ylower, yupper) || !between(d.x, xlower, xupper)) {
+        return "translate(0, 0) scale(0, 0)";
+      }
       return `translate(${visualObj.viewModel.plotProperties.xScale(d.x)}, ${visualObj.viewModel.plotProperties.yScale(d.value)})`
     })
     .style("fill", (d: plotData) => {
-      const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
-      const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
-      const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
-      const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
-      return (between(d.value, ylower, yupper) && between(d.x, xlower, xupper))
-              ? d.aesthetics.colour
-              : "#FFFFFF";
+      return d.aesthetics.colour;
     })
     .style("stroke", (d: plotData) => {
-      const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
-      const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
-      const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
-      const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
-      return (between(d.value, ylower, yupper) && between(d.x, xlower, xupper))
-              ? d.aesthetics.colour_outline
-              : "#FFFFFF";
+      return d.aesthetics.colour_outline;
     })
     .style("stroke-width", (d: plotData) => d.aesthetics.width_outline);
 }
 
 function text_attributes(selection: aestheticSelection, visualObj: Visual): void {
+  const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
+  const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
+  const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
+  const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
   selection
-    .attr("y", (d: plotData) => visualObj.viewModel.plotProperties.yScale(d.value))
-    .attr("x", (d: plotData) => visualObj.viewModel.plotProperties.xScale(d.x))
+    .attr("transform", (d: plotData) => {
+      if (!between(d.value, ylower, yupper) || !between(d.x, xlower, xupper)) {
+        return "translate(0, 0) scale(0, 0)";
+      }
+      return `translate(${visualObj.viewModel.plotProperties.xScale(d.x)}, ${visualObj.viewModel.plotProperties.yScale(d.value)})`
+    })
     .attr("dy", "0.35em")
     .text((d: plotData) => d.group_text)
     .style("text-anchor", "middle")
