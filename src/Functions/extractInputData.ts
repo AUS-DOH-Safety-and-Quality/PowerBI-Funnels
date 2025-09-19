@@ -1,6 +1,6 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import { extractValues, validateInputData, extractDataColumn, extractConditionalFormatting, rep } from "../Functions"
+import { extractValues, validateInputData, extractDataColumn, extractConditionalFormatting, rep, isNullOrUndefined } from "../Functions"
 import { settingsClass, type defaultSettingsType } from "../Classes"
 import { type ValidationT } from "./validateInputData";
 
@@ -16,6 +16,7 @@ export type dataObject = {
   label_formatting: defaultSettingsType["labels"][];
   tooltips: VisualTooltipDataItem[][];
   labels: string[];
+  anyLabels: boolean;
   warningMessage: string;
   validationStatus: ValidationT;
 }
@@ -48,6 +49,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
       label_formatting: null,
       tooltips: null,
       labels: null,
+      anyLabels: false,
       warningMessage: inputValidStatus.error,
       validationStatus: inputValidStatus
     }
@@ -77,13 +79,15 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
     }
   }
 
+  const valid_labels: string[] = extractValues(labels, valid_ids);
   return {
     keys: valid_keys,
     id: valid_ids,
     numerators: extractValues(numerators, valid_ids),
     denominators: extractValues(denominators, valid_ids),
     tooltips: extractValues(tooltips, valid_ids),
-    labels: extractValues(labels, valid_ids),
+    labels: valid_labels,
+    anyLabels: valid_labels.filter(d => !isNullOrUndefined(d) && d !== "").length > 0,
     highlights: extractValues(highlights, valid_ids),
     anyHighlights: highlights != null,
     categories: inputView.categories[0],

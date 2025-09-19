@@ -74,7 +74,7 @@ export default class plotPropertiesClass {
                                       : 0;
 
     const lowerLabelPadding: number = inputSettings.x_axis.xlimit_label
-                                      ? inputSettings.x_axis.xlimit_label_size
+                                      ? inputSettings.x_axis.xlimit_label_size + 20
                                       : 0;
     this.xAxis = {
       lower: xLowerLimit ?? 0,

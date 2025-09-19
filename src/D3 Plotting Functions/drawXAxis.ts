@@ -14,7 +14,7 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
     xAxis.tickValues([]);
   }
 
-  const plotHeight: number = visualObj.viewModel.plotProperties.height;
+  const plotHeight: number = visualObj.viewModel.svgHeight;
   const xAxisHeight: number = plotHeight - visualObj.viewModel.plotProperties.yAxis.start_padding;
   const displayPlot: boolean = visualObj.viewModel.plotProperties.displayPlot;
   const xAxisGroup = selection.select(".xaxisgroup") as d3.Selection<SVGGElement, unknown, null, undefined>;
@@ -45,14 +45,19 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
               .style("fill", displayPlot ? xAxisProperties.label_colour : "#FFFFFF");
     return;
   }
-  const xAxisCoordinates: DOMRect = xAxisNode.getBoundingClientRect() as DOMRect;
-  const bottomMidpoint: number = plotHeight - ((plotHeight - xAxisCoordinates.bottom) / 2);
 
-  selection.select(".xaxislabel")
-            .attr("x",visualObj.viewModel.plotProperties.width / 2)
-            .attr("y", bottomMidpoint)
+  const textX: number = visualObj.viewModel.svgWidth / 2;
+  const textY: number = visualObj.viewModel.plotProperties.yAxis.start_padding - visualObj.viewModel.inputSettings.settings.x_axis.xlimit_label_size * 0.5;
+
+  xAxisGroup.select(".xaxislabel")
+            .selectAll("text")
+            .data([xAxisProperties.label])
+            .join("text")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("transform", `translate(${textX}, ${textY})`)
             .style("text-anchor", "middle")
-            .text(xAxisProperties.label)
+            .text(d => d)
             .style("font-size", xAxisProperties.label_size)
             .style("font-family", xAxisProperties.label_font)
             .style("fill", displayPlot ? xAxisProperties.label_colour : "#FFFFFF");
