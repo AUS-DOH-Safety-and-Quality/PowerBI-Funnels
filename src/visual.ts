@@ -28,7 +28,6 @@ export class Visual implements powerbi.extensibility.IVisual {
   }
 
   public update(options: powerbi.extensibility.visual.VisualUpdateOptions) {
-    console.log('update called');
     try {
       this.host.eventService.renderingStarted(options);
       // Remove printed error if refreshing after a previous error run
