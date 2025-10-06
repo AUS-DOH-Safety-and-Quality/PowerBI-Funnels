@@ -26,6 +26,7 @@ export type lineData = {
 
 export type plotData = {
   x: number;
+  numerator?: number;
   value: number;
   group_text: string;
   aesthetics: defaultSettingsType["scatter"];
@@ -190,6 +191,7 @@ export default class viewModelClass {
 
       this.plotPoints.push({
         x: denominator,
+        numerator: numerator,
         value: value,
         group_text: category,
         aesthetics: aesthetics,
