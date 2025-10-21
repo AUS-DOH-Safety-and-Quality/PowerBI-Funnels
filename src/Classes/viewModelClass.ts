@@ -44,6 +44,8 @@ export type plotData = {
     line_offset: number,
     marker_offset: number
   };
+  two_sigma?: string;
+  three_sigma?: string;
 }
 
 export type colourPaletteType = {
@@ -166,26 +168,24 @@ export default class viewModelClass {
       if (this.colourPalette.isHighContrast) {
         aesthetics.colour = this.colourPalette.foregroundColour;
       }
-      const two_sigma_outlier: string = flag_two_sigma ? two_sigma(value, limits) : "none";
-      const three_sigma_outlier: string = flag_three_sigma ? three_sigma(value, limits) : "none";
-      const category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
-                              (this.inputData.categories.values[original_index]).toString() :
-                              <string>(this.inputData.categories.values[original_index]);
       const flagSettings = {
         process_flag_type: this.inputSettings.settings.outliers.process_flag_type,
         improvement_direction: this.inputSettings.settings.outliers.improvement_direction
       }
+      const two_sigma_outlier: string = checkFlagDirection(flag_two_sigma ? two_sigma(value, limits) : "none", flagSettings);
+      const three_sigma_outlier: string = checkFlagDirection(flag_three_sigma ? three_sigma(value, limits) : "none", flagSettings);
+      const category: string = (typeof this.inputData.categories.values[original_index] === "number") ?
+                              (this.inputData.categories.values[original_index]).toString() :
+                              <string>(this.inputData.categories.values[original_index]);
       if (two_sigma_outlier !== "none") {
-        const two_sigma_flag: string = checkFlagDirection(two_sigma_outlier, flagSettings)
-        aesthetics.colour = this.inputSettings.settings.outliers["two_sigma_colour_" + two_sigma_flag];
-        aesthetics.colour_outline = this.inputSettings.settings.outliers["two_sigma_colour_" + two_sigma_flag];
+        aesthetics.colour = this.inputSettings.settings.outliers["two_sigma_colour_" + two_sigma_outlier];
+        aesthetics.colour_outline = this.inputSettings.settings.outliers["two_sigma_colour_" + two_sigma_outlier];
         aesthetics.scatter_text_colour = aesthetics.colour;
       }
 
       if (three_sigma_outlier !== "none") {
-        const three_sigma_flag: string = checkFlagDirection(three_sigma_outlier, flagSettings)
-        aesthetics.colour = this.inputSettings.settings.outliers["three_sigma_colour_" + three_sigma_flag];
-        aesthetics.colour_outline = this.inputSettings.settings.outliers["three_sigma_colour_" + three_sigma_flag];
+        aesthetics.colour = this.inputSettings.settings.outliers["three_sigma_colour_" + three_sigma_outlier];
+        aesthetics.colour_outline = this.inputSettings.settings.outliers["three_sigma_colour_" + three_sigma_outlier];
         aesthetics.scatter_text_colour = aesthetics.colour;
       }
 
@@ -214,7 +214,9 @@ export default class viewModelClass {
           distance: null,
           line_offset: null,
           marker_offset: null
-        }
+        },
+        two_sigma: two_sigma_outlier,
+        three_sigma: three_sigma_outlier
       })
     }
   }
