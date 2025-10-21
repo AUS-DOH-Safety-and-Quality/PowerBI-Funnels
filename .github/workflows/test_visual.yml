@@ -57,4 +57,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: frontend-bundle-${{ github.sha }}
-        path: .tmp/build/frontend.js
+        path: .tmp/build/PBIFUN.js
