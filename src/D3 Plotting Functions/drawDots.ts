@@ -96,10 +96,10 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
 //   - Tricky as the plotProperties get updated when rendering X & Y axes
 //      to add padding when rendering out of frame
 function dot_attributes(selection: aestheticSelection, visualObj: Visual): void {
-  const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
-  const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
-  const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
-  const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
+  const ylower: number = visualObj.plotProperties.yAxis.lower;
+  const yupper: number = visualObj.plotProperties.yAxis.upper;
+  const xlower: number = visualObj.plotProperties.xAxis.lower;
+  const xupper: number = visualObj.plotProperties.xAxis.upper;
   selection
     .attr("d", (d: plotData) => {
       const shape: string = d.aesthetics.shape;
@@ -110,7 +110,7 @@ function dot_attributes(selection: aestheticSelection, visualObj: Visual): void 
       if (!between(d.value, ylower, yupper) || !between(d.x, xlower, xupper)) {
         return "translate(0, 0) scale(0, 0)";
       }
-      return `translate(${visualObj.viewModel.plotProperties.xScale(d.x)}, ${visualObj.viewModel.plotProperties.yScale(d.value)})`
+      return `translate(${visualObj.plotProperties.xScale(d.x)}, ${visualObj.plotProperties.yScale(d.value)})`
     })
     .style("fill", (d: plotData) => {
       return d.aesthetics.colour;
@@ -122,16 +122,16 @@ function dot_attributes(selection: aestheticSelection, visualObj: Visual): void 
 }
 
 function text_attributes(selection: aestheticSelection, visualObj: Visual): void {
-  const ylower: number = visualObj.viewModel.plotProperties.yAxis.lower;
-  const yupper: number = visualObj.viewModel.plotProperties.yAxis.upper;
-  const xlower: number = visualObj.viewModel.plotProperties.xAxis.lower;
-  const xupper: number = visualObj.viewModel.plotProperties.xAxis.upper;
+  const ylower: number = visualObj.plotProperties.yAxis.lower;
+  const yupper: number = visualObj.plotProperties.yAxis.upper;
+  const xlower: number = visualObj.plotProperties.xAxis.lower;
+  const xupper: number = visualObj.plotProperties.xAxis.upper;
   selection
     .attr("transform", (d: plotData) => {
       if (!between(d.value, ylower, yupper) || !between(d.x, xlower, xupper)) {
         return "translate(0, 0) scale(0, 0)";
       }
-      return `translate(${visualObj.viewModel.plotProperties.xScale(d.x)}, ${visualObj.viewModel.plotProperties.yScale(d.value)})`
+      return `translate(${visualObj.plotProperties.xScale(d.x)}, ${visualObj.plotProperties.yScale(d.value)})`
     })
     .attr("dy", "0.35em")
     .text((d: plotData) => d.group_text)

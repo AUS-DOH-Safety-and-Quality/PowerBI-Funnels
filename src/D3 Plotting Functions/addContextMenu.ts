@@ -3,7 +3,7 @@ import type { plotData } from "../Classes";
 import type { svgBaseType, Visual } from "../visual";
 
 export default function addContextMenu(selection: svgBaseType, visualObj: Visual) {
-  if (!(visualObj.viewModel.plotProperties.displayPlot)) {
+  if (!(visualObj.plotProperties.displayPlot)) {
     selection.on("contextmenu", () => { return; });
     return;
   }

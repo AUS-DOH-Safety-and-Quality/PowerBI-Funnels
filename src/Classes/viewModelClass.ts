@@ -4,7 +4,7 @@ type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
-import { chartClass, settingsClass, type limitData, plotPropertiesClass, type defaultSettingsType } from "../Classes"
+import { chartClass, settingsClass, type limitData, type defaultSettingsType } from "../Classes"
 import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply, isNullOrUndefined } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
@@ -63,7 +63,6 @@ export default class viewModelClass {
   calculatedLimits: limitData[];
   plotPoints: plotData[];
   groupedLines: [string, lineData[]][];
-  plotProperties: plotPropertiesClass;
   firstRun: boolean;
   colourPalette: colourPaletteType;
   svgWidth: number;
@@ -77,7 +76,6 @@ export default class viewModelClass {
     this.calculatedLimits = null;
     this.plotPoints = new Array<plotData>();
     this.groupedLines = new Array<[string, lineData[]]>();
-    this.plotProperties = new plotPropertiesClass();
     this.firstRun = true;
     this.colourPalette = null;
     this.headless = false;
@@ -129,15 +127,6 @@ export default class viewModelClass {
         this.initialiseGroupedLines();
       }
     }
-
-    this.plotProperties.update(
-      options,
-      this.plotPoints,
-      this.inputData,
-      this.inputSettings.settings,
-      this.inputSettings.derivedSettings,
-      this.colourPalette
-    )
     this.firstRun = false;
     if (this.inputData.validationStatus.status !== 0) {
       res.status = false;

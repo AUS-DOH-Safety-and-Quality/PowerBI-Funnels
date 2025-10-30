@@ -1,7 +1,7 @@
 import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import type { plotData, defaultSettingsType, derivedSettingsClass } from "../Classes";
+import type { plotData, defaultSettingsType, derivedSettingsClass, viewModelClass } from "../Classes";
 import { divide, isNullOrUndefined, max, type dataObject } from "../Functions";
 import { colourPaletteType } from "./viewModelClass";
 
@@ -45,11 +45,13 @@ export default class plotPropertiesClass {
   }
 
   update(options: VisualUpdateOptions,
-        plotPoints: plotData[],
-        inputData: dataObject,
-        inputSettings: defaultSettingsType,
-        derivedSettings: derivedSettingsClass,
-        colorPalette: colourPaletteType) {
+        viewModel: viewModelClass) {
+
+    const plotPoints: plotData[] = viewModel.plotPoints;
+    const inputData: dataObject = viewModel.inputData;
+    const inputSettings: defaultSettingsType = viewModel.inputSettings.settings;
+    const derivedSettings: derivedSettingsClass = viewModel.inputSettings.derivedSettings;
+    const colorPalette: colourPaletteType = viewModel.colourPalette;
 
     // Get the width and height of plotting space
     this.width = options.viewport.width;
