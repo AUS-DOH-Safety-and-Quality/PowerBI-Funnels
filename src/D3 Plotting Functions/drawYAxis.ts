@@ -3,11 +3,11 @@ import type { axisProperties } from "../Classes";
 import type { svgBaseType, Visual } from "../visual";
 
 export default function drawYAxis(selection: svgBaseType, visualObj: Visual, refresh?: boolean) {
-  const yAxisProperties: axisProperties = visualObj.viewModel.plotProperties.yAxis;
-  const yAxis: d3.Axis<d3.NumberValue> = d3.axisLeft(visualObj.viewModel.plotProperties.yScale);
+  const yAxisProperties: axisProperties = visualObj.plotProperties.yAxis;
+  const yAxis: d3.Axis<d3.NumberValue> = d3.axisLeft(visualObj.plotProperties.yScale);
   const yaxis_sig_figs: number =  visualObj.viewModel.inputSettings.settings.y_axis.ylimit_sig_figs;
   const sig_figs: number = yaxis_sig_figs === null ? visualObj.viewModel.inputSettings.settings.funnel.sig_figs : yaxis_sig_figs;
-  const displayPlot: boolean = visualObj.viewModel.plotProperties.displayPlot;
+  const displayPlot: boolean = visualObj.plotProperties.displayPlot;
 
   if (yAxisProperties.ticks) {
     if (yAxisProperties.tick_count) {
@@ -30,7 +30,7 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
   yAxisGroup
       .call(yAxis)
       .attr("color", displayPlot ? yAxisProperties.colour : "#FFFFFF")
-      .attr("transform", `translate(${visualObj.viewModel.plotProperties.xAxis.start_padding}, 0)`)
+      .attr("transform", `translate(${visualObj.plotProperties.xAxis.start_padding}, 0)`)
       .selectAll(".tick text")
       // Right-align
       .style("text-anchor", "right")
@@ -41,7 +41,7 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
       .style("font-family", yAxisProperties.tick_font)
       .style("fill", displayPlot ? yAxisProperties.tick_colour : "#FFFFFF");
 
-  const textX: number = -(visualObj.viewModel.plotProperties.xAxis.start_padding - visualObj.viewModel.inputSettings.settings.y_axis.ylimit_label_size * 1.5);
+  const textX: number = -(visualObj.plotProperties.xAxis.start_padding - visualObj.viewModel.inputSettings.settings.y_axis.ylimit_label_size * 1.5);
   const textY: number = visualObj.viewModel.svgHeight / 2;
   yAxisGroup.select(".yaxislabel")
             .selectAll("text")

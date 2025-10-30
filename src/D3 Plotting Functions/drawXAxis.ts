@@ -3,8 +3,8 @@ import type { axisProperties } from "../Classes";
 import type { svgBaseType, Visual } from "../visual";
 
 export default function drawXAxis(selection: svgBaseType, visualObj: Visual, refresh?: boolean) {
-  const xAxisProperties: axisProperties = visualObj.viewModel.plotProperties.xAxis;
-  const xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(visualObj.viewModel.plotProperties.xScale);
+  const xAxisProperties: axisProperties = visualObj.plotProperties.xAxis;
+  const xAxis: d3.Axis<d3.NumberValue> = d3.axisBottom(visualObj.plotProperties.xScale);
 
   if (xAxisProperties.ticks) {
     if (xAxisProperties.tick_count) {
@@ -15,8 +15,8 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
   }
 
   const plotHeight: number = visualObj.viewModel.svgHeight;
-  const xAxisHeight: number = plotHeight - visualObj.viewModel.plotProperties.yAxis.start_padding;
-  const displayPlot: boolean = visualObj.viewModel.plotProperties.displayPlot;
+  const xAxisHeight: number = plotHeight - visualObj.plotProperties.yAxis.start_padding;
+  const displayPlot: boolean = visualObj.plotProperties.displayPlot;
   const xAxisGroup = selection.select(".xaxisgroup") as d3.Selection<SVGGElement, unknown, null, undefined>;
 
   xAxisGroup
@@ -47,7 +47,7 @@ export default function drawXAxis(selection: svgBaseType, visualObj: Visual, ref
   }
 
   const textX: number = visualObj.viewModel.svgWidth / 2;
-  const textY: number = visualObj.viewModel.plotProperties.yAxis.start_padding - visualObj.viewModel.inputSettings.settings.x_axis.xlimit_label_size * 0.5;
+  const textY: number = visualObj.plotProperties.yAxis.start_padding - visualObj.viewModel.inputSettings.settings.x_axis.xlimit_label_size * 0.5;
 
   xAxisGroup.select(".xaxislabel")
             .selectAll("text")
