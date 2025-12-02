@@ -1,4 +1,3 @@
-import * as d3 from "./D3 Modules";
 import type { svgBaseType, Visual } from "../visual";
 import type { plotData, plotPropertiesClass } from "../Classes/";
 
@@ -34,14 +33,23 @@ export default function drawTooltipLine(selection: svgBaseType, visualObj: Visua
     const plotPoints: plotData[] = visualObj.viewModel.plotPoints
 
     const boundRect = visualObj.svg.node().getBoundingClientRect();
-    const xValue: number = plotProperties.xScale.invert(event.pageX - boundRect.left);
-    const yValue: number = plotProperties.yScale.invert(event.pageY - boundRect.top);
-    const distances: number[] = plotPoints.map(d => Math.sqrt(
-      Math.pow(d.x - xValue, 2) + Math.pow(d.value - yValue, 2)
-    ));
-    const indexNearestValue: number = d3.leastIndex(distances,(a,b) => a-b);
-    const x_coord: number = plotProperties.xScale(plotPoints[indexNearestValue].x)
-    const y_coord: number = plotProperties.yScale(plotPoints[indexNearestValue].value)
+    const xValue: number = (event.pageX - boundRect.left);
+    const yValue: number = (event.pageY - boundRect.top);
+    let indexNearestValue: number;
+    let nearestDistance: number = Infinity;
+    let x_coord: number;
+    let y_coord: number;
+    for (let i = 0; i < plotPoints.length; i++) {
+      const curr_x: number = plotProperties.xScale(plotPoints[i].x);
+      const curr_y: number = plotProperties.yScale(plotPoints[i].value);
+      const curr_diff: number = Math.abs(curr_x - xValue) + Math.abs(curr_y - yValue);
+      if (curr_diff < nearestDistance) {
+        nearestDistance = curr_diff;
+        indexNearestValue = i;
+        x_coord = curr_x;
+        y_coord = curr_y;
+      }
+    }
 
     visualObj.host.tooltipService.show({
       dataItems: plotPoints[indexNearestValue].tooltip,
