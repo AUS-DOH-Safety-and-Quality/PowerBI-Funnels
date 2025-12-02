@@ -1,11 +1,10 @@
-import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import { chartClass, settingsClass, type limitData, type defaultSettingsType } from "../Classes"
-import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply, isNullOrUndefined } from "../Functions";
+import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply, isNullOrUndefined, groupBy } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
@@ -238,7 +237,7 @@ export default class viewModelClass {
           })
       })
     })
-    this.groupedLines = d3.groups(formattedLines, d => d.group);
+    this.groupedLines = groupBy(formattedLines, "group");
   }
 
   scaleAndTruncateLimits(): void {
