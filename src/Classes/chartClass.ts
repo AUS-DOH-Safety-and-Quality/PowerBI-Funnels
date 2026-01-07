@@ -1,4 +1,4 @@
-import { normal_quantile, seq, max, type dataObject } from "../Functions";
+import { seq, max, type dataObject } from "../Functions";
 import type { settingsClass } from "../Classes";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
@@ -6,6 +6,7 @@ import getPhi from "../Funnel Calculations/getPhi";
 import getTau2 from "../Funnel Calculations/getTau2";
 
 export type limitArgs = {
+  p: number;
   q: number;
   target: number;
   target_transformed: number;
@@ -27,6 +28,7 @@ export type limitData = {
 }
 
 type intervalData = {
+  prob: number;
   quantile: number;
   label: string;
 }
@@ -112,13 +114,21 @@ export default class chartClass {
   }
 
   getIntervals(): intervalData[] {
+    const probs: number[] = [0.001, 0.025, 0.16, 0.84, 0.975, 0.999];
     // Specify the intervals for the limits: 68%, 95% and 99.8%
-    const qs: number[] = [0.001, 0.025, 0.16, 0.84, 0.975, 0.999]
-                         .map(p => normal_quantile(p, 0, 1));
+    const qs: number[] = [
+      -3.09023230616781319213,
+      -1.95996398454005382739,
+      -0.99445788320975281316,
+      0.99445788320975281316,
+      1.95996398454005360534,
+      3.09023230616781319213
+    ];
     const q_labels: string[] = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"];
 
     return qs.map((d, idx) => {
       return {
+        prob: probs[idx],
         quantile: d,
         label: q_labels[idx]
       }
@@ -154,6 +164,7 @@ export default class chartClass {
       calcLimitEntries.push(["denominators", denom]);
       intervals.forEach(interval => {
         const functionArgs: limitArgs = {
+          p: interval.prob,
           q: interval.quantile,
           target: target,
           target_transformed: target_transformed,

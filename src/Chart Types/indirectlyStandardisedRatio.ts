@@ -1,5 +1,5 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
-import { chisq_quantile, normal_cdf, winsorise, sqrt,
+import { chisq_quantile, winsorise, sqrt,
           inv, square, multiply, divide, type dataObject } from '../Functions';
 
 const smrSE = function(inputData: dataObject): number[] {
@@ -33,9 +33,8 @@ const smrLimitOD = function(args: limitArgs) {
 }
 
 const smrLimit = function(args: limitArgs) {
-  const q: number = args.q;
   const denominators: number = args.denominators;
-  const p: number = normal_cdf(q, 0, 1);
+  const p: number = args.p;
   const is_upper: boolean = p > 0.5;
   const offset: number = is_upper ? 1 : 0;
 
