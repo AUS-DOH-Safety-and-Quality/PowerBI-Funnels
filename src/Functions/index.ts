@@ -1,4 +1,3 @@
-export { default as chisq_quantile } from "@stdlib/stats-base-dists-chisquare-quantile";
 export { default as between } from "./between"
 export { default as broadcast_binary, pow, subtract, add, divide, multiply } from "./BinaryFunctions"
 export { default as buildTooltip } from "./buildTooltip"
