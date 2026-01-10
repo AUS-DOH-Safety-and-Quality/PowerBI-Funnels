@@ -2,7 +2,7 @@ import chebyshev_polynomial from "./chebyshev_polynomial";
 import sinpi from "./sinpi";
 import lgammacor from "./lgammacor";
 import stirlerr from "./stirlerr";
-import { LOG_SQRT_2PI } from "./Constants";
+import { LOG_SQRT_TWO_PI } from "./Constants";
 
 /**
  * Computes the gamma function Γ(x) for a given input x.
@@ -121,7 +121,7 @@ export default function gamma(x: number): number {
       }
     } else {
       const two_y: number = 2 * y;
-      value = Math.exp((y - 0.5) * Math.log(y) - y + LOG_SQRT_2PI
+      value = Math.exp((y - 0.5) * Math.log(y) - y + LOG_SQRT_TWO_PI
               + ((two_y == Math.trunc(two_y)) ? stirlerr(y) : lgammacor(y)));
     }
 

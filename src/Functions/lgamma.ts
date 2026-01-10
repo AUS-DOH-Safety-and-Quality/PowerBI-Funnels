@@ -1,7 +1,7 @@
 import gamma from "./gamma";
 import lgammacor from "./lgammacor";
 import sinpi from "./sinpi";
-import { LOG_SQRT_2PI, LOG_SQRT_PI_DIV_2 } from "./Constants";
+import { LOG_SQRT_TWO_PI, LOG_SQRT_PI_DIV_2 } from "./Constants";
 
 /**
  * Computes the natural logarithm of the absolute value of the
@@ -39,7 +39,7 @@ export default function lgamma(x: number): number {
     if (x > 1e17) {
       return x * (Math.log(x) - 1);
     } else {
-      return LOG_SQRT_2PI + (x - 0.5) * Math.log(x) - x
+      return LOG_SQRT_TWO_PI + (x - 0.5) * Math.log(x) - x
               + ((x > 4934720) ? 0 : lgammacor(x))
     }
   }
