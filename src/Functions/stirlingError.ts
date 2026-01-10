@@ -12,7 +12,7 @@ import { LOG_TWO_PI, LOG_SQRT_TWO_PI } from "./Constants";
  * @param n The input value for which to compute the Stirling's error term
  * @returns The Stirling's error term for the input n
  */
-export default function stirlerr(n: number): number {
+export default function stirlingError(n: number): number {
   const s_coeffs: number[] = [
     0.083333333333333333333,
     0.00277777777777777777778,

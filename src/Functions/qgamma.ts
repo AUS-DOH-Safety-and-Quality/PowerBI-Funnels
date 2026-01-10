@@ -1,58 +1,7 @@
 import lgamma from "./lgamma";
-import pgamma_raw from "./pgamma_raw";
-import pgamma from "./pgamma";
-import dgamma from "./dgamma";
+import gammaCDFImpl from "./gammaCDFImpl";
+import gammaNewtonIter from "./gammaNewtonIter";
 import qchisq_appr from "./qchisq_appr";
-
-function newton_iter_gamma(ch: number, p: number, alpha: number, scale: number, lower_tail: boolean, log_p: boolean, max_it_Newton: number, EPS_N: number): number {
-  let x: number = 0.5*scale*ch;
-  let p_: number;
-  if (max_it_Newton) {
-    /* always use log scale */
-    if (!log_p) {
-      p = Math.log(p);
-      log_p = true;
-    } if (x == 0) {
-      const _1_p: number = 1. + 1e-7;
-      const _1_m: number = 1. - 1e-7;
-      x = Number.MIN_VALUE;
-      p_ = pgamma(x, alpha, scale, lower_tail, log_p);
-      if (( lower_tail && p_ > p * _1_p) || (!lower_tail && p_ < p * _1_m)) {
-        return(0.);
-      }
-      /* else:  continue, using x = DBL_MIN instead of  0  */
-    } else {
-      p_ = pgamma(x, alpha, scale, lower_tail, log_p);
-    }
-    if(p_ == Number.NEGATIVE_INFINITY) return 0; /* PR#14710 */
-    for (let i = 1; i <= max_it_Newton; i++) {
-      let p1 = p_ - p;
-      if(Math.abs(p1) < Math.abs(EPS_N * p)) {
-        break;
-      }
-      let g: number = dgamma(x, alpha, scale, log_p);
-        /* else */
-      if(g == (log_p ? Number.NEGATIVE_INFINITY : 0)) {
-        break;
-      }
-      /* else :
-      * delta x = f(x)/f'(x);
-      * if(log_p) f(x) := log P(x) - p; f'(x) = d/dx log P(x) = P' / P
-      * ==> f(x)/f'(x) = f*P / P' = f*exp(p_) / P' (since p_ = log P(x))
-      */
-      let t = log_p ? p1*Math.exp(p_ - g) : p1/g ;/* = "delta x" */
-      t = lower_tail ? x - t : x + t;
-      p_ = pgamma (t, alpha, scale, lower_tail, log_p);
-      if (Math.abs(p_ - p) > Math.abs(p1) || (i > 1 && Math.abs(p_ - p) == Math.abs(p1)) /* <- against flip-flop */) {
-        /* no improvement */
-        break;
-      } /* else : */
-      x = t;
-    }
-  }
-
-  return x;
-}
 
 export default function qgamma(p: number, alpha: number, scale: number, lower_tail: boolean, log_p: boolean): number {
   const EPS1: number = 1e-2;/* accuracy of AS 241 */
@@ -101,12 +50,12 @@ export default function qgamma(p: number, alpha: number, scale: number, lower_ta
   if (!Number.isFinite(ch)) {
     /* forget about all iterations! */
     max_it_Newton = 0;
-    return newton_iter_gamma(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
+    return gammaNewtonIter(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
   }
 
   if (ch < EPS2) {/* Corrected according to AS 91; MM, May 25, 1999 */
     max_it_Newton = 20;
-    return newton_iter_gamma(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
+    return gammaNewtonIter(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
   }
 
   /* FIXME: This (cutoff to {0, +Inf}) is far from optimal
@@ -114,7 +63,7 @@ export default function qgamma(p: number, alpha: number, scale: number, lower_ta
   if (p_ > pMAX || p_ < pMIN) {
     /* did return ML_POSINF or 0.;  much better: */
     max_it_Newton = 20;
-    return newton_iter_gamma(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
+    return gammaNewtonIter(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
   }
 
   c = alpha-1;
@@ -124,12 +73,12 @@ export default function qgamma(p: number, alpha: number, scale: number, lower_ta
   for(i=1; i <= MAXIT; i++ ) {
     q = ch;
     p1 = 0.5*ch;
-    p2 = p_ - pgamma_raw(p1, alpha, true, false);
+    p2 = p_ - gammaCDFImpl(p1, alpha, true, false);
 
     if (!Number.isFinite(p2) || ch <= 0) {
       ch = ch0;
       max_it_Newton = 27;
-      return newton_iter_gamma(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
+      return gammaNewtonIter(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
     }/*was  return ML_NAN;*/
 
     t = p2 * Math.exp(alpha * Math.LN2 + g + p1 - c * Math.log(ch));
@@ -143,7 +92,7 @@ export default function qgamma(p: number, alpha: number, scale: number, lower_ta
 
     ch += t*(1+0.5*t*s1-b*c*(s1-b*(s2-b*(s3-b*(s4-b*(s5-b*s6))))));
     if (Math.abs(q - ch) < EPS2*ch) {
-      return newton_iter_gamma(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
+      return gammaNewtonIter(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
     }
     if(Math.abs(q - ch) > 0.1*ch) {/* diverging? -- also forces ch > 0 */
       if (ch < q) {
@@ -153,5 +102,5 @@ export default function qgamma(p: number, alpha: number, scale: number, lower_ta
        }
     }
   }
-  return newton_iter_gamma(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
+  return gammaNewtonIter(ch, p, alpha, scale, lower_tail, log_p, max_it_Newton, EPS_N);
 }

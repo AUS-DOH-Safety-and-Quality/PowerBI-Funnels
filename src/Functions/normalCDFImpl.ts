@@ -1,11 +1,18 @@
 import { SQRT_THIRTY_TWO, ONE_DIV_SQRT_TWO_PI } from "./Constants";
 import ldexp from "./ldexp";
 
-function pnorm_both(x: number, i_tail: number, log_p: boolean): {cum: number, ccum: number} {
-/* i_tail in {0,1,2} means: "lower", "upper", or "both" :
-   if(lower) return  *cum := P[X <= x]
-   if(upper) return *ccum := P[X >  x] = 1 - P[X <= x]
-*/
+/**
+ * Implementation of the normal cumulative distribution function (CDF).
+ *
+ * The below code was adapted from the pnorm_both function in R's source code.
+ *
+ * @param x Point at which to evaluate the CDF
+ * @param lower_tail If true, probabilities are P[X ≤ x], otherwise, P[X > x]
+ * @param log_p If true, probabilities p are given as log(p)
+ * @returns The cumulative probability up to x for the standard normal distribution.
+ */
+export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boolean): number {
+  let i_tail: number = lower_tail ? 0 : 1;
   const a: readonly number[] = [
     2.2352520354606839287,
     161.02823106855587881,
@@ -60,20 +67,18 @@ function pnorm_both(x: number, i_tail: number, log_p: boolean): {cum: number, cc
   let i: number, lower: boolean, upper: boolean;
 
   if(Number.isNaN(x)) {
-    return {cum: x, ccum: x};
+    return Number.NaN;
   }
 
-  /* Consider changing these : */
   eps = Number.EPSILON * 0.5;
 
-  /* i_tail in {0,1,2} =^= {lower, upper, both} */
   lower = i_tail != 1;
   upper = i_tail != 0;
   let cum: number = 0;
   let ccum: number = 0;
 
   y = Math.abs(x);
-  if (y <= 0.67448975) { /* qnorm(3/4) = .6744.... -- earlier had 0.66291 */
+  if (y <= 0.67448975) {
     if (y > eps) {
       xsq = x * x;
       xnum = a[4] * xsq;
@@ -102,9 +107,6 @@ function pnorm_both(x: number, i_tail: number, log_p: boolean): {cum: number, cc
       }
     }
   } else if (y <= SQRT_THIRTY_TWO) {
-
-    /* Evaluate pnorm for 0.674.. = qnorm(3/4) < |x| <= sqrt(32) ~= 5.657 */
-
     xnum = c[8] * y;
     xden = y;
     for (i = 0; i < 7; ++i) {
@@ -131,17 +133,8 @@ function pnorm_both(x: number, i_tail: number, log_p: boolean): {cum: number, cc
       }
       ccum = temp;
     }
-  /* else    |x| > sqrt(32) = 5.657 :
-  * the next two case differentiations were really for lower=T, log=F
-  * Particularly   *not*  for  log_p !
-
-  * Cody had (-37.5193 < x  &&  x < 8.2924) ; R originally had y < 50
-  *
-  * Note that we do want symmetry(0), lower/upper -> hence use y
-  */
-  } else if((log_p && y < 1e170) || (lower && -38.4674 < x  &&  x < 8.2924) || (upper && -8.2924  < x  &&  x < 38.4674)) {
-    /* Evaluate pnorm for x in (-37.5, -5.657) union (5.657, 37.5) */
-    xsq = 1.0 / (x * x); /* (1./x)*(1./x) might be better */
+  } else if ((log_p && y < 1e170) || (lower && -38.4674 < x  &&  x < 8.2924) || (upper && -8.2924  < x  &&  x < 38.4674)) {
+    xsq = 1.0 / (x * x);
     xnum = p[5] * xsq;
     xden = xsq;
     for (i = 0; i < 4; ++i) {
@@ -155,55 +148,29 @@ function pnorm_both(x: number, i_tail: number, log_p: boolean): {cum: number, cc
     del = (x - xsq) * (x + xsq);
     if (log_p) {
       cum = (-xsq * ldexp(xsq, -1)) -ldexp(del, -1) + Math.log(temp);
-      if ((lower && x > 0.) || (upper && x <= 0.)) {
+      if ((lower && x > 0) || (upper && x <= 0)) {
         ccum = Math.log1p(-Math.exp(-xsq * ldexp(xsq, -1)) * Math.exp(-ldexp(del, -1)) * temp);
       }
     } else {
       cum = Math.exp(-xsq * ldexp(xsq, -1)) * Math.exp(-ldexp(del, -1)) * temp;
       ccum = 1.0 - cum;
     }
-    if (x > 0.) {
+    if (x > 0) {
       temp = cum;
       if (lower) {
         cum = ccum;
       }
       ccum = temp;
     }
-  } else { /* large |x| such that probs are 0 or 1 */
-    if(x > 0) {
-      cum = (log_p ? 0. : 1.);
-      ccum = (log_p ? Number.NEGATIVE_INFINITY : 0.);
+  } else {
+    if (x > 0) {
+      cum = (log_p ? 0 : 1);
+      ccum = (log_p ? Number.NEGATIVE_INFINITY : 0);
     } else {
-      cum = (log_p ? Number.NEGATIVE_INFINITY : 0.);
-      ccum = (log_p ? 0. : 1.);
+      cum = (log_p ? Number.NEGATIVE_INFINITY : 0);
+      ccum = (log_p ? 0 : 1);
     }
   }
 
-  return {cum: cum, ccum: ccum};
-}
-
-export default function pnorm(x: number, mu: number, sigma: number, lower_tail: boolean, log_p: boolean): number {
-  let p: number, cp: number;
-
-  /* Note: The structure of these checks has been carefully thought through.
-    * For example, if x == mu and sigma == 0, we get the correct answer 1.
-    */
-  if(Number.isNaN(x) || Number.isNaN(mu) || Number.isNaN(sigma))
-    return x + mu + sigma;
-  if(!Number.isFinite(x) && mu == x) return Number.NaN;/* x-mu is NaN */
-  if (sigma <= 0) {
-    if(sigma < 0) Number.NaN;;
-      /* sigma = 0 : */
-      return (x < mu) ? (lower_tail ? (log_p ? Number.NEGATIVE_INFINITY : 0.) : (log_p ? 0. : 1.))
-                      : (lower_tail ? (log_p ? 0. : 1.) : (log_p ? Number.NEGATIVE_INFINITY : 0.));
-  }
-  p = (x - mu) / sigma;
-  if(!Number.isFinite(p))
-    return (x < mu) ? (lower_tail ? (log_p ? Number.NEGATIVE_INFINITY : 0.) : (log_p ? 0. : 1.))
-                    : (lower_tail ? (log_p ? 0. : 1.) : (log_p ? Number.NEGATIVE_INFINITY : 0.));
-  x = p;
-
-  ({cum: p, ccum: cp} = pnorm_both(x, (lower_tail ? 0 : 1), log_p));
-
-  return(lower_tail ? p : cp);
+  return lower_tail ? cum : ccum;
 }

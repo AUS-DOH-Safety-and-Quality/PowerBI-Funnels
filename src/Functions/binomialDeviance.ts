@@ -134,19 +134,34 @@ const bd0_scale: readonly [number, number, number, number][] = [
   [0, 0, 0, 0]
 ];
 
-function ADD1(d: number, yh: number, yl: number): {yh: number, yl: number} {
+/**
+ * Helper function to add high and low parts of a number.
+ *
+ * @param d Number to add
+ * @param yh Existing high part
+ * @param yl Existing low part
+ * @returns High and low parts after addition
+ */
+function addHighLow(d: number, yh: number, yl: number): {yh: number, yl: number} {
   const d1: number = Math.floor(d + 0.5);
-  const d2: number = d - d1; // in [-.5,.5)
+  const d2: number = d - d1;
   return {yh: yh + d1, yl: yl + d2};
 }
 
-/*
- * Compute x * log (x / M) + (M - x)
- * aka -x * log1pmx ((M - x) / x)
+/**
+ * Compute the binomial deviance term for providing higher precision in
+ * binomial calculations.
  *
- * Deliver the result back in two parts, *yh and *yl.
+ * This function returns an object with two properties: `yh` and `yl`, which
+ * represent the high and low parts of the computed binomial deviance, respectively.
+ *
+ * This implementation is adapted from the ebd0 function in R's source code.
+ *
+ * @param x The observed number of successes.
+ * @param M The expected number of successes.
+ * @returns An object containing the high (`yh`) and low (`yl`) parts of the binomial deviance.
  */
-export default function ebd0(x: number, M: number): {yh: number, yl: number} {
+export default function binomialDeviance(x: number, M: number): {yh: number, yl: number} {
   const Sb: number = 10;
   const S: number = 1 << Sb;
   const N: number = 128;
@@ -179,21 +194,21 @@ export default function ebd0(x: number, M: number): {yh: number, yl: number} {
     return {yh: Number.POSITIVE_INFINITY, yl: 0};
   }
 
-  ({yh, yl} = ADD1(-x * log1pmx ((M * fg - x) / x), yh, yl));
+  ({yh, yl} = addHighLow(-x * log1pmx((M * fg - x) / x), yh, yl));
 
   if (fg === 1) {
     return {yh: yh, yl: yl};
   }
 
   for (let j: number = 0; j < 4; j++) {
-    ({yh, yl} = ADD1(x * bd0_scale[i][j], yh, yl));
-    ({yh, yl} = ADD1(-x * bd0_scale[0][j] * e, yh, yl));
+    ({yh, yl} = addHighLow(x * bd0_scale[i][j], yh, yl));
+    ({yh, yl} = addHighLow(-x * bd0_scale[0][j] * e, yh, yl));
     if (!Number.isFinite(yh)) {
       return { yh: Number.POSITIVE_INFINITY, yl: 0};
     }
   }
 
-  ({yh, yl} = ADD1(M, yh, yl));
-  ({yh, yl} = ADD1(-M * fg, yh, yl));
+  ({yh, yl} = addHighLow(M, yh, yl));
+  ({yh, yl} = addHighLow(-M * fg, yh, yl));
   return {yh: yh, yl: yl};
 }

@@ -1,4 +1,12 @@
-export default function pd_lower_cf(y: number, d: number): number {
+/**
+ * Continued fraction representation for incomplete gamma function
+ * ~=  (y / d) * [1 +  (1-y)/d +  O( ((1-y)/d)^2 ) ]
+ *
+ * @param y First parameter
+ * @param d Second parameter
+ * @returns Continued fraction value
+ */
+export default function gammaContFrac(y: number, d: number): number {
   const scalefactor: number = 1.157921e+77;
   const max_it: number = 200000;
 
@@ -9,8 +17,7 @@ export default function pd_lower_cf(y: number, d: number): number {
     return 0;
   }
   f0 = y/d;
-  /* Needed, e.g. for  pgamma(10^c(100,295), shape= 1.1, log=TRUE): */
-  if(Math.abs(y - 1) < Math.abs(d) * Number.EPSILON) { /* includes y < d = Inf */
+  if(Math.abs(y - 1) < Math.abs(d) * Number.EPSILON) {
     return f0;
   }
 
@@ -18,7 +25,7 @@ export default function pd_lower_cf(y: number, d: number): number {
     f0 = 1;
   }
   c2 = y;
-  c4 = d; /* original (y,d), *not* potentially scaled ones!*/
+  c4 = d;
 
   a1 = 0;
   b1 = 1;
@@ -33,13 +40,12 @@ export default function pd_lower_cf(y: number, d: number): number {
   }
 
   i = 0;
-  of = -1.; /* far away */
+  of = -1;
   while (i < max_it) {
     i++;
     c2--;
     c3 = i * c2;
     c4 += 2;
-    /* c2 = y - i,  c3 = i(y - i),  c4 = d + 2i,  for i odd */
     a1 = c4 * a2 + c3 * a1;
     b1 = c4 * b2 + c3 * b1;
 
@@ -47,7 +53,6 @@ export default function pd_lower_cf(y: number, d: number): number {
     c2--;
     c3 = i * c2;
     c4 += 2;
-    /* c2 = y - i,  c3 = i(y - i),  c4 = d + 2i,  for i even */
     a2 = c4 * a1 + c3 * a2;
     b2 = c4 * b1 + c3 * b2;
 
@@ -59,7 +64,6 @@ export default function pd_lower_cf(y: number, d: number): number {
     }
     if (b2 != 0) {
       f = a2 / b2;
-      /* convergence check: relative; "absolute" for very small f : */
       if (Math.abs(f - of) <= Number.EPSILON * Math.max(f0, Math.abs(f))) {
         return f;
       }

@@ -11,7 +11,7 @@ import logcf from "./logcf";
  */
 export default function log1pmx(x: number): number {
   if (x > 1 || x < -0.79149064) {
-    return Math.log(1 + x) - x;
+    return Math.log1p(x) - x;
   } else {
     const r: number = x / (2 + x);
     const y: number = r * r;
