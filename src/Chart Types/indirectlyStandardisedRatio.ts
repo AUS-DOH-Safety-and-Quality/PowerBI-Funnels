@@ -1,6 +1,7 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
-import { chisq_quantile, winsorise, sqrt,
+import { winsorise, sqrt,
           inv, square, multiply, divide, type dataObject } from '../Functions';
+import chisqQuantile from "../Functions/chisqQuantile";
 
 const smrSE = function(inputData: dataObject): number[] {
   return [];
@@ -38,7 +39,7 @@ const smrLimit = function(args: limitArgs) {
   const is_upper: boolean = p > 0.5;
   const offset: number = is_upper ? 1 : 0;
 
-  const limit: number = (chisq_quantile(p, 2 * (denominators + offset)) / 2.0)
+  const limit: number = (chisqQuantile(p, 2 * (denominators + offset)) / 2.0)
                         / denominators;
 
   return winsorise(limit, {lower: 0})
