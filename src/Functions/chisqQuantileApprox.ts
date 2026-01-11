@@ -16,7 +16,8 @@ import logP from "./logP";
  * @returns Approximate quantile for the chi-squared distribution
  */
 export default function chisqQuantileApprox(p: number, nu: number, g: number,
-                                            lower_tail: boolean, log_p: boolean,
+                                            lower_tail: boolean = true,
+                                            log_p: boolean = false,
                                             tol: number): number {
   if (Number.isNaN(p) || Number.isNaN(nu)) {
     return p + nu;
@@ -30,10 +31,10 @@ export default function chisqQuantileApprox(p: number, nu: number, g: number,
   let p1: number = logP(p, lower_tail, log_p);
 
   if (nu < -1.24 * p1) {
-    const lgam1pa: number = (alpha < 0.5) ? lgamma1p(alpha) : ((Math.log(nu) - Math.LN2) + g);
+    const lgam1pa: number = (alpha < 0.5) ? lgamma1p(alpha)
+                                          : ((Math.log(nu) - Math.LN2) + g);
     return Math.exp((lgam1pa + p1) / alpha + Math.LN2);
   }
-
 
   const c: number = alpha - 1;
 

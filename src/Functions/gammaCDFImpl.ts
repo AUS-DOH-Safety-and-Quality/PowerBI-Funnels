@@ -40,7 +40,7 @@ export default function gammaCDFImpl(x: number, alph: number,
     };
 
     if (lower_tail) {
-      let f1: number = log_p ? Math.log1p(sum) : 1 + sum;
+      const f1: number = log_p ? Math.log1p(sum) : 1 + sum;
       let f2: number;
       if (alph > 1) {
         f2 = poissonDensity(alph, x, log_p);
@@ -50,9 +50,9 @@ export default function gammaCDFImpl(x: number, alph: number,
       } else {
         f2 = Math.pow(x, alph) / Math.exp(lgamma1p(alph));
       }
-      res =  log_p ? f1 + f2 : f1 * f2;
+      res = log_p ? f1 + f2 : f1 * f2;
     } else {
-      let lf2: number = alph * Math.log(x) - lgamma1p(alph);
+      const lf2: number = alph * Math.log(x) - lgamma1p(alph);
 
       if (log_p) {
         res = log1mExp(Math.log1p(sum) + lf2);
@@ -73,7 +73,7 @@ export default function gammaCDFImpl(x: number, alph: number,
       sum += term;
     }
     sum = log_p ? Math.log(sum) : sum;
-    let d: number = poissonDensityPrev(alph, x, log_p);
+    const d: number = poissonDensityPrev(alph, x, log_p);
     if (!lower_tail) {
       res = log_p ? log1mExp(d + sum) : 1 - d * sum;
     } else {
@@ -81,12 +81,12 @@ export default function gammaCDFImpl(x: number, alph: number,
     }
   } else if (alph - 1 < x && alph < 0.8 * (x + 50)) {
     let sum: number = 0;
-    let d: number = poissonDensityPrev(alph, x, log_p);
+    const d: number = poissonDensityPrev(alph, x, log_p);
     if (alph < 1) {
       if (x * Number.EPSILON > 1 - alph) {
         sum = log_p ? 0 : 1;
       } else {
-        let f: number = gammaContFrac(alph, x - (alph - 1)) * x / alph;
+        const f: number = gammaContFrac(alph, x - (alph - 1)) * x / alph;
         sum = log_p ? Math.log(f) : f;
       }
     } else {

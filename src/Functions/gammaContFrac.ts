@@ -7,30 +7,31 @@
  * @returns Continued fraction value
  */
 export default function gammaContFrac(y: number, d: number): number {
-  const scalefactor: number = 1.157921e+77;
-  const max_it: number = 200000;
-
-  let f: number = 0.0, of: number, f0: number;
-  let i: number, c2: number, c3: number, c4: number, a1: number, b1: number, a2: number, b2: number;
 
   if (y == 0) {
     return 0;
   }
-  f0 = y/d;
-  if(Math.abs(y - 1) < Math.abs(d) * Number.EPSILON) {
+
+  let f0: number = y / d;
+
+  if (Math.abs(y - 1) < Math.abs(d) * Number.EPSILON) {
     return f0;
   }
 
   if (f0 > 1) {
     f0 = 1;
   }
-  c2 = y;
-  c4 = d;
 
-  a1 = 0;
-  b1 = 1;
-  a2 = y;
-  b2 = d;
+  let c3: number;
+  let c2: number = y;
+  let c4: number = d;
+
+  let a1: number = 0;
+  let b1: number = 1;
+  let a2: number = y;
+  let b2: number = d;
+
+  const scalefactor: number = 1.157921e+77;
 
   while (b2 > scalefactor) {
     a1 /= scalefactor;
@@ -39,9 +40,11 @@ export default function gammaContFrac(y: number, d: number): number {
     b2 /= scalefactor;
   }
 
-  i = 0;
-  of = -1;
-  while (i < max_it) {
+  let i: number = 0;
+  let of: number = -1;
+  let f: number = 0.0;
+
+  while (i < 200000) {
     i++;
     c2--;
     c3 = i * c2;
@@ -62,7 +65,7 @@ export default function gammaContFrac(y: number, d: number): number {
       a2 /= scalefactor;
       b2 /= scalefactor;
     }
-    if (b2 != 0) {
+    if (b2 !== 0) {
       f = a2 / b2;
       if (Math.abs(f - of) <= Number.EPSILON * Math.max(f0, Math.abs(f))) {
         return f;
@@ -70,5 +73,6 @@ export default function gammaContFrac(y: number, d: number): number {
       of = f;
     }
   }
+
   return f; /* did not converge */
 }

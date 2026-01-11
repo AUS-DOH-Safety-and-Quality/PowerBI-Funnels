@@ -5,12 +5,12 @@
  * This implementation is a TypeScript adaptation of the chebyshev_eval
  * function from the R programming language.
  *
- * @param x
- * @param a
- * @param n
- * @returns
+ * @param x The point at which to evaluate the Chebyshev polynomial
+ * @param a The coefficients of the Chebyshev polynomial
+ * @param n The degree of the Chebyshev polynomial
+ * @returns The value of the Chebyshev polynomial at point x
  */
-export default function chebyshevPolynomial(x: number, a: number[], n: number): number {
+export default function chebyshevPolynomial(x: number, a: readonly number[], n: number): number {
   if (x < -1.1 || x > 1.1) {
     throw new Error("chebyshevPolynomial: x must be in [-1,1]");
   }

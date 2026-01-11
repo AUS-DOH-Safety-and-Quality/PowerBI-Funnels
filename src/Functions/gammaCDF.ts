@@ -18,7 +18,7 @@ export default function gammaCDF(x: number, alpha: number, scale: number,
   if (Number.isNaN(x) || Number.isNaN(alpha) || Number.isNaN(scale)) {
     return x + alpha + scale;
   }
-  if(alpha < 0 || scale <= 0) {
+  if (alpha < 0 || scale <= 0) {
     return Number.NaN;
   }
   x /= scale;

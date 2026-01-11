@@ -37,7 +37,7 @@ export default function gammaDensity(x: number, shape: number, scale: number, lo
 
   let pr: number;
   if (shape < 1) {
-    pr = poissonDensity(shape, x/scale, log_p);
+    pr = poissonDensity(shape, x / scale, log_p);
 
     if (log_p) {
       const shapeDivX: number = shape / x;

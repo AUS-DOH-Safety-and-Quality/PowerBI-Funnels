@@ -25,19 +25,19 @@ export default function gammaNewtonIter(ch: number, p: number, alpha: number, sc
     return x;
   }
 
-  let p_: number;
-
   if (!log_p) {
     p = Math.log(p);
     log_p = true;
   }
+
+  let p_: number;
 
   if (x === 0) {
     const _1_p: number = 1. + 1e-7;
     const _1_m: number = 1. - 1e-7;
     x = Number.MIN_VALUE;
     p_ = gammaCDF(x, alpha, scale, lower_tail, log_p);
-    if (( lower_tail && p_ > p * _1_p) || (!lower_tail && p_ < p * _1_m)) {
+    if ((lower_tail && p_ > p * _1_p) || (!lower_tail && p_ < p * _1_m)) {
       return 0;
     }
   } else {

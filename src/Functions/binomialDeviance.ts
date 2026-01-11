@@ -186,9 +186,9 @@ export default function binomialDeviance(x: number, M: number): {yh: number, yl:
     return {yh: Number.POSITIVE_INFINITY, yl: 0};
   }
 
-  let i: number = Math.floor((r - 0.5) * (2 * N) + 0.5)
-  let f: number = Math.floor(S / (0.5 + i / (2.0 * N)) + 0.5)
-  let fg: number = ldexp(f, -(e + Sb));
+  const i: number = Math.floor((r - 0.5) * (2 * N) + 0.5)
+  const f: number = Math.floor(S / (0.5 + i / (2.0 * N)) + 0.5)
+  const fg: number = ldexp(f, -(e + Sb));
 
   if (fg === Number.POSITIVE_INFINITY) {
     return {yh: Number.POSITIVE_INFINITY, yl: 0};
