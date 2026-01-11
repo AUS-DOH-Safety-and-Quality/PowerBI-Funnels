@@ -66,7 +66,7 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
   let xden: number, xnum: number, temp: number, del: number, eps: number, xsq: number, y: number;
   let i: number, lower: boolean, upper: boolean;
 
-  if(Number.isNaN(x)) {
+  if (Number.isNaN(x)) {
     return Number.NaN;
   }
 

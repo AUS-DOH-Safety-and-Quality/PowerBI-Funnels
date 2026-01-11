@@ -12,7 +12,6 @@ import lgamma from "./lgamma";
  * @returns The Poisson density or its logarithm for the previous value.
  */
 export default function poissonDensityPrev(x_plus_1: number, lambda: number, log_p: boolean): number {
-  const M_cutoff: number = 3.196577161300664E18;
   if (!Number.isFinite(lambda)) {
     return log_p ? Number.NEGATIVE_INFINITY : 0;
   }
@@ -21,6 +20,7 @@ export default function poissonDensityPrev(x_plus_1: number, lambda: number, log
   }
 
   let rtn: number;
+  const M_cutoff: number = 3.196577161300664E18;
   if (lambda > Math.abs(x_plus_1 - 1) * M_cutoff) {
     rtn = -lambda - lgamma(x_plus_1);
   } else {

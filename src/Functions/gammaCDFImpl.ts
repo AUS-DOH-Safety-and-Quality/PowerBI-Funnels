@@ -3,7 +3,7 @@ import lgamma1p from "./lgamma1p";
 import poissonDensityPrev from "./poissonDensityPrev";
 import gammaContFrac from "./gammaContFrac";
 import poissonCDFAsymp from "./poissonCDFAsymp";
-import R_Log1_Exp from "./R_Log1_Exp";
+import log1mExp from "./log1mExp";
 
 /**
  * Calculates the cumulative distribution function (CDF) of the gamma distribution.
@@ -55,7 +55,7 @@ export default function gammaCDFImpl(x: number, alph: number,
       let lf2: number = alph * Math.log(x) - lgamma1p(alph);
 
       if (log_p) {
-        res = R_Log1_Exp(Math.log1p(sum) + lf2);
+        res = log1mExp(Math.log1p(sum) + lf2);
       } else {
         let f1m1: number = sum;
         let f2m1: number = Math.expm1(lf2);
@@ -75,7 +75,7 @@ export default function gammaCDFImpl(x: number, alph: number,
     sum = log_p ? Math.log(sum) : sum;
     let d: number = poissonDensityPrev(alph, x, log_p);
     if (!lower_tail) {
-      res = log_p ? R_Log1_Exp(d + sum) : 1 - d * sum;
+      res = log_p ? log1mExp(d + sum) : 1 - d * sum;
     } else {
       res = log_p ? sum + d : sum * d;
     }
@@ -109,7 +109,7 @@ export default function gammaCDFImpl(x: number, alph: number,
     if (!lower_tail) {
       res = log_p ? sum + d : sum * d;
     } else {
-      res = log_p ? R_Log1_Exp(d + sum) : 1 - d * sum;
+      res = log_p ? log1mExp(d + sum) : 1 - d * sum;
     }
   } else {
     res = poissonCDFAsymp(alph - 1, x, !lower_tail, log_p);

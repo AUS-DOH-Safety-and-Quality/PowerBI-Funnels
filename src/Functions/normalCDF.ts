@@ -24,8 +24,8 @@ export default function normalCDF(x: number, mu: number, sigma: number,
   const zeroBoundLower: number = (lower_tail ? (log_p ? Number.NEGATIVE_INFINITY : 0) : (log_p ? 0 : 1));
   const zeroBoundUpper: number = (lower_tail ? (log_p ? 0 : 1) : (log_p ? Number.NEGATIVE_INFINITY : 0));
   if (sigma <= 0) {
-    if(sigma < 0) {
-      Number.NaN;
+    if (sigma < 0) {
+      return Number.NaN;
     }
     return (x < mu) ? zeroBoundLower : zeroBoundUpper;
   }
