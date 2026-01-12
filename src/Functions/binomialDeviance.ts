@@ -164,9 +164,10 @@ function addHighLow(d: number, yh: number, yl: number): {yh: number, yl: number}
 export default function binomialDeviance(x: number, M: number): {yh: number, yl: number} {
   const Sb: number = 10;
   const S: number = 1 << Sb;
-  const N: number = 128;
+  const N: number = 128; // Table size factor
   let yh: number = 0, yl: number = 0;
 
+  // Handle special cases matching R's dbinom logic
   if (x === M) {
     return {yh: 0, yl: 0};
   }
@@ -177,15 +178,19 @@ export default function binomialDeviance(x: number, M: number): {yh: number, yl:
     return {yh: Number.POSITIVE_INFINITY, yl: 0};
   }
   if (M / x === Number.POSITIVE_INFINITY) {
+    // This case happens when x is very small relative to M
     return {yh: M, yl: 0};
   }
 
+  // Argument reduction: M/x = 2^e * r
   let {mantissa: r, exponent: e} = frexp(M / x);
 
+  // Check for potential overflow
   if (Math.LN2 * -e > 1 + Number.MAX_VALUE / x) {
     return {yh: Number.POSITIVE_INFINITY, yl: 0};
   }
 
+  // Calculate table index and interpolation factor
   const i: number = Math.floor((r - 0.5) * (2 * N) + 0.5)
   const f: number = Math.floor(S / (0.5 + i / (2.0 * N)) + 0.5)
   const fg: number = ldexp(f, -(e + Sb));
@@ -194,12 +199,14 @@ export default function binomialDeviance(x: number, M: number): {yh: number, yl:
     return {yh: Number.POSITIVE_INFINITY, yl: 0};
   }
 
+  // First term of the expansion
   ({yh, yl} = addHighLow(-x * log1pmx((M * fg - x) / x), yh, yl));
 
   if (fg === 1) {
     return {yh: yh, yl: yl};
   }
 
+  // Add terms from the precomputed scale table
   for (let j: number = 0; j < 4; j++) {
     ({yh, yl} = addHighLow(x * bd0_scale[i][j], yh, yl));
     ({yh, yl} = addHighLow(-x * bd0_scale[0][j] * e, yh, yl));
@@ -208,6 +215,7 @@ export default function binomialDeviance(x: number, M: number): {yh: number, yl:
     }
   }
 
+  // Final adjustment
   ({yh, yl} = addHighLow(M, yh, yl));
   ({yh, yl} = addHighLow(-M * fg, yh, yl));
   return {yh: yh, yl: yl};

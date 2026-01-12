@@ -11,20 +11,26 @@ export default function sinpi(x: number): number {
   if (Number.isNaN(x) || !Number.isFinite(x)) {
     return Number.NaN;
   }
+
+  // Reduce range to [-1, 1] using x % 2
   let r: number = x % 2;
   if (r <= -1) {
     r += 2;
   } else if (r > 1) {
     r -= 2;
   }
+
+  // Handle exact cases to avoid floating point inaccuracies
   if (r === 0 || r === 1) {
-    return 0;
+    return 0; // sin(0), sin(2pi), etc
   }
   if (r === 0.5) {
-    return 1;
+    return 1; // sin(pi/2)
   }
   if (r === -0.5) {
-    return -1;
+    return -1; // sin(-pi/2)
   }
+
+  // Compute standard sin(pi * r) for the reduced r
   return Math.sin(Math.PI * r);
 }

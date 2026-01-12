@@ -15,6 +15,8 @@ import normalDensity from "./normalDensity";
  */
 export default function poissonCDFAsymp(x: number, lambda: number,
                                         lower_tail: boolean, log_p: boolean): number {
+  // Coefficients for asymptotic expansion
+  // These are derived from the Edgeworth expansion of the Poisson distribution
   const coefs_a: readonly number[] = [
     -1e99, /* placeholder used for 1-indexing */
     2/3.,
@@ -42,13 +44,20 @@ export default function poissonCDFAsymp(x: number, lambda: number,
   let dfm: number, pt_: number, s2pt: number, f: number, np: number;
   let i: number;
 
+  // Compute deviation from mean
   dfm = lambda - x;
+
+  // pt_ is related to the relative deviation: -log(1 + (lambda-x)/x) + (lambda-x)/x
   pt_ = -log1pmx(dfm / x);
+
+  // s2pt is the signed square root: sqrt(2 * x * pt_)
+  // This transforms the Poisson to approximate normal
   s2pt = Math.sqrt(2 * x * pt_);
   if (dfm < 0) {
-    s2pt = -s2pt;
+    s2pt = -s2pt;  // Preserve sign based on deviation direction
   }
 
+  // Compute the correction terms using asymptotic series
   res12 = 0;
   res1_ig = res1_term = Math.sqrt(x);
   res2_ig = res2_term = s2pt;
@@ -61,6 +70,7 @@ export default function poissonCDFAsymp(x: number, lambda: number,
     res2_ig = res2_ig / x + res2_term;
   }
 
+  // Compute the leading factor for the expansion
   elfb = x;
   elfb_term = 1;
   for (i = 1; i < 8; i++) {
@@ -71,20 +81,28 @@ export default function poissonCDFAsymp(x: number, lambda: number,
     elfb = -elfb;
   }
 
+  // f is the correction factor to apply to the normal approximation
+  // f is the correction factor to apply to the normal approximation
   f = res12 / elfb;
 
+  // Get base normal CDF at the transformed point
   np = normalCDF(s2pt, 0, 1, !lower_tail, log_p);
 
+  // Apply correction to normal approximation
   if (log_p) {
     let i_tail: boolean = !lower_tail;
-    let n_d_over_p: number;
+    let n_d_over_p: number;  // Ratio of normal density to probability
 
+    // Handle sign for tail computation
     if (s2pt < 0) {
       s2pt = -s2pt;
       i_tail = !i_tail;
     }
 
+    // For large s2pt in the correct tail, use asymptotic expansion
+    // This avoids computing exp(np) which could underflow
     if (s2pt > 10 && !i_tail) {
+      // Asymptotic expansion: phi(x)/Phi(x) ≈ x / (1 + 1/x² - 1/x⁴ + ...)
       let term: number = 1 / s2pt;
       let sum: number = term;
       let x2: number = s2pt * s2pt;
@@ -98,12 +116,15 @@ export default function poissonCDFAsymp(x: number, lambda: number,
 
       n_d_over_p = 1 / sum;
     } else {
+      // Direct computation for moderate values
       let d: number = normalDensity(s2pt, 0, 1, false);
       n_d_over_p =  d / Math.exp(np);
     }
 
+    // log(P) = log(Phi(s2pt)) + log(1 + f * phi(s2pt)/Phi(s2pt))
     return np + Math.log1p(f * n_d_over_p);
   } else {
+    // Non-log case: P = Phi(s2pt) + f * phi(s2pt)
     return np + f * normalDensity(s2pt, 0, 1, log_p);
   }
 }

@@ -13,7 +13,7 @@ import { LOG_TWO_PI, LOG_SQRT_TWO_PI } from "./Constants";
  * @returns The Stirling's error term for the input n
  */
 export default function stirlingError(n: number): number {
-  const s_coeffs: number[] = [
+  const s_coeffs: readonly number[] = [
     0.083333333333333333333,
     0.00277777777777777777778,
     0.00079365079365079365079365,
@@ -33,7 +33,7 @@ export default function stirlingError(n: number): number {
     382900751.39141414141414141
   ];
 
-  const sferr_halves: number[] = [
+  const sferr_halves: readonly number[] = [
     0.0,
     0.1534264097200273452913848,
     0.0810614667953272582196702,
@@ -68,10 +68,12 @@ export default function stirlingError(n: number): number {
   ];
 
   let nn: number = n + n;
+  // If n is a half-integer <= 15, use precomputed table
   if (n <= 15 && nn === Math.trunc(nn)) {
     return sferr_halves[nn];
   }
 
+  // Direct calculation for small values (n <= 5.25) to avoid loss of precision
   if (n <= 5.25) {
     if (n >= 1) {
       const l_n: number = Math.log(n);
@@ -83,6 +85,8 @@ export default function stirlingError(n: number): number {
   }
 
 
+  // Determine the number of terms in the series expansion based on the magnitude of n.
+  // Larger n requires fewer terms for the same precision.
   let start_coeff: number;
   if (n > 15.7e6) {
     start_coeff = 0;
@@ -112,6 +116,7 @@ export default function stirlingError(n: number): number {
     start_coeff = 16;
   }
 
+  // Evaluate the series expansion using Horner's method
   nn = n * n;
   let sum: number = s_coeffs[start_coeff];
   for (let i = start_coeff - 1; i >= 0; i--) {

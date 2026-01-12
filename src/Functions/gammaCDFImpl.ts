@@ -22,6 +22,8 @@ export default function gammaCDFImpl(x: number, alph: number,
   let res: number;
   const zeroBoundLower: number = log_p ? Number.NEGATIVE_INFINITY : 0;
   const zeroBoundUpper: number = log_p ? 0 : 1;
+
+  // Handle edge cases
   if (x <= 0) {
     return lower_tail ? zeroBoundLower : zeroBoundUpper;
   }
@@ -30,6 +32,10 @@ export default function gammaCDFImpl(x: number, alph: number,
     return lower_tail ? zeroBoundUpper : zeroBoundLower;
   }
 
+  // Case 1: Small x. Use series expansion.
+  // This corresponds to the power series expansion of the lower incomplete gamma function:
+  // gamma(alpha, x) = x^alpha * sum_{n=0}^{infinity} ((-1)^n * x^n) / (n! * (alpha + n))
+  //                 = x^alpha * sum_{n=0}^{infinity} (c_n / (alpha + n))
   if (x < 1) {
     let sum: number = 0, c: number = alph, n: number = 0, term: number = 1;
     while (Math.abs(term) > Number.EPSILON * Math.abs(sum)) {
@@ -63,6 +69,10 @@ export default function gammaCDFImpl(x: number, alph: number,
       }
     }
   } else if (x <= alph - 1 && x < 0.8 * (alph + 50)) {
+    // Case 2: x is smaller than mean (alpha). Use series approximation.
+    // Computes lower tail using a series related to the Poisson distribution:
+    // P(X <= x) = P(Y >= alpha) where Y ~ Poisson(x).
+    // Uses the identity: integral_0^x t^(a-1) e^(-t) dt / Gamma(a) = sum_{k=0}^infinity e^(-x) x^(a+k) / Gamma(a+k+1)
     let y: number = alph;
     let term: number = x / y;
     let sum: number = term;
@@ -80,6 +90,9 @@ export default function gammaCDFImpl(x: number, alph: number,
       res = log_p ? sum + d : sum * d;
     }
   } else if (alph - 1 < x && alph < 0.8 * (x + 50)) {
+    // Case 3: x is larger than mean. Use continued fraction or finite sum.
+    // Computes upper tail using reduction or continued fractions.
+    // For integer alpha, summation is finite. Use Legendre's continued fraction for Gamma(alpha, x).
     let sum: number = 0;
     const d: number = poissonDensityPrev(alph, x, log_p);
     if (alph < 1) {
@@ -112,9 +125,12 @@ export default function gammaCDFImpl(x: number, alph: number,
       res = log_p ? log1mExp(d + sum) : 1 - d * sum;
     }
   } else {
+    // Case 4: Asymptotic approximation for large parameters
+    // Uses Peizer-Pratt approximation via Poisson CDF asymp.
     res = poissonCDFAsymp(alph - 1, x, !lower_tail, log_p);
   }
 
+  // Final check for underflow in non-log case to improve precision by using log scale first
   if (!log_p && res < Number.MIN_VALUE / Number.EPSILON) {
     return Math.exp(gammaCDFImpl(x, alph, lower_tail, true));
   }
