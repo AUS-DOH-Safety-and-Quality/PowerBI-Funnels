@@ -13,6 +13,10 @@ import ldexp from "./ldexp";
  */
 export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boolean): number {
   let i_tail: number = lower_tail ? 0 : 1;
+
+  // Polynomial coefficients for different approximation regions
+  // Region 1: |x| <= 0.67448975 (central region)
+  // Uses rational approximation: Phi(x) ≈ 0.5 + x * P(x²) / Q(x²)
   const a: readonly number[] = [
     2.2352520354606839287,
     161.02823106855587881,
@@ -26,6 +30,9 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
     10260.932208618978205,
     45507.789335026729956
   ];
+
+  // Region 2: 0.67448975 < |x| <= sqrt(32) (intermediate region)
+  // Uses rational approximation with exponential scaling
   const c: readonly number[] = [
     0.39894151208813466764,
     8.8831497943883759412,
@@ -47,6 +54,9 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
     38912.003286093271411,
     19685.429676859990727
   ];
+
+  // Region 3: |x| > sqrt(32) (tail region)
+  // Uses asymptotic expansion for extreme tails
   const p: readonly number[] = [
     0.21589853405795699,
     0.1274011611602473639,
@@ -74,10 +84,13 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
 
   lower = i_tail != 1;
   upper = i_tail != 0;
-  let cum: number = 0;
-  let ccum: number = 0;
+  let cum: number = 0;   // Lower tail probability
+  let ccum: number = 0;  // Upper tail probability (complement)
 
   y = Math.abs(x);
+
+  // Region 1: Central region |x| <= 0.67448975
+  // Use Taylor series expansion around 0
   if (y <= 0.67448975) {
     if (y > eps) {
       xsq = x * x;
@@ -91,6 +104,7 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
       xnum = xden = 0.0;
     }
 
+    // Phi(x) = 0.5 + x * R(x²) where R is a rational function
     temp = x * (xnum + a[3]) / (xden + b[3]);
     if (lower) {
       cum = 0.5 + temp;
@@ -107,6 +121,8 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
       }
     }
   } else if (y <= SQRT_THIRTY_TWO) {
+    // Region 2: Intermediate region 0.67448975 < |x| <= sqrt(32)
+    // Use rational approximation with careful exponential handling
     xnum = c[8] * y;
     xden = y;
     for (i = 0; i < 7; ++i) {
@@ -115,6 +131,8 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
     }
     temp = (xnum + c[7]) / (xden + d[7]);
 
+    // Split x² into integer and fractional parts for precision
+    // Compute exp(-x²/2) as exp(-xsq²/2) * exp(-del/2)
     xsq = ldexp(Math.trunc(ldexp(y, 4)), -4);
     del = (y - xsq) * (y + xsq);
     if(log_p) {
@@ -126,6 +144,7 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
       cum = Math.exp(-xsq * ldexp(xsq, -1)) * Math.exp(-ldexp(del, -1)) * temp;
       ccum = 1.0 - cum;
     }
+    // Swap if x > 0 (we computed the upper tail)
     if (x > 0.) {
       temp = cum;
       if (lower) {
@@ -134,6 +153,8 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
       ccum = temp;
     }
   } else if ((log_p && y < 1e170) || (lower && -38.4674 < x  &&  x < 8.2924) || (upper && -8.2924  < x  &&  x < 38.4674)) {
+    // Region 3: Tail region |x| > sqrt(32)
+    // Use asymptotic expansion: Phi(x) ≈ phi(x) * (1/x - 1/x³ + ...)
     xsq = 1.0 / (x * x);
     xnum = p[5] * xsq;
     xden = xsq;
@@ -144,6 +165,7 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
     temp = xsq * (xnum + p[4]) / (xden + q[4]);
     temp = (ONE_DIV_SQRT_TWO_PI - temp) / y;
 
+    // Same precision technique as Region 2
     xsq = ldexp(Math.trunc(ldexp(x, 4)), -4);
     del = (x - xsq) * (x + xsq);
     if (log_p) {
@@ -163,6 +185,7 @@ export default function normalCDFImpl(x: number, lower_tail: boolean, log_p: boo
       ccum = temp;
     }
   } else {
+    // Region 4: Extreme tails - return 0 or 1
     if (x > 0) {
       cum = (log_p ? 0 : 1);
       ccum = (log_p ? Number.NEGATIVE_INFINITY : 0);

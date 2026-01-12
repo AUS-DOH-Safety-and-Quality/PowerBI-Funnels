@@ -15,17 +15,24 @@ import { TWO_PI, SQRT_TWO_PI } from "./Constants";
  */
 export default function poissonDensity(x: number, lambda: number, log_p: boolean): number {
   const zeroBound: number = log_p ? Number.NEGATIVE_INFINITY : 0;
+
+  // Handle degenerate case: lambda = 0 is a point mass at x = 0
   if (lambda === 0) {
     return (x === 0) ? (log_p ? 0 : 1) : zeroBound ;
   }
 
+  // Invalid inputs
   if (!Number.isFinite(lambda) || x < 0) {
     return zeroBound;
-
   }
+
+  // For very small x relative to lambda, use limit: f(x) ≈ exp(-lambda)
   if (x <= lambda * Number.MIN_VALUE) {
     return log_p ? -lambda : Math.exp(-lambda);
   }
+
+  // For very small lambda relative to x, use direct formula
+  // f(x) = exp(-lambda + x*log(lambda) - log(Gamma(x+1)))
   if (lambda < x * Number.MIN_VALUE) {
     if (!Number.isFinite(x)) {
       return zeroBound;
@@ -35,12 +42,17 @@ export default function poissonDensity(x: number, lambda: number, log_p: boolean
     return log_p ? rtn : Math.exp(rtn);
   }
 
-
+  // General case: use Stirling's approximation for improved precision
+  // f(x) = exp(-stirlingError(x) - binomialDeviance(x, lambda)) / sqrt(2*pi*x)
+  // This formulation avoids catastrophic cancellation for x ≈ lambda
   let {yh, yl} = binomialDeviance(x, lambda);
   yl += stirlingError(x);
+
+  // Handle very large x separately to avoid overflow in sqrt(2*pi*x)
   let Lrg_x: boolean = (x >= Number.MAX_VALUE);
   let r: number = Lrg_x ? SQRT_TWO_PI * Math.sqrt(x)
                         : TWO_PI * x;
+
   return log_p ? -yl - yh - (Lrg_x ? Math.log(r) : 0.5 * Math.log(r))
                 : Math.exp(-yl) * Math.exp(-yh) / (Lrg_x ? r : Math.sqrt(r));
 }
