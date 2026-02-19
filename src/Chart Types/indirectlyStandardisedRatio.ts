@@ -1,7 +1,9 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
 import { winsorise, sqrt,
           inv, square, multiply, divide, type dataObject } from '../Functions';
+import chisqCDF from "../Functions/chisqCDF";
 import chisqQuantile from "../Functions/chisqQuantile";
+import normalQuantile from "../Functions/normalQuantile";
 
 const smrSE = function(inputData: dataObject): number[] {
   return [];
@@ -20,6 +22,34 @@ const smrY = function(inputData: dataObject): number[] {
   const numerators: number[] = inputData.numerators;
   const denominators: number[] = inputData.denominators;
   return sqrt(divide(numerators, denominators));
+}
+
+const smrZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
+  if (odAdjust) {
+    const n: number = zScores.length;
+    let rtn: number[] = new Array<number>(n);
+    for (let i: number = 0; i < n; i++) {
+      // Scale z-score to od-adjusted scale, by first un-standardising using the SE
+      // and then re-standardising using the OD-adjusted variance
+      rtn[i] = (zScores[i] * seOD[i]) / Math.sqrt(Math.pow(seOD[i], 2) + tau2);
+    }
+    return rtn;
+  } else {
+    const numerators: number[] = inputData.numerators;
+    const denominators: number[] = inputData.denominators;
+    const n: number = numerators.length;
+    let rtn: number[] = new Array<number>(n);
+    // Un-adjusted limits are exact limits, using the relationship between the Poisson and
+    // Chi-Square distributions. To map the values to z-scores, we simply use the Chi-Square CDF
+    // and Standard-normal quantile functions
+    for (let i: number = 0; i < n; i++) {
+      const ratio: number = numerators[i] / denominators[i];
+      const offset: number = ratio > 1 ? 1 : 0;
+      const log_p: number = chisqCDF(ratio * 2 * denominators[i], 2 * (denominators[i] + offset), true, true);
+      rtn[i] = normalQuantile(log_p, 0, 1, true, true)
+    }
+    return rtn;
+  }
 }
 
 const smrLimitOD = function(args: limitArgs) {
@@ -53,6 +83,7 @@ export default class smrFunnelClass extends chartClass {
       targetFunction: smrTarget,
       targetFunctionTransformed: smrTarget,
       yFunction: smrY,
+      zFunction: smrZ,
       limitFunction: smrLimit,
       limitFunctionOD: smrLimitOD,
       inputData: inputData,

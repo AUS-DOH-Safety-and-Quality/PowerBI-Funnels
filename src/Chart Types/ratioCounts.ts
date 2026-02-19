@@ -29,6 +29,23 @@ const rcY = function(inputData: dataObject): number[] {
   return log(divide(add(numerators, 0.5), add(denominators, 0.5)));
 }
 
+const rcZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
+  if (odAdjust) {
+    const n: number = zScores.length;
+    let rtn: number[] = new Array<number>(n);
+    for (let i: number = 0; i < n; i++) {
+      // Scale z-score to od-adjusted scale, by first un-standardising using the SE
+      // and then re-standardising using the OD-adjusted variance
+      rtn[i] = (zScores[i] * seOD[i]) / Math.sqrt(Math.pow(seOD[i], 2) + tau2);
+    }
+    return rtn;
+  } else {
+    // Non-adjusted limits are equivalent to adjusted limits with tau2 = 0, so
+    // return as-as
+    return zScores;
+  }
+}
+
 const rcLimit = function(args: limitArgs): number {
   const target: number = args.target_transformed;
   const q: number = args.q;
@@ -48,6 +65,7 @@ export default class rcFunnelClass extends chartClass {
       targetFunction: rcTarget,
       targetFunctionTransformed: rcTargetTransformed,
       yFunction: rcY,
+      zFunction: rcZ,
       limitFunction: rcLimit,
       limitFunctionOD: rcLimit,
       inputData: inputData,

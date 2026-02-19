@@ -27,6 +27,7 @@ export type plotData = {
   x: number;
   numerator?: number;
   value: number;
+  z: number;
   group_text: string;
   aesthetics: defaultSettingsType["scatter"];
   // ISelectionId allows the visual to report the selection choice to PowerBI
@@ -145,6 +146,7 @@ export default class viewModelClass {
     const multiplier: number = this.inputSettings.derivedSettings.multiplier;
     const flag_two_sigma: boolean = this.inputSettings.settings.outliers.two_sigma;
     const flag_three_sigma: boolean = this.inputSettings.settings.outliers.three_sigma;
+    const zScores: number[] = this.chartBase.getZ();
 
     for (let i: number = 0; i < this.inputData.id.length; i++) {
       const original_index: number = this.inputData.id[i];
@@ -181,6 +183,7 @@ export default class viewModelClass {
         x: denominator,
         numerator: numerator,
         value: value,
+        z: zScores[i],
         group_text: category,
         aesthetics: aesthetics,
         identity: host.createSelectionIdBuilder()
