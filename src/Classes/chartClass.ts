@@ -1,4 +1,4 @@
-import { seq, max, type dataObject } from "../Functions";
+import { seq, max, type dataObject, isNullOrUndefined } from "../Functions";
 import type { settingsClass } from "../Classes";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
@@ -39,6 +39,7 @@ type chartObjectConstructorT = {
   targetFunction: (x: dataObject) => number;
   targetFunctionTransformed: (x: dataObject) => number;
   yFunction: (x: dataObject) => number[];
+  zFunction: (x: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
   inputData: dataObject;
@@ -53,8 +54,13 @@ export default class chartClass {
   targetFunction: (x: dataObject) => number;
   targetFunctionTransformed: (x: dataObject) => number;
   yFunction: (x: dataObject) => number[];
+  zFunction: (x: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
+  odAdjust: boolean;
+  tau2: number;
+  zScores: number[];
+  seOD: number[]
 
   getPlottingDenominators(): number[] {
     const maxDenominator: number = max(this.inputData.denominators);
@@ -88,15 +94,19 @@ export default class chartClass {
     return this.yFunction(this.inputData)
   }
 
+  getZ(): number[] {
+    return this.zFunction(this.inputData, this.zScores, this.seOD, this.odAdjust, this.tau2);
+  }
+
   getTau2(): number {
     const targetOD: number = this.getTarget({ transformed: true });
-    const seOD: number[] = this.getSE({ odAdjust: true });
+    this.seOD = this.getSE({ odAdjust: true });
     const yTransformed: number[] = this.getY();
-    const zScores: number[] = getZScores(yTransformed, seOD, targetOD);
-    const zScoresWinsorized: number[] = winsoriseZScores(zScores);
+    this.zScores = getZScores(yTransformed, this.seOD, targetOD);
+    const zScoresWinsorized: number[] = winsoriseZScores(this.zScores);
     const phi: number = getPhi(zScoresWinsorized);
 
-    return getTau2(phi, seOD);
+    return getTau2(phi, this.seOD);
   }
 
   getTau2Bool(): boolean {
@@ -137,14 +147,14 @@ export default class chartClass {
 
   getLimits(): limitData[] {
     const calculateTau2: boolean = this.getTau2Bool();
-    let odAdjust: boolean;
-    let tau2: number;
+    this.tau2 = this.getTau2();
+    let curr_tau2: number;
     if (calculateTau2) {
-      tau2 = this.getTau2();
-      odAdjust = tau2 > 0;
+      curr_tau2 = this.tau2;
+      this.odAdjust = this.tau2 > 0;
     } else {
-      tau2 = 0;
-      odAdjust = false;
+      curr_tau2 = 0;
+      this.odAdjust = false;
     }
 
     const target: number = this.getTarget({ transformed: false });
@@ -155,7 +165,7 @@ export default class chartClass {
 
     const plottingDenominators: number[] = this.getPlottingDenominators();
     const plottingSE: number[] = this.getSE({
-      odAdjust: odAdjust,
+      odAdjust: this.odAdjust,
       plottingDenominators: plottingDenominators
     });
 
@@ -169,12 +179,12 @@ export default class chartClass {
           target: target,
           target_transformed: target_transformed,
           SE: plottingSE[idx],
-          tau2: tau2,
+          tau2: curr_tau2,
           denominators: denom
         };
 
         const limit: number = this.getSingleLimit({
-          odAdjust: odAdjust,
+          odAdjust: this.odAdjust,
           inputArgs: functionArgs
         });
 
@@ -213,6 +223,7 @@ export default class chartClass {
     this.targetFunction = args.targetFunction;
     this.targetFunctionTransformed = args.targetFunctionTransformed;
     this.yFunction = args.yFunction;
+    this.zFunction = args.zFunction;
     this.limitFunction = args.limitFunction;
     this.limitFunctionOD = args.limitFunctionOD;
     this.inputData = args.inputData;
