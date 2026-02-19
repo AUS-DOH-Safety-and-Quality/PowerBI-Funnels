@@ -210,7 +210,6 @@ export default class viewModelClass {
         three_sigma: three_sigma_outlier
       })
     }
-    console.log(this.plotPoints)
   }
 
   initialiseGroupedLines(): void {
