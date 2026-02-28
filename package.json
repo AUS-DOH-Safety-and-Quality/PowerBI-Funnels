@@ -48,7 +48,7 @@
     "karma-webpack": "^5.0.1",
     "playwright-chromium": "^1.57.0",
     "powerbi-visuals-utils-testutils": "^6.1.1",
-    "rollup": "^4.54.0",
+    "rollup": "^4.59.0",
     "style-loader": "^4.0.0",
     "ts-loader": "9.5.4",
     "tslib": "^2.8.1",
