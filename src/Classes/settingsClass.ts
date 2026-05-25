@@ -5,20 +5,11 @@ type VisualObjectInstanceEnumerationObject = powerbi.default.VisualObjectInstanc
 type VisualObjectInstance = powerbi.default.VisualObjectInstance;
 type VisualObjectInstanceContainer = powerbi.default.VisualObjectInstanceContainer;
 import { extractConditionalFormatting, isNullOrUndefined } from "../Functions";
-import { default as settingsModel, defaultSettings, type defaultSettingsType,
-  type defaultSettingsKeys, type defaultSettingsNestedKeys
+import { default as settingsModel, defaultSettings, type settingsValueType,
+  defaultSettingsString, type settingsValueTypesUnion
  } from "../settings";
 import derivedSettingsClass from "./derivedSettingsClass";
 import { type ConditionalReturnT, type SettingsValidationT } from "../Functions/extractConditionalFormatting";
-
-export { type defaultSettingsType, type defaultSettingsKeys };
-
-export type optionalSettingsTypes = Partial<{
-  [K in keyof typeof defaultSettings]: Partial<defaultSettingsType[K]>;
-}>;
-
-export type defaultSettingsKey = keyof defaultSettingsType;
-export type settingsScalarTypes = number | string | boolean;
 
 /**
  * This is the core class which controls the initialisation and
@@ -28,7 +19,7 @@ export type settingsScalarTypes = number | string | boolean;
  * These are defined in the settingsGroups.ts file
  */
 export default class settingsClass {
-  settings: defaultSettingsType;
+  settings: settingsValueType;
   derivedSettings: derivedSettingsClass;
   validationStatus: SettingsValidationT;
 
@@ -44,8 +35,8 @@ export default class settingsClass {
     // Get the names of all classes in settingsObject which have values to be updated
     const allSettingGroups: string[] = Object.keys(this.settings);
 
-    allSettingGroups.forEach((settingGroup: defaultSettingsKeys) => {
-      const condFormatting: ConditionalReturnT<defaultSettingsType[defaultSettingsKeys]>
+    allSettingGroups.forEach((settingGroup) => {
+      const condFormatting: ConditionalReturnT<settingsValueTypesUnion>
         = extractConditionalFormatting(inputView?.categorical, settingGroup, this.settings);
 
       if (condFormatting.validation.status !== 0) {
@@ -66,11 +57,11 @@ export default class settingsClass {
       // Get the names of all settings in a given class and
       // use those to extract and update the relevant values
       const settingNames: string[] = Object.keys(this.settings[settingGroup]);
-      settingNames.forEach((settingName: defaultSettingsNestedKeys) => {
+      settingNames.forEach((settingName) => {
         this.settings[settingGroup][settingName]
           = condFormatting?.values
             ? condFormatting?.values[0][settingName]
-            : defaultSettings[settingGroup][settingName]["default"]
+            : defaultSettings[settingGroup][settingName]
       })
     })
     this.derivedSettings.update(this.settings)
@@ -147,11 +138,7 @@ export default class settingsClass {
   }
 
   constructor() {
-    this.settings = Object.fromEntries(Object.keys(defaultSettings).map((settingGroupName) => {
-      return [settingGroupName, Object.fromEntries(Object.keys(defaultSettings[settingGroupName]).map((settingName) => {
-        return [settingName, defaultSettings[settingGroupName][settingName]];
-      }))];
-    })) as defaultSettingsType;
+    this.settings = JSON.parse(defaultSettingsString) as settingsValueType;
     this.derivedSettings = new derivedSettingsClass();
   }
 }

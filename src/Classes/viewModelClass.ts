@@ -3,7 +3,9 @@ type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
-import { chartClass, settingsClass, type limitData, type defaultSettingsType } from "../Classes"
+import settingsClass from "./settingsClass";
+import { type settingsValueType } from "../settings";
+import { chartClass, type limitData } from "../Classes"
 import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply, isNullOrUndefined, groupBy } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
@@ -29,7 +31,7 @@ export type plotData = {
   value: number;
   z: number;
   group_text: string;
-  aesthetics: defaultSettingsType["scatter"];
+  aesthetics: settingsValueType["scatter"];
   // ISelectionId allows the visual to report the selection choice to PowerBI
   identity: ISelectionId;
   // Flag for whether dot should be highlighted by selections in other charts
@@ -38,7 +40,7 @@ export type plotData = {
   tooltip: VisualTooltipDataItem[];
   label: {
     text_value: string,
-    aesthetics: defaultSettingsType["labels"],
+    aesthetics: settingsValueType["labels"],
     angle: number,
     distance: number,
     line_offset: number,
@@ -154,7 +156,7 @@ export default class viewModelClass {
       const denominator: number = this.inputData.denominators[i];
       const value: number = transform((numerator / denominator) * multiplier);
       const limits: limitData = this.calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null)[0];
-      const aesthetics: defaultSettingsType["scatter"] = this.inputData.scatter_formatting[i]
+      const aesthetics: settingsValueType["scatter"] = this.inputData.scatter_formatting[i]
       if (this.colourPalette.isHighContrast) {
         aesthetics.colour = this.colourPalette.foregroundColour;
       }

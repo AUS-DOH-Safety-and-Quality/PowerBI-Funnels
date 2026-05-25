@@ -1,10 +1,10 @@
-import { defaultSettingsType } from "./settingsClass"
+import { settingsValueType } from "../settings"
 
 export default class derivedSettingsClass {
   multiplier: number
   percentLabels: boolean
 
-  update(inputSettings: defaultSettingsType) {
+  update(inputSettings: settingsValueType) {
     const chartType: string = inputSettings.funnel.chart_type;
     const pChartType: boolean = ["PR"].includes(chartType);
     const percentSettingString: string = inputSettings.funnel.perc_labels;

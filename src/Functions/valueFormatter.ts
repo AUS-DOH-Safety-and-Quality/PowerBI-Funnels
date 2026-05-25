@@ -1,8 +1,9 @@
-import type { defaultSettingsType, derivedSettingsClass } from "../Classes";
+import type { derivedSettingsClass } from "../Classes";
+import type { settingsValueType } from "../settings";
 import isNullOrUndefined from "./isNullOrUndefined";
 
 const formatValues = function<T>(value: T, name: string,
-                                        inputSettings: defaultSettingsType,
+                                        inputSettings: settingsValueType,
                                         derivedSettings: derivedSettingsClass): string {
   const suffix: string = derivedSettings.percentLabels ? "%" : "";
   const sig_figs: number = inputSettings.funnel.sig_figs;
@@ -20,7 +21,7 @@ const formatValues = function<T>(value: T, name: string,
   }
 }
 
-export default function valueFormatter(inputSettings: defaultSettingsType, derivedSettings: derivedSettingsClass) {
+export default function valueFormatter(inputSettings: settingsValueType, derivedSettings: derivedSettingsClass) {
   const formatValuesImpl = function<T>(value: T, name: string): string {
     return formatValues(value, name, inputSettings, derivedSettings);
   }

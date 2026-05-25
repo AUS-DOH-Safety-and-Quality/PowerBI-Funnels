@@ -1,4 +1,4 @@
-import type { defaultSettingsType } from "../Classes"
+import type { settingsValueType } from "../settings"
 
 export type groupKeysT = {
   group: string;
@@ -7,7 +7,7 @@ export type groupKeysT = {
   type: string;
 }
 
-export default function getGroupKeys(inputSettings: defaultSettingsType): groupKeysT[] {
+export default function getGroupKeys(inputSettings: settingsValueType): groupKeysT[] {
   const l99_width: number = inputSettings.lines.width_99;
   const l95_width: number = inputSettings.lines.width_95;
   const target_width: number = inputSettings.lines.width_target;

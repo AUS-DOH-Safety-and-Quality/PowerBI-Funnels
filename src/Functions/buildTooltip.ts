@@ -1,6 +1,7 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import type { limitData, defaultSettingsType, derivedSettingsClass } from "../Classes";
+import type { settingsValueType } from "../settings";
+import type { limitData, derivedSettingsClass } from "../Classes";
 import { type dataObject } from "../Functions";
 import getTransformation from "../Funnel Calculations/getTransformation";
 
@@ -8,7 +9,7 @@ export default function buildTooltip(index: number,
                                       calculatedLimits: limitData[],
                                       outliers: { two_sigma: boolean, three_sigma: boolean },
                                       inputData: dataObject,
-                                      inputSettings: defaultSettingsType,
+                                      inputSettings: settingsValueType,
                                       derivedSettings: derivedSettingsClass): VisualTooltipDataItem[] {
   const data_type: string = inputSettings.funnel.chart_type;
   const multiplier: number = derivedSettings.multiplier;

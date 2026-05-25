@@ -1,7 +1,8 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import { extractValues, validateInputData, extractDataColumn, extractConditionalFormatting, rep, isNullOrUndefined } from "../Functions"
-import { settingsClass, type defaultSettingsType } from "../Classes"
+import { settingsClass } from "../Classes"
+import type { settingsValueType } from "../settings";
 import { type ValidationT } from "./validateInputData";
 
 export type dataObject = {
@@ -12,8 +13,8 @@ export type dataObject = {
   highlights: powerbi.PrimitiveValue[];
   anyHighlights: boolean;
   categories: powerbi.DataViewCategoryColumn;
-  scatter_formatting: defaultSettingsType["scatter"][];
-  label_formatting: defaultSettingsType["labels"][];
+  scatter_formatting: settingsValueType["scatter"][];
+  label_formatting: settingsValueType["labels"][];
   tooltips: VisualTooltipDataItem[][];
   labels: string[];
   anyLabels: boolean;
@@ -22,14 +23,14 @@ export type dataObject = {
 }
 
 export default function extractInputData(inputView: powerbi.DataViewCategorical, inputSettingsClass: settingsClass): dataObject {
-  const inputSettings: defaultSettingsType = inputSettingsClass.settings;
+  const inputSettings: settingsValueType = inputSettingsClass.settings;
   const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
   const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
   const keys: string[] = extractDataColumn<string[]>(inputView, "key");
   const labels: string[] = extractDataColumn<string[]>(inputView, "labels");
-  let scatter_cond = extractConditionalFormatting<defaultSettingsType["scatter"]>(inputView, "scatter", inputSettings)?.values;
+  let scatter_cond = extractConditionalFormatting<settingsValueType["scatter"]>(inputView, "scatter", inputSettings)?.values;
   scatter_cond = scatter_cond === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
-  let labels_cond = extractConditionalFormatting<defaultSettingsType["labels"]>(inputView, "labels", inputSettings)?.values;
+  let labels_cond = extractConditionalFormatting<settingsValueType["labels"]>(inputView, "labels", inputSettings)?.values;
   labels_cond = labels_cond === null ? rep(inputSettings.labels, numerators.length) : labels_cond;
   const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
   const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
