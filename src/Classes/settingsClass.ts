@@ -1,9 +1,5 @@
-import * as powerbi from "powerbi-visuals-api"
-type DataView = powerbi.default.DataView;
-type DataViewPropertyValue = powerbi.default.DataViewPropertyValue
-type VisualObjectInstanceEnumerationObject = powerbi.default.VisualObjectInstanceEnumerationObject;
-type VisualObjectInstance = powerbi.default.VisualObjectInstance;
-type VisualObjectInstanceContainer = powerbi.default.VisualObjectInstanceContainer;
+import type powerbi from "powerbi-visuals-api"
+type DataView = powerbi.DataView;
 import { extractConditionalFormatting, isNullOrUndefined } from "../Functions";
 import { default as settingsModel, defaultSettings, type settingsValueType,
   defaultSettingsString, type settingsValueTypesUnion
@@ -67,13 +63,13 @@ export default class settingsClass {
     this.derivedSettings.update(this.settings)
   }
 
-  public getFormattingModel(): powerbi.default.visuals.FormattingModel {
-    const formattingModel: powerbi.default.visuals.FormattingModel = {
+  public getFormattingModel(): powerbi.visuals.FormattingModel {
+    const formattingModel: powerbi.visuals.FormattingModel = {
       cards: []
     };
 
     for (const curr_card_name in settingsModel) {
-      let curr_card: powerbi.default.visuals.FormattingCard = {
+      let curr_card: powerbi.visuals.FormattingCard = {
         description: settingsModel[curr_card_name].description,
         displayName: settingsModel[curr_card_name].displayName,
         uid: curr_card_name + "_card_uid",
@@ -82,7 +78,7 @@ export default class settingsClass {
       };
 
       for (const card_group in settingsModel[curr_card_name].settingsGroups) {
-        let curr_group: powerbi.default.visuals.FormattingGroup = {
+        let curr_group: powerbi.visuals.FormattingGroup = {
           displayName: card_group === "all" ? settingsModel[curr_card_name].displayName : card_group,
           uid: curr_card_name + "_" + card_group + "_uid",
           slices: []
@@ -94,7 +90,7 @@ export default class settingsClass {
             propertyName: setting
           });
 
-          let curr_slice: powerbi.default.visuals.FormattingSlice = {
+          let curr_slice: powerbi.visuals.FormattingSlice = {
             uid: curr_card_name + "_" + card_group + "_" + setting + "_slice_uid",
             displayName: settingsModel[curr_card_name].settingsGroups[card_group][setting].displayName,
             control: {
@@ -104,7 +100,7 @@ export default class settingsClass {
                   objectName: curr_card_name,
                   propertyName: setting,
                   selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] },
-                  instanceKind: (typeof this.settings[curr_card_name][setting]) != "boolean" ? powerbi.default.VisualEnumerationInstanceKinds.ConstantOrRule : null
+                  instanceKind: (typeof this.settings[curr_card_name][setting]) != "boolean" ? powerbi.VisualEnumerationInstanceKinds.ConstantOrRule : null
                 },
                 value: this.valueLookup(curr_card_name, card_group, setting),
                 items: settingsModel[curr_card_name].settingsGroups[card_group][setting]?.items,
@@ -130,7 +126,7 @@ export default class settingsClass {
       return { value: this.settings[settingCardName][settingName] }
     }
     if (!isNullOrUndefined(settingsModel[settingCardName].settingsGroups[settingGroupName][settingName]?.items)) {
-      const allItems: powerbi.default.IEnumMember[] = settingsModel[settingCardName].settingsGroups[settingGroupName][settingName].items;
+      const allItems: powerbi.IEnumMember[] = settingsModel[settingCardName].settingsGroups[settingGroupName][settingName].items;
       const currValue: string = this.settings[settingCardName][settingName];
       return allItems.find(item => item.value === currValue);
     }
