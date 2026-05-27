@@ -7,6 +7,13 @@ import { default as settingsModel, defaultSettings, type settingsValueType,
 import derivedSettingsClass from "./derivedSettingsClass";
 import { type ConditionalReturnT, type SettingsValidationT } from "../Functions/extractConditionalFormatting";
 
+// Re-declare enum to avoid importing powerbi module everywhere settingsClass is used
+const enum VisualEnumerationInstanceKinds {
+  Constant = 1 << 0,
+  Rule = 1 << 1,
+  ConstantOrRule = Constant | Rule,
+}
+
 /**
  * This is the core class which controls the initialisation and
  * updating of user-settings. Each member is its own class defining
@@ -100,7 +107,9 @@ export default class settingsClass {
                   objectName: curr_card_name,
                   propertyName: setting,
                   selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] },
-                  instanceKind: (typeof this.settings[curr_card_name][setting]) != "boolean" ? powerbi.VisualEnumerationInstanceKinds.ConstantOrRule : null
+                  instanceKind: (typeof this.settings[curr_card_name][setting]) != "boolean"
+                                ? (<any>VisualEnumerationInstanceKinds.ConstantOrRule as powerbi.VisualEnumerationInstanceKinds)
+                                : null
                 },
                 value: this.valueLookup(curr_card_name, card_group, setting),
                 items: settingsModel[curr_card_name].settingsGroups[card_group][setting]?.items,
