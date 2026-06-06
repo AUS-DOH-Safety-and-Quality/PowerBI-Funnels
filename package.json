@@ -25,9 +25,9 @@
     "@vitest/browser-playwright": "4.1.8",
     "eslint": "10.4.1",
     "powerbi-visuals-api": "5.1.0",
-    "eslint-plugin-powerbi-visuals": "1.1.0",
+    "eslint-plugin-powerbi-visuals": "1.1.1",
     "powerbi-visuals-utils-testutils": "6.1.1",
-    "typescript": "5.9.3",
+    "typescript": "6.0.3",
     "vitest": "4.1.8"
   },
   "overrides": {
