@@ -1,4 +1,5 @@
 import powerbi from "powerbi-visuals-api";
+import { describe, it, expect, beforeEach } from "vitest";
 
 import { ChartBuilder } from "./visualBuilder";
 import { ChartDataBuilder } from "./visualData";

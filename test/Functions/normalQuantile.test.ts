@@ -1,4 +1,5 @@
 import normalQuantile from "../../src/Functions/normalQuantile";
+import { describe, it, expect } from "vitest";
 
 describe("normalQuantile", () => {
     // Reference values computed using R's qnorm function

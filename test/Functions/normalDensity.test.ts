@@ -1,4 +1,5 @@
 import normalDensity from "../../src/Functions/normalDensity";
+import { describe, it, expect } from "vitest";
 
 describe("normalDensity", () => {
     // Reference values computed using R's dnorm function

@@ -1,4 +1,5 @@
 import gammaDensity from "../../src/Functions/gammaDensity";
+import { describe, it, expect } from "vitest";
 
 describe("gammaDensity", () => {
     // Reference values computed using R's dgamma function

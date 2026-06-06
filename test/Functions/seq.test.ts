@@ -1,4 +1,5 @@
 import seq from "../../src/Functions/seq";
+import { describe, it, expect } from "vitest";
 
 describe("seq", () => {
     it("should generate a sequence of numbers with step 1", () => {

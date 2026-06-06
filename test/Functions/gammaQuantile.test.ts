@@ -1,4 +1,5 @@
 import gammaQuantile from "../../src/Functions/gammaQuantile";
+import { describe, it, expect } from "vitest";
 
 describe("gammaQuantile", () => {
     // Reference values computed using R's qgamma function
