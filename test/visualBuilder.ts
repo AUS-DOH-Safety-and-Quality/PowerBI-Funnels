@@ -3,7 +3,7 @@ import { VisualBuilderBase } from "powerbi-visuals-utils-testutils";
 import { Visual as VisualClass } from "../src/visual";
 
 import powerbi from "powerbi-visuals-api";
-import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
+type VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 
 export class ChartBuilder extends VisualBuilderBase<VisualClass> {
   constructor(width: number, height: number) {

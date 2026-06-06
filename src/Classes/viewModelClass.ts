@@ -6,7 +6,7 @@ type ISelectionId = powerbi.visuals.ISelectionId;
 import settingsClass from "./settingsClass";
 import { type settingsValueType } from "../settings";
 import { chartClass, type limitData } from "../Classes"
-import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, truncateInputs, multiply, isNullOrUndefined, groupBy } from "../Functions";
+import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, type truncateInputs, multiply, isNullOrUndefined, groupBy } from "../Functions";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"

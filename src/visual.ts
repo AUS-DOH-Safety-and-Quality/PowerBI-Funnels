@@ -6,7 +6,7 @@ import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, addContextMenu,
           initialiseSVG, drawErrors, drawValueLabels, drawLineLabels } from "./D3 Plotting Functions"
-import { viewModelClass, type viewModelValidationT, type plotData, lineData, plotPropertiesClass } from "./Classes"
+import { viewModelClass, type viewModelValidationT, type plotData, type lineData, plotPropertiesClass } from "./Classes"
 import { getAesthetic, identitySelected } from "./Functions";
 
 export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;

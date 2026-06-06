@@ -4,7 +4,7 @@ type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import type { settingsValueType } from "../settings";
 import type { plotData, derivedSettingsClass, viewModelClass } from "../Classes";
 import { divide, isNullOrUndefined, max, type dataObject } from "../Functions";
-import { colourPaletteType } from "./viewModelClass";
+import { type colourPaletteType } from "./viewModelClass";
 
 export type axisProperties = {
   lower: number,

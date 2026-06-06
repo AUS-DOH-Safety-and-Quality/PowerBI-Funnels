@@ -1,4 +1,4 @@
-import { settingsValueType } from "../settings"
+import { type settingsValueType } from "../settings"
 
 export default class derivedSettingsClass {
   multiplier: number
