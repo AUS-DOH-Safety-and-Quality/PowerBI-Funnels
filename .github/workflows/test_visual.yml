@@ -6,39 +6,43 @@ on:
   pull_request:
     branches: [ main ]
     paths-ignore:
-      - docs/** # Don't run on docs folder
+      - PowerBI-SPC-Docs/** # Don't run on docs folder
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
     - uses: actions/checkout@v6
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Setup Node 24
       uses: actions/setup-node@v6
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 24
+        cache: 'npm'
 
-    - name: Install Dependencies
+    - name: Install PBI visual Tools
       run: |
-        npm install
-        npm install -g powerbi-visuals-tools
+        npm install -g powerbi-visuals-tools@6.2.0
+
+    - name: Install Package Dependencies
+      run: |
+        npm ci
 
     - name: Run linter
       run: |
-        npm run eslint
+        pbiviz lint
 
-    - name: Check package can be built
+    - name: Test if package can be built
       run: |
         pbiviz package
 
     - name: Run unit tests
       run: |
+        npx playwright install chromium
         npm run test
 
     - name: Attach built visual
