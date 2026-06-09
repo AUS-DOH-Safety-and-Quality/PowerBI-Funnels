@@ -1,112 +1,31 @@
-import { FormattingComponent, textOptions, defaultColours, lineOptions } from "./common";
+import {
+  fontOption, toggleOption,
+  colourOption, fontSizeOption, lineTypeOption,
+  numberOption, dropdownOption
+ } from "./common";
 
 const labelsSettings = {
   description: "Labels Settings",
   displayName: "Labels Settings",
   settingsGroups: {
     "all": {
-      show_labels: {
-        displayName: "Show Value Labels",
-        type: FormattingComponent.ToggleSwitch,
-        default: true
-      },
-      label_position: {
-        displayName: "Label Position",
-        type: FormattingComponent.Dropdown,
-        default: "top",
-        valid: ["top", "bottom"],
-        items: [
-          { displayName : "Top",    value : "top" },
-          { displayName : "Bottom", value : "bottom" }
-        ]
-      },
-      label_y_offset: {
-        displayName: "Label Offset from Top/Bottom (px)",
-        type: FormattingComponent.NumUpDown,
-        default: 20
-      },
-      label_line_offset: {
-        displayName: "Label Offset from Connecting Line (px)",
-        type: FormattingComponent.NumUpDown,
-        default: 5
-      },
-      label_angle_offset: {
-        displayName: "Label Angle Offset (degrees)",
-        type: FormattingComponent.NumUpDown,
-        default: 0,
-        options: { minValue: { value: -90 }, maxValue: { value: 90 } }
-      },
-      label_font: {
-        displayName: "Label Font",
-        type: FormattingComponent.FontPicker,
-        default: textOptions.font.default,
-        valid: textOptions.font.valid
-      },
-      label_size: {
-        displayName: "Label Font Size",
-        type: FormattingComponent.NumUpDown,
-        default: textOptions.size.default,
-        options: textOptions.size.options
-      },
-      label_colour: {
-        displayName: "Label Font Colour",
-        type: FormattingComponent.ColorPicker,
-        default: defaultColours.standard
-      },
-      label_line_colour: {
-        displayName: "Connecting Line Colour",
-        type: FormattingComponent.ColorPicker,
-        default: defaultColours.standard
-      },
-      label_line_width: {
-        displayName: "Connecting Line Width",
-        type: FormattingComponent.NumUpDown,
-        default: 1,
-        options: { minValue: { value: 0 }, maxValue: { value: 100 } }
-      },
-      label_line_type: {
-        displayName: "Connecting Line Type",
-        type: FormattingComponent.Dropdown,
-        default: "10 0",
-        valid: ["10 0", "10 10", "2 5"],
-        items: [
-          { displayName : "Solid",  value : "10 0" },
-          { displayName : "Dashed", value : "10 10" },
-          { displayName : "Dotted", value : "2 5" }
-        ]
-      },
-      label_line_max_length: {
-        displayName: "Max Connecting Line Length (px)",
-        type: FormattingComponent.NumUpDown,
-        default: 1000,
-        options: { minValue: { value: 0 }, maxValue: { value: 10000 } }
-      },
-      label_marker_show: {
-        displayName: "Show Line Markers",
-        type: FormattingComponent.ToggleSwitch,
-        default: true
-      },
-      label_marker_offset: {
-        displayName: "Marker Offset from Value (px)",
-        type: FormattingComponent.NumUpDown,
-        default: 5
-      },
-      label_marker_size: {
-        displayName: "Marker Size",
-        type: FormattingComponent.NumUpDown,
-        default: 3,
-        options: { minValue: { value: 0 }, maxValue: { value: 100 } }
-      },
-      label_marker_colour: {
-        displayName: "Marker Fill Colour",
-        type: FormattingComponent.ColorPicker,
-        default: defaultColours.standard
-      },
-      label_marker_outline_colour: {
-        displayName: "Marker Outline Colour",
-        type: FormattingComponent.ColorPicker,
-        default: defaultColours.standard
-      }
+      show_labels: toggleOption("Show Value Labels", true),
+      label_position: dropdownOption("Label Position", "top", ["top", "bottom"], "sentence"),
+      label_y_offset: numberOption("Label Offset from Top/Bottom (px)", 20),
+      label_line_offset: numberOption("Label Offset from Connecting Line (px)", 5),
+      label_angle_offset: numberOption("Label Angle Offset (degrees)", 0, { min: -90, max: 90 }),
+      label_font: fontOption("Label Font"),
+      label_size: fontSizeOption("Label Font Size"),
+      label_colour: colourOption("Label Font Colour", "standard"),
+      label_line_colour: colourOption("Connecting Line Colour", "standard"),
+      label_line_width: numberOption("Connecting Line Width", 1, { min: 0, max: 100 }),
+      label_line_type: lineTypeOption("Connecting Line Type", "10 0"),
+      label_line_max_length: numberOption("Max Connecting Line Length (px)", 1000, { min: 0, max: 10000 }),
+      label_marker_show: toggleOption("Show Line Markers", true),
+      label_marker_offset: numberOption("Marker Offset from Value (px)", 5),
+      label_marker_size: numberOption("Marker Size", 3, { min: 0, max: 100 }),
+      label_marker_colour: colourOption("Marker Fill Colour", "standard"),
+      label_marker_outline_colour: colourOption("Marker Outline Colour", "standard")
     }
   }
 };

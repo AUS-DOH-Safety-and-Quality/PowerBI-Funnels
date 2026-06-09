@@ -2,7 +2,7 @@ import type powerbi from "powerbi-visuals-api"
 type DataView = powerbi.DataView;
 import { extractConditionalFormatting, isNullOrUndefined } from "../Functions";
 import { default as settingsModel, defaultSettings, type settingsValueType,
-  defaultSettingsString, type settingsValueTypesUnion
+  type settingsValueTypesUnion
  } from "../settings";
 import derivedSettingsClass from "./derivedSettingsClass";
 import { type ConditionalReturnT, type SettingsValidationT } from "../Functions/extractConditionalFormatting";
@@ -143,7 +143,8 @@ export default class settingsClass {
   }
 
   constructor() {
-    this.settings = JSON.parse(defaultSettingsString) as settingsValueType;
+    this.validationStatus = { status: 0, messages: new Array<string[]>(), error: "" };
+    this.settings = settingsModel.defaultValues as settingsValueType;
     this.derivedSettings = new derivedSettingsClass();
   }
 }
