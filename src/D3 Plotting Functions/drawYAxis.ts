@@ -4,7 +4,7 @@ import type { svgBaseType, Visual } from "../visual";
 
 export default function drawYAxis(selection: svgBaseType, visualObj: Visual, refresh?: boolean) {
   const yAxisProperties: axisProperties = visualObj.plotProperties.yAxis;
-  const yAxis: d3.Axis<d3.NumberValue> = d3.axisLeft(visualObj.plotProperties.yScale);
+  const yAxis: d3.Axis<number> = d3.axisLeft(visualObj.plotProperties.yScale);
   const yaxis_sig_figs: number =  visualObj.viewModel.inputSettings.settings.y_axis.ylimit_sig_figs;
   const sig_figs: number = yaxis_sig_figs === null ? visualObj.viewModel.inputSettings.settings.funnel.sig_figs : yaxis_sig_figs;
   const displayPlot: boolean = visualObj.plotProperties.displayPlot;
