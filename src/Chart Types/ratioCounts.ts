@@ -1,5 +1,6 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
-import { sum, add, divide, sqrt, log, exp, square, winsorise, type dataObject } from "../Functions"
+import { add, divide, sqrt, log, exp, square, winsorise, type dataObject } from "../Functions"
+import sum from "../Functions/sum";
 
 const rcSE = function(inputData: dataObject): number[] {
   const numerators: number[] = inputData.numerators ? inputData.numerators : inputData.denominators;

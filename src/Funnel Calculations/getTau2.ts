@@ -1,4 +1,5 @@
-import { inv, square, sum } from "../Functions"
+import { inv, square } from "../Functions"
+import sum from "../Functions/sum";
 
 /**
  * Estimate the between-unit variance to adjust control limits

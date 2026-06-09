@@ -1,5 +1,6 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
-import { sum, sqrt, inv, asin, square, multiply, divide, winsorise, type dataObject } from "../Functions"
+import { sqrt, inv, asin, square, multiply, divide, winsorise, type dataObject } from "../Functions"
+import sum from "../Functions/sum";
 
 const prSE = function(inputData: dataObject): number[] {
   const denominators: number[] = inputData.denominators;

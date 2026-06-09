@@ -3,7 +3,8 @@ import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import type { settingsValueType } from "../settings";
 import type { plotData, derivedSettingsClass, viewModelClass } from "../Classes";
-import { divide, isNullOrUndefined, max, type dataObject } from "../Functions";
+import { divide, isNullOrUndefined, type dataObject } from "../Functions";
+import max from "../Functions/max";
 import { type colourPaletteType } from "./viewModelClass";
 import scaleLinear from "../Functions/scaleLinear";
 
