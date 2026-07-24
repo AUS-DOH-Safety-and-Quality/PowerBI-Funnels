@@ -16,11 +16,14 @@ function getTau2(phi: number, SE: number[]): number {
   // Check for sufficient dispersion
   if (N * phi < N - 1) { return 0.0; }
 
-  // Construct sample weights (inverse variances)
-  const w: number[] = inv(square(SE));
-  const w_sq: number[] = square(w);
-  const w_sum: number  = sum(w);
-  const w_sq_sum: number = sum(w_sq);
+  let w_sum: number = 0;
+  let w_sq_sum: number = 0;
+  for (let i = 0; i < N; i++) {
+    const w: number = 1 / (SE[i] * SE[i]);
+    const w_sq: number = w * w;
+    w_sum += w;
+    w_sq_sum += w_sq;
+  }
 
   // Estimate variance
   const tau_num: number = (N * phi) - (N - 1.0);

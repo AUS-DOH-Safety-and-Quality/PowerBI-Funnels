@@ -1,4 +1,4 @@
-import { winsorise } from "../Functions"
+import winsorise from "../Functions/winsorise"
 import quantile from "../Functions/quantile";
 
 /**

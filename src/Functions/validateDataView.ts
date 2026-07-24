@@ -11,7 +11,7 @@ export default function validateDataView(inputDV: powerbi.DataView[]): string {
   const numeratorsPresent: boolean
     = inputDV[0].categorical
                    ?.values
-                   ?.some(d => d.source?.roles?.numerators);
+                   ?.some(d => d.source?.roles?.numerators) ?? false;
 
   if (!numeratorsPresent) {
     return "No Numerators passed!";
@@ -19,7 +19,7 @@ export default function validateDataView(inputDV: powerbi.DataView[]): string {
   const denominatorsPresent: boolean
     = inputDV[0].categorical
                     ?.values
-                    ?.some(d => d.source?.roles?.denominators);
+                    ?.some(d => d.source?.roles?.denominators) ?? false;
 
   if (!denominatorsPresent) {
     return "No denominators passed!";

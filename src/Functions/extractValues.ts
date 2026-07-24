@@ -1,3 +1,5 @@
+import isNullOrUndefined from "./isNullOrUndefined";
+
 /**
  * Extracts values from valuesArray at the specified indices in indexArray.
  * If valuesArray is null or undefined, returns an empty array.
@@ -7,14 +9,17 @@
  * @param indexArray The array of indices specifying which values to extract.
  * @returns An array of extracted values.
  */
-export default function extractValues<T>(valuesArray: T[], indexArray: number[]): T[] {
+export default function extractValues<T>(valuesArray: readonly T[] | undefined | null, indexArray: readonly number[]): Exclude<T, undefined>[] {
   if (valuesArray) {
-    const n: number = indexArray.length;
+    const validIndexArray: number[] = indexArray.filter(idx => {
+      return idx >= 0 && idx < valuesArray.length && !isNullOrUndefined(idx);
+    });
+    const n: number = validIndexArray.length;
     let result: T[] = new Array<T>(n);
     for (let i = 0; i < n; i++) {
-      result[i] = valuesArray[indexArray[i]];
+      result[i] = valuesArray[validIndexArray[i]];
     }
-    return result;
+    return result as Exclude<T, undefined>[];
   } else {
     return [];
   }
