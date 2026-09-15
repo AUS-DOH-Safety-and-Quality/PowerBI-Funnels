@@ -6,7 +6,13 @@ type ISelectionId = powerbi.visuals.ISelectionId;
 import settingsClass from "./settingsClass";
 import { type settingsValueType } from "../settings";
 import { chartClass, type limitData } from "../Classes"
-import { validateDataView, extractInputData, buildTooltip, type dataObject, checkFlagDirection, truncate, type truncateInputs, multiply, isNullOrUndefined, groupBy } from "../Functions";
+import validateDataView from "../Functions/validateDataView";
+import extractInputData, { type dataObject } from "../Functions/extractInputData";
+import buildTooltip from "../Functions/buildTooltip";
+import checkFlagDirection from "../Functions/checkFlagDirection";
+import truncate, { type truncateInputs } from "../Functions/truncate";
+import isNullOrUndefined from "../Functions/isNullOrUndefined";
+import groupBy from "../Functions/groupBy";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
@@ -86,6 +92,11 @@ export default class viewModelClass {
   update(options: VisualUpdateOptions, host: IVisualHost): viewModelValidationT {
     const res: viewModelValidationT = { status: true };
 
+    const checkDV: string = validateDataView(options.dataViews);
+    if (checkDV !== "valid") {
+      return { status: false, error: checkDV };
+    }
+
     if (options.type === 2 || this.firstRun) {
       this.inputSettings.update(options.dataViews[0]);
     }
@@ -93,12 +104,6 @@ export default class viewModelClass {
       res.status = false;
       res.error = this.inputSettings.validationStatus.error;
       res.type = "settings";
-      return res;
-    }
-    const checkDV: string = validateDataView(options.dataViews);
-    if (checkDV !== "valid") {
-      res.status = false;
-      res.error = checkDV;
       return res;
     }
     if (isNullOrUndefined(this.colourPalette)) {
@@ -256,7 +261,9 @@ export default class viewModelClass {
     };
     this.calculatedLimits.forEach(limit => {
       ["target", "ll99", "ll95", "ll68", "ul68", "ul95", "ul99"].forEach(type => {
-        limit[type] = truncate(transform(multiply(limit[type], multiplier)), limits)
+        if (!isNullOrUndefined(limit[type])) {
+          limit[type] = truncate(transform(limit[type] * multiplier), limits);
+        }
       })
     })
   }

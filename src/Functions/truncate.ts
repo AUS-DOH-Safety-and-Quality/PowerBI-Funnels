@@ -1,4 +1,4 @@
-import { broadcast_binary } from "../Functions"
+import broadcast_binary from "./BinaryFunctions";
 
 export type truncateInputs = { lower?: number, upper?: number };
 

@@ -3,7 +3,9 @@ type DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 type DataViewCategorical = powerbi.DataViewCategorical;
 type DataViewObjects = powerbi.DataViewObjects;
 type Fill = powerbi.Fill;
-import { default as settingsModel, defaultSettings, type settingsValueTypesUnion, type settingsValueType } from "../settings";
+import { default as settingsModel, defaultSettings, type settingsValueTypesUnion, type settingsValueType,
+  type SettingsValueKeys, type SettingsValueNestedKeys } from "../settings";
+import getNested from "./getNested";
 import rep from "./rep";
 import between from "./between";
 import isNullOrUndefined from "./isNullOrUndefined";
@@ -24,10 +26,7 @@ export default function
   extractConditionalFormatting<T extends settingsValueTypesUnion>(categoricalView: DataViewCategorical,
                                                         settingGroupName: string,
                                                         inputSettings: settingsValueType): ConditionalReturnT<T> {
-  if (isNullOrUndefined(categoricalView)) {
-    return { values: null, validation: { status: 0, messages: rep(new Array<string>(), 1) } };
-  }
-  if (isNullOrUndefined(categoricalView?.categories)) {
+  if (!categoricalView?.categories?.[0]?.values?.length) {
     return { values: null, validation: { status: 0, messages: rep(new Array<string>(), 1) } };
   }
   const inputCategories: DataViewCategoryColumn = (categoricalView.categories as DataViewCategoryColumn[])[0];
@@ -50,15 +49,16 @@ export default function
         extractedSetting = extractedSetting === "" ? defaultSetting : extractedSetting;
 
         // New API has numeric min/max under 'options' member
-        const valid = defaultSettings[settingGroupName][settingName]?.["valid"] ?? defaultSettings[settingGroupName][settingName]?.["options"];
-        const isNumericRange: boolean = !isNullOrUndefined(valid?.minValue) || !isNullOrUndefined(valid?.maxValue)
-        const defaultIsUndefined: boolean = isNullOrUndefined(defaultSetting);
-        if (valid && !defaultIsUndefined) {
+        const settingEntry = getNested(settingsModel, settingGroupName as SettingsValueKeys, settingName as SettingsValueNestedKeys);
+        const valid = "valid" in settingEntry ? settingEntry.valid : undefined;
+        const options = "options" in settingEntry ? settingEntry.options : undefined;
+        if (!isNullOrUndefined(extractedSetting)) {
           let message: string = "";
-          if (valid instanceof Array && !valid.includes(extractedSetting)) {
+          if (valid && !valid.includes(extractedSetting)) {
             message = `${extractedSetting} is not a valid value for ${settingName}. Valid values are: ${valid.join(", ")}`
-          } else if (isNumericRange && !between(extractedSetting, valid?.minValue?.value, valid?.maxValue?.value)) {
-            message = `${extractedSetting} is not a valid value for ${settingName}. Valid values are between ${valid?.minValue?.value} and ${valid?.maxValue?.value}`
+          } else if (options && (typeof extractedSetting !== "number" || !Number.isFinite(extractedSetting)
+              || !between(extractedSetting, options.minValue?.value, options.maxValue?.value))) {
+            message = `${extractedSetting} is not a valid value for ${settingName}. Valid values are between ${options.minValue?.value} and ${options.maxValue?.value}`
           }
           if (message !== "") {
             extractedSetting = defaultSettings[settingGroupName][settingName];

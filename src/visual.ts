@@ -7,7 +7,8 @@ import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, addContextMenu,
           initialiseSVG, drawErrors, drawValueLabels, drawLineLabels } from "./D3 Plotting Functions"
 import { viewModelClass, type viewModelValidationT, type plotData, type lineData, plotPropertiesClass } from "./Classes"
-import { getAesthetic, identitySelected } from "./Functions";
+import getAesthetic from "./Functions/getAesthetic";
+import identitySelected from "./Functions/identitySelected";
 
 export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
 
@@ -40,6 +41,7 @@ export class Visual implements powerbi.extensibility.IVisual {
       // update status to false
       const update_status: viewModelValidationT = this.viewModel.update(options, this.host);
       if (!update_status.status) {
+        this.plotProperties.displayPlot = false;
         this.resizeCanvas(options.viewport.width, options.viewport.height);
         if (this.viewModel?.inputSettings?.settings?.canvas?.show_errors ?? true) {
           this.svg.call(drawErrors, options, update_status?.error, update_status?.type);
@@ -65,6 +67,8 @@ export class Visual implements powerbi.extensibility.IVisual {
       this.updateHighlighting();
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
+      this.plotProperties.displayPlot = false;
+      this.resizeCanvas(options.viewport.width, options.viewport.height);
       this.svg.call(drawErrors, options, caught_error.message, "internal");
       console.error(caught_error)
       this.host.eventService.renderingFailed(options);

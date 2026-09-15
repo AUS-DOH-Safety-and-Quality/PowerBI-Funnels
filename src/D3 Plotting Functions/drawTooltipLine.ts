@@ -35,7 +35,7 @@ export default function drawTooltipLine(selection: svgBaseType, visualObj: Visua
     const boundRect = visualObj.svg.node().getBoundingClientRect();
     const xValue: number = (event.pageX - boundRect.left);
     const yValue: number = (event.pageY - boundRect.top);
-    let indexNearestValue: number;
+    let indexNearestValue: number | undefined;
     let nearestDistance: number = Infinity;
     let x_coord: number;
     let y_coord: number;
@@ -49,6 +49,10 @@ export default function drawTooltipLine(selection: svgBaseType, visualObj: Visua
         x_coord = curr_x;
         y_coord = curr_y;
       }
+    }
+
+    if (indexNearestValue === undefined) {
+      return;
     }
 
     visualObj.host.tooltipService.show({

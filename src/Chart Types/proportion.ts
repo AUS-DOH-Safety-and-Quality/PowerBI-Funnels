@@ -1,10 +1,16 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
-import { sqrt, inv, asin, square, multiply, divide, winsorise, type dataObject } from "../Functions"
+import winsorise from "../Functions/winsorise";
+import type { dataObject } from "../Functions/extractInputData";
 import sum from "../Functions/sum";
 
 const prSE = function(inputData: dataObject): number[] {
   const denominators: number[] = inputData.denominators;
-  return inv(multiply(2, sqrt(denominators)));
+  const n: number = denominators.length;
+  const result: number[] = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    result[i] = 1 / (2 * Math.sqrt(denominators[i]));
+  }
+  return result;
 }
 
 const prTarget = function(inputData: dataObject): number {
@@ -20,7 +26,12 @@ const prTargetTransformed = function(inputData: dataObject): number {
 const prY = function(inputData: dataObject): number[] {
   const numerators: number[] = inputData.numerators;
   const denominators: number[] = inputData.denominators;
-  return asin(sqrt(divide(numerators, denominators)));
+  const n: number = numerators.length;
+  const result: number[] = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    result[i] = Math.asin(Math.sqrt(numerators[i] / denominators[i]));
+  }
+  return result;
 }
 
 const prZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
@@ -45,8 +56,8 @@ const prLimit = function(args: limitArgs) {
   const q: number = args.q;
   const SE: number = args.SE;
   const tau2: number = args.tau2;
-  const limit_transformed: number = target + q * sqrt(square(SE) + tau2);
-  const limit: number = square(Math.sin(limit_transformed));
+  const limit_transformed: number = target + q * Math.sqrt(SE * SE + tau2);
+  const limit: number = Math.pow(Math.sin(limit_transformed), 2);
 
   return winsorise(limit, {lower: 0, upper: 1})
 }

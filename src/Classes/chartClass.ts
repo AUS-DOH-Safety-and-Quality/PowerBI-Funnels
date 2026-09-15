@@ -1,4 +1,5 @@
-import { seq, type dataObject, isNullOrUndefined } from "../Functions";
+import seq from "../Functions/seq";
+import type { dataObject } from "../Functions/extractInputData";
 import type { settingsClass } from "../Classes";
 import max from "../Functions/max";
 import getZScores from "../Funnel Calculations/getZScores";

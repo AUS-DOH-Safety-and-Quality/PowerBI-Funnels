@@ -1,13 +1,14 @@
 export default function getTransformation(setting_name: string): (x: number) => number {
-  if(setting_name == "none") {
-    return function(x: number): number { return x; };
-  } else if (setting_name == "ln") {
-    return function(x: number): number { return Math.log(x+1); };
-  } else if (setting_name == "log10") {
-    return function(x: number): number { return Math.log10(x+1); };
-  } else if (setting_name == "sqrt") {
-    return Math.sqrt;
-  } else {
-    return function(x: number): number { return x; };
+  switch(setting_name) {
+    case "none":
+      return function(x: number): number { return x; };
+    case "ln":
+      return function(x: number): number { return Math.log(x+1); };
+    case "log10":
+      return function(x: number): number { return Math.log10(x+1); };
+    case "sqrt":
+      return Math.sqrt
+    default:
+      return function(x: number): number { return x; };
   }
 }

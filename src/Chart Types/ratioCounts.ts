@@ -1,15 +1,19 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
-import { add, divide, sqrt, log, exp, square, winsorise, type dataObject } from "../Functions"
+import winsorise from "../Functions/winsorise";
+import type { dataObject } from "../Functions/extractInputData";
 import sum from "../Functions/sum";
 
 const rcSE = function(inputData: dataObject): number[] {
   const numerators: number[] = inputData.numerators ? inputData.numerators : inputData.denominators;
   const denominators: number[] = inputData.denominators;
 
-  return sqrt(
-    add(divide(numerators, square(add(numerators, 0.5))),
-        divide(denominators, square(add(denominators, 0.5))))
-  );
+  const n: number = numerators.length;
+  const result: number[] = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    result[i] = Math.sqrt(numerators[i] / Math.pow(numerators[i] + 0.5, 2)
+      + denominators[i] / Math.pow(denominators[i] + 0.5, 2));
+  }
+  return result;
 }
 
 const rcTarget = function(inputData: dataObject): number {
@@ -21,13 +25,18 @@ const rcTarget = function(inputData: dataObject): number {
 const rcTargetTransformed = function(inputData: dataObject): number {
   const numerators: number[] = inputData.numerators;
   const denominators: number[] = inputData.denominators;
-  return log(sum(numerators)) - log(sum(denominators));
+  return Math.log(sum(numerators)) - Math.log(sum(denominators));
 }
 
 const rcY = function(inputData: dataObject): number[] {
   const numerators: number[] = inputData.numerators;
   const denominators: number[] = inputData.denominators;
-  return log(divide(add(numerators, 0.5), add(denominators, 0.5)));
+  const n: number = numerators.length;
+  const result: number[] = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    result[i] = Math.log((numerators[i] + 0.5) / (denominators[i] + 0.5));
+  }
+  return result;
 }
 
 const rcZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
@@ -52,8 +61,8 @@ const rcLimit = function(args: limitArgs): number {
   const q: number = args.q;
   const SE: number = args.SE;
   const tau2: number = args.tau2;
-  const limit_transformed: number = target + q * sqrt(square(SE) + tau2);
-  const limit: number = exp(limit_transformed);
+  const limit_transformed: number = target + q * Math.sqrt(SE * SE + tau2);
+  const limit: number = Math.exp(limit_transformed);
 
   return winsorise(limit, {lower: 0});
 }
