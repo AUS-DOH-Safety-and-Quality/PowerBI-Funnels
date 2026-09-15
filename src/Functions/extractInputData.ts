@@ -1,6 +1,11 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import { extractValues, validateInputData, extractDataColumn, extractConditionalFormatting, rep, isNullOrUndefined } from "../Functions"
+import extractValues from "./extractValues";
+import validateInputData from "./validateInputData";
+import extractDataColumn from "./extractDataColumn";
+import extractConditionalFormatting from "./extractConditionalFormatting";
+import rep from "./rep";
+import isNullOrUndefined from "./isNullOrUndefined";
 import { settingsClass } from "../Classes"
 import type { settingsValueType } from "../settings";
 import { type ValidationT } from "./validateInputData";

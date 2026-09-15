@@ -1,6 +1,6 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
-import { winsorise, sqrt,
-          inv, square, multiply, divide, type dataObject } from '../Functions';
+import winsorise from "../Functions/winsorise";
+import type { dataObject } from "../Functions/extractInputData";
 import chisqCDF from "../Functions/chisqCDF";
 import chisqQuantile from "../Functions/chisqQuantile";
 import normalQuantile from "../Functions/normalQuantile";
@@ -11,7 +11,12 @@ const smrSE = function(inputData: dataObject): number[] {
 
 const smrSEOD = function(inputData: dataObject): number[] {
   const denominators: number[] = inputData.denominators;
-  return inv(multiply(2, sqrt(denominators)));
+  const n: number = denominators.length;
+  const result: number[] = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    result[i] = 1 / (2 * Math.sqrt(denominators[i]));
+  }
+  return result;
 }
 
 const smrTarget = function(inputData: dataObject): number {
@@ -21,7 +26,12 @@ const smrTarget = function(inputData: dataObject): number {
 const smrY = function(inputData: dataObject): number[] {
   const numerators: number[] = inputData.numerators;
   const denominators: number[] = inputData.denominators;
-  return sqrt(divide(numerators, denominators));
+  const n: number = numerators.length;
+  const result: number[] = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    result[i] = Math.sqrt(numerators[i] / denominators[i]);
+  }
+  return result;
 }
 
 const smrZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
@@ -57,8 +67,8 @@ const smrLimitOD = function(args: limitArgs) {
   const q: number = args.q;
   const SE: number = args.SE;
   const tau2: number = args.tau2;
-  const limit_transformed: number = target + q * sqrt(square(SE) + tau2);
-  const limit: number = square(limit_transformed);
+  const limit_transformed: number = target + q * Math.sqrt(SE * SE + tau2);
+  const limit: number = limit_transformed * limit_transformed;
 
   return winsorise(limit, {lower: 0})
 }

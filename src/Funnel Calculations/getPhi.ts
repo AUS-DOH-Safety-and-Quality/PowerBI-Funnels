@@ -1,6 +1,3 @@
-import { square } from "../Functions"
-import sum from "../Functions/sum";
-
 /**
  * Estimate the dispersion ratio of the observed responses using
  *    winsorised z-scores

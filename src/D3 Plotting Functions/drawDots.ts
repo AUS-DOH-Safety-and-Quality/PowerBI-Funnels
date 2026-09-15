@@ -1,5 +1,5 @@
 import type { plotData } from "../Classes";
-import { between } from "../Functions";
+import between from "../Functions/between";
 import type { svgBaseType, Visual } from "../visual";
 import * as d3 from "./D3 Modules"
 
@@ -53,6 +53,9 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
     )
 
   selection.on('click', () => {
+    if (!visualObj.plotProperties.displayPlot || !visualObj.host.hostCapabilities.allowInteractions) {
+      return;
+    }
     visualObj.selectionManager.clear();
     visualObj.updateHighlighting();
   });
@@ -61,6 +64,9 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
 function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
   selection
     .on("click", (event, d: plotData) => {
+      if (!visualObj.plotProperties.displayPlot || !visualObj.host.hostCapabilities.allowInteractions) {
+        return;
+      }
       // Pass identities of selected data back to PowerBI
       visualObj
           .selectionManager

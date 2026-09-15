@@ -1,6 +1,6 @@
 import type { svgBaseType, Visual } from "../visual";
 import { lineNameMap } from "../Functions/getAesthetic";
-import { valueFormatter } from "../Functions";
+import valueFormatter from "../Functions/valueFormatter";
 import * as d3 from "./D3 Modules";
 import { type lineData } from "../Classes";
 
@@ -34,6 +34,10 @@ type lineLabelType = {
 }
 
 export default function drawLineLabels(selection: svgBaseType, visualObj: Visual) {
+  if (visualObj.viewModel.groupedLines.length === 0) {
+    selection.select(".linesgroup").selectAll("text").remove();
+    return;
+  }
   const lineSettings = visualObj.viewModel.inputSettings.settings.lines;
   const rebaselinePoints: number[] = new Array<number>();
   visualObj.viewModel.groupedLines[0][1].forEach((d: lineData, idx: number) => {

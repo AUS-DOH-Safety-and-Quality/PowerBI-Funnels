@@ -2,7 +2,8 @@ import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import type { settingsValueType } from "../settings";
 import type { limitData, derivedSettingsClass } from "../Classes";
-import { type dataObject } from "../Functions";
+import type { dataObject } from "./extractInputData";
+import valueFormatter from "./valueFormatter";
 import getTransformation from "../Funnel Calculations/getTransformation";
 
 export default function buildTooltip(index: number,
@@ -23,7 +24,7 @@ export default function buildTooltip(index: number,
   const limits: limitData = calculatedLimits.filter(d => d.denominators === denominator && d.ll99 !== null && d.ul99 !== null)[0];
 
   const ratio: number = transform((numerator / denominator) * multiplier);
-  const suffix: string = derivedSettings.percentLabels ? "%" : "";
+  const formatValue = valueFormatter(inputSettings, derivedSettings);
 
   const prop_labels: boolean = derivedSettings.percentLabels;
   const sig_figs: number = inputSettings.funnel.sig_figs;
@@ -44,7 +45,7 @@ export default function buildTooltip(index: number,
     const ttip_label_value: string = inputSettings.funnel.ttip_label_value;
     tooltip.push({
       displayName: ttip_label_value === "Automatic" ? valueLabel[data_type] : ttip_label_value,
-      value: ratio.toFixed(sig_figs) + suffix
+      value: formatValue(ratio, "value")
     })
   }
   if(inputSettings.funnel.ttip_show_numerator && !(numerator === null || numerator === undefined)) {
@@ -63,27 +64,27 @@ export default function buildTooltip(index: number,
     if (inputSettings.lines[`ttip_show_${limit}`] && inputSettings.lines[`show_${limit}`]) {
       tooltip.push({
         displayName: `Upper ${inputSettings.lines[`ttip_label_${limit}`]}`,
-        value: (limits[`ul${limit}`]).toFixed(sig_figs) + suffix
+        value: formatValue(limits[`ul${limit}`], "value")
       })
     }
   })
   if (inputSettings.lines.show_target && inputSettings.lines.ttip_show_target) {
     tooltip.push({
       displayName: inputSettings.lines.ttip_label_target,
-      value: (limits.target).toFixed(sig_figs) + suffix
+      value: formatValue(limits.target, "value")
     })
   }
   if (inputSettings.lines.show_alt_target && inputSettings.lines.ttip_show_alt_target && !(limits.alt_target === null || limits.alt_target === undefined)) {
     tooltip.push({
       displayName: inputSettings.lines.ttip_label_alt_target,
-      value: (limits.alt_target).toFixed(sig_figs) + suffix
+      value: formatValue(limits.alt_target, "value")
     })
   }
   ["68", "95", "99"].forEach(limit => {
     if (inputSettings.lines[`ttip_show_${limit}`] && inputSettings.lines[`show_${limit}`]) {
       tooltip.push({
         displayName: `Lower ${inputSettings.lines[`ttip_label_${limit}`]}`,
-        value: (limits[`ll${limit}`]).toFixed(sig_figs) + suffix
+        value: formatValue(limits[`ll${limit}`], "value")
       })
     }
   })

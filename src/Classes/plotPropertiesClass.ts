@@ -2,8 +2,9 @@ import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import type { settingsValueType } from "../settings";
-import type { plotData, derivedSettingsClass, viewModelClass } from "../Classes";
-import { divide, isNullOrUndefined, type dataObject } from "../Functions";
+import type { plotData, viewModelClass } from "../Classes";
+import isNullOrUndefined from "../Functions/isNullOrUndefined";
+import type { dataObject } from "../Functions/extractInputData";
 import max from "../Functions/max";
 import { type colourPaletteType } from "./viewModelClass";
 import scaleLinear from "../Functions/scaleLinear";
@@ -53,15 +54,12 @@ export default class plotPropertiesClass {
     const plotPoints: plotData[] = viewModel.plotPoints;
     const inputData: dataObject = viewModel.inputData;
     const inputSettings: settingsValueType = viewModel.inputSettings.settings;
-    const derivedSettings: derivedSettingsClass = viewModel.inputSettings.derivedSettings;
     const colorPalette: colourPaletteType = viewModel.colourPalette;
 
     // Get the width and height of plotting space
     this.width = options.viewport.width;
     this.height = options.viewport.height;
-    this.displayPlot = plotPoints
-      ? plotPoints.length > 1
-      : null;
+    this.displayPlot = plotPoints.length > 0;
 
     const xTickSize: number = inputSettings.x_axis.xlimit_tick_size;
     const yTickSize: number = inputSettings.y_axis.ylimit_tick_size;
@@ -72,7 +70,7 @@ export default class plotPropertiesClass {
     let xUpperLimit: number = inputSettings.x_axis.xlimit_u;
 
     if (!isNullOrUndefined(inputData?.denominators)) {
-      xUpperLimit = xUpperLimit ? xUpperLimit : max(inputData.denominators) * 1.1;
+      xUpperLimit ??= max(inputData.denominators) * 1.1;
     }
     const leftLabelPadding: number = inputSettings.y_axis.ylimit_label
                                       ? inputSettings.y_axis.ylimit_label_size
@@ -87,7 +85,7 @@ export default class plotPropertiesClass {
       start_padding: inputSettings.canvas.left_padding + leftLabelPadding,
       end_padding: inputSettings.canvas.right_padding,
       colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.x_axis.xlimit_colour,
-      ticks: (xTicksCount !== null) ? (xTicksCount > 0) : inputSettings.x_axis.xlimit_ticks,
+      ticks: inputSettings.x_axis.xlimit_ticks && xTicksCount !== 0,
       tick_size: `${xTickSize}px`,
       tick_font: inputSettings.x_axis.xlimit_tick_font,
       tick_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.x_axis.xlimit_tick_colour,
@@ -102,9 +100,11 @@ export default class plotPropertiesClass {
     const yLowerLimit: number = inputSettings.y_axis.ylimit_l;
     let yUpperLimit: number = inputSettings.y_axis.ylimit_u;
 
-    if (!isNullOrUndefined(inputData?.numerators) && !isNullOrUndefined(inputData?.denominators)) {
-      const maxRatio: number = max(divide(inputData.numerators, inputData.denominators));
-      yUpperLimit ??= maxRatio * derivedSettings.multiplier
+    if (isNullOrUndefined(yUpperLimit) && plotPoints.length > 0) {
+      yUpperLimit = -Infinity;
+      for (let i = 0; i < plotPoints.length; i++) {
+        yUpperLimit = Math.max(yUpperLimit, plotPoints[i].value);
+      }
     }
 
     this.yAxis = {
@@ -113,7 +113,7 @@ export default class plotPropertiesClass {
       start_padding: inputSettings.canvas.lower_padding + lowerLabelPadding,
       end_padding: inputSettings.canvas.upper_padding,
       colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.y_axis.ylimit_colour,
-      ticks: (yTicksCount !== null) ? (yTicksCount > 0) : inputSettings.y_axis.ylimit_ticks,
+      ticks: inputSettings.y_axis.ylimit_ticks && yTicksCount !== 0,
       tick_size: `${yTickSize}px`,
       tick_font: inputSettings.y_axis.ylimit_tick_font,
       tick_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.y_axis.ylimit_tick_colour,

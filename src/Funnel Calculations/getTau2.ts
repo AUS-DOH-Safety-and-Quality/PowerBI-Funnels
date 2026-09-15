@@ -1,6 +1,3 @@
-import { inv, square } from "../Functions"
-import sum from "../Functions/sum";
-
 /**
  * Estimate the between-unit variance to adjust control limits
  *     by, using the DerSimonian & Laird Method-of-Moments estimator.

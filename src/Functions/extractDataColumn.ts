@@ -11,7 +11,13 @@ function extractKeys(inputView: DataViewCategorical): string[] {
   const primitiveKeyColumns = inputView.categories.filter(viewColumn => viewColumn.source?.roles?.["key"])
   const primitiveKeyValues = primitiveKeyColumns?.[0]?.values;
   const primitiveKeyTypes = primitiveKeyColumns?.[0]?.source?.type;
-  return formatPrimitiveValue(primitiveKeyValues, primitiveKeyTypes)
+  const n: number = primitiveKeyValues.length;
+  const result: string[] = new Array<string>(n);
+  for (let i = 0; i < n; i++) {
+    const value = primitiveKeyValues[i];
+    result[i] = isNullOrUndefined(value) ? undefined : formatPrimitiveValue(value, primitiveKeyTypes);
+  }
+  return result;
 }
 
 function extractTooltips(inputView: DataViewCategorical): VisualTooltipDataItem[][] {
