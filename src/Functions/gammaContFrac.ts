@@ -39,7 +39,7 @@ export default function gammaContFrac(y: number, d: number): number {
   let b2: number = d;
 
   // Scale factor to prevent overflow in intermediate calculations
-  const scalefactor: number = 1.157921e+77;
+  const scalefactor: number = 2 ** 256;
 
   // Initial scaling if needed
   while (b2 > scalefactor) {

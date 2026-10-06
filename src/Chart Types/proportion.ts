@@ -1,21 +1,20 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
-import winsorise from "../Functions/winsorise";
 import type { dataObject } from "../Functions/extractInputData";
-import sum from "../Functions/sum";
+import { sum, clamp } from "powerbi-visuals-core/math";
 
-const prSE = function(inputData: dataObject): number[] {
-  const denominators: number[] = inputData.denominators;
+const prSE = function(inputData: dataObject, plottingDenominators?: readonly number[]): number[] {
+  const denominators: readonly number[] = plottingDenominators ?? inputData.denominators;
   const n: number = denominators.length;
   const result: number[] = new Array<number>(n);
-  for (let i = 0; i < n; i++) {
-    result[i] = 1 / (2 * Math.sqrt(denominators[i]));
+  for (let i: number = 0; i < n; i++) {
+    result[i] = 1.0 / (2 * Math.sqrt(denominators[i]));
   }
   return result;
 }
 
 const prTarget = function(inputData: dataObject): number {
-  const numerators: number[] = inputData.numerators;
-  const denominators: number[] = inputData.denominators;
+  const numerators: readonly number[] = inputData.numerators;
+  const denominators: readonly number[] = inputData.denominators;
   return sum(numerators) / sum(denominators);
 }
 
@@ -24,11 +23,11 @@ const prTargetTransformed = function(inputData: dataObject): number {
 }
 
 const prY = function(inputData: dataObject): number[] {
-  const numerators: number[] = inputData.numerators;
-  const denominators: number[] = inputData.denominators;
+  const numerators: readonly number[] = inputData.numerators;
+  const denominators: readonly number[] = inputData.denominators;
   const n: number = numerators.length;
   const result: number[] = new Array<number>(n);
-  for (let i = 0; i < n; i++) {
+  for (let i: number = 0; i < n; i++) {
     result[i] = Math.asin(Math.sqrt(numerators[i] / denominators[i]));
   }
   return result;
@@ -37,7 +36,7 @@ const prY = function(inputData: dataObject): number[] {
 const prZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
   if (odAdjust) {
     const n: number = zScores.length;
-    let rtn: number[] = new Array<number>(n);
+    const rtn: number[] = new Array<number>(n);
     for (let i: number = 0; i < n; i++) {
       // Scale z-score to od-adjusted scale, by first un-standardising using the SE
       // and then re-standardising using the OD-adjusted variance
@@ -52,14 +51,15 @@ const prZ = function(inputData: dataObject, zScores: number[], seOD: number[], o
 }
 
 const prLimit = function(args: limitArgs) {
+  if (args.SE === undefined) throw new Error("Proportion limits require a standard error.");
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;
   const tau2: number = args.tau2;
-  const limit_transformed: number = target + q * Math.sqrt(SE * SE + tau2);
+  const limit_transformed: number = target + q * Math.sqrt(Math.pow(SE, 2) + tau2);
   const limit: number = Math.pow(Math.sin(limit_transformed), 2);
 
-  return winsorise(limit, {lower: 0, upper: 1})
+  return clamp(limit, 0, 1);
 }
 
 export default class prFunnelClass extends chartClass {

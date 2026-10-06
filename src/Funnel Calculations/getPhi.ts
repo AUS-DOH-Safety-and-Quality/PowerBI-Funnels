@@ -5,12 +5,10 @@
  * @param z_adj
  * @returns
  */
-export default function getPhi(z_adj: number[]): number {
-  let sq_sum: number = 0;
-  let n: number = z_adj.length;
-
-  for (let i = 0; i < n; i++) {
-    sq_sum += z_adj[i] * z_adj[i];
+export default function getPhi(z_adj: readonly number[]): number {
+  let total: number = 0;
+  for (let i: number = 0; i < z_adj.length; i++) {
+    total += Math.pow(z_adj[i], 2);
   }
-  return sq_sum / n;
+  return total / z_adj.length;
 }

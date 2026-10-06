@@ -1,10 +1,11 @@
 import type { plotData } from "../Classes";
-import between from "../Functions/between";
+import { between } from "powerbi-visuals-core/math";
 import type { svgBaseType, Visual } from "../visual";
 import * as d3 from "./D3 Modules"
 
-type aestheticSelection = d3.Selection<SVGGraphicsElement, plotData, d3.BaseType, any>;
-type dataPointSelection = d3.Selection<SVGGraphicsElement, plotData, d3.BaseType, any>;
+type DataPointSelection<E extends SVGGraphicsElement> = d3.Selection<E, plotData, d3.BaseType, unknown>;
+const shapes = { Circle: d3.symbolCircle, Cross: d3.symbolCross, Diamond: d3.symbolDiamond,
+  Square: d3.symbolSquare, Star: d3.symbolStar, Triangle: d3.symbolTriangle, Wye: d3.symbolWye };
 
 export default function drawDots(selection: svgBaseType, visualObj: Visual): void {
   const use_group_text: boolean = visualObj.viewModel.inputSettings.settings.scatter.use_group_text;
@@ -15,7 +16,7 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
    */
   selection
     .selectAll(".dotsgroup")
-    .selectAll(".dotsgroup-child")
+    .selectAll<SVGGElement, plotData>(".dotsgroup-child")
     .data(visualObj.viewModel.plotPoints)
     .join(
       (enter) => {
@@ -31,8 +32,8 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
         return dataPoint
       },
       (update) => {
-        let current_text = update.select("text");
-        let current_circle = update.select("path");
+        let current_text = update.select<SVGTextElement>("text");
+        let current_circle = update.select<SVGPathElement>("path");
         if (use_group_text) {
           current_circle.remove();
           // The text element may not exist if use_group_text was previously false
@@ -53,20 +54,16 @@ export default function drawDots(selection: svgBaseType, visualObj: Visual): voi
     )
 
   selection.on('click', () => {
-    if (!visualObj.plotProperties.displayPlot || !visualObj.host.hostCapabilities.allowInteractions) {
-      return;
-    }
+    if (!visualObj.host.hostCapabilities.allowInteractions) return;
     visualObj.selectionManager.clear();
     visualObj.updateHighlighting();
   });
 }
 
-function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
+function dot_tooltips(selection: DataPointSelection<SVGGElement>, visualObj: Visual) {
   selection
     .on("click", (event, d: plotData) => {
-      if (!visualObj.plotProperties.displayPlot || !visualObj.host.hostCapabilities.allowInteractions) {
-        return;
-      }
+      if (!visualObj.plotProperties.displayPlot || !visualObj.host.hostCapabilities.allowInteractions) return;
       // Pass identities of selected data back to PowerBI
       visualObj
           .selectionManager
@@ -78,7 +75,9 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
     // Display tooltip content on mouseover
     .on("mouseover", (event, d: plotData) => {
       // Pointer coordinates relative to the SVG, matching drawTooltipLine
-      const boundRect = visualObj.svg.node().getBoundingClientRect();
+      const node = visualObj.svg.node();
+      if (node === null) return;
+      const boundRect = node.getBoundingClientRect();
       const x = event.clientX - boundRect.left;
       const y = event.clientY - boundRect.top;
 
@@ -101,16 +100,16 @@ function dot_tooltips(selection: dataPointSelection, visualObj: Visual) {
 // TODO(Andrew): Construct these attributes in the viewModel
 //   - Tricky as the plotProperties get updated when rendering X & Y axes
 //      to add padding when rendering out of frame
-function dot_attributes(selection: aestheticSelection, visualObj: Visual): void {
+function dot_attributes(selection: DataPointSelection<SVGPathElement>, visualObj: Visual): void {
   const ylower: number = visualObj.plotProperties.yAxis.lower;
   const yupper: number = visualObj.plotProperties.yAxis.upper;
   const xlower: number = visualObj.plotProperties.xAxis.lower;
   const xupper: number = visualObj.plotProperties.xAxis.upper;
   selection
     .attr("d", (d: plotData) => {
-      const shape: string = d.aesthetics.shape;
+      const shape = shapes[d.aesthetics.shape as keyof typeof shapes];
       const size: number = d.aesthetics.size;
-      return d3.symbol().type(d3[`symbol${shape}`]).size((size*size) * Math.PI)()
+      return d3.symbol().type(shape).size((size*size) * Math.PI)()
     })
     .attr("transform", (d: plotData) => {
       if (!between(d.value, ylower, yupper) || !between(d.x, xlower, xupper)) {
@@ -127,7 +126,7 @@ function dot_attributes(selection: aestheticSelection, visualObj: Visual): void 
     .style("stroke-width", (d: plotData) => d.aesthetics.width_outline);
 }
 
-function text_attributes(selection: aestheticSelection, visualObj: Visual): void {
+function text_attributes(selection: DataPointSelection<SVGTextElement>, visualObj: Visual): void {
   const ylower: number = visualObj.plotProperties.yAxis.lower;
   const yupper: number = visualObj.plotProperties.yAxis.upper;
   const xlower: number = visualObj.plotProperties.xAxis.lower;

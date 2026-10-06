@@ -1,4 +1,4 @@
-import log1pmx from "./log1pmx";
+import { log1pmx } from "powerbi-visuals-core/math";
 import normalCDF from "./normalCDF";
 import normalDensity from "./normalDensity";
 

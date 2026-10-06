@@ -1,7 +1,7 @@
-import seq from "../Functions/seq";
 import type { dataObject } from "../Functions/extractInputData";
 import type { settingsClass } from "../Classes";
-import max from "../Functions/max";
+import { max, sequence } from "powerbi-visuals-core/math";
+import { isNullOrUndefined } from "powerbi-visuals-core/data";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
@@ -12,32 +12,32 @@ export type limitArgs = {
   q: number;
   target: number;
   target_transformed: number;
-  SE: number;
+  SE: number | undefined;
   tau2: number;
   denominators: number;
 }
 
 export type limitData = {
   denominators: number;
-  ll99: number;
-  ll95: number;
-  ll68: number;
-  ul68: number;
-  ul95: number;
-  ul99: number;
+  ll99: number | undefined;
+  ll95: number | undefined;
+  ll68: number | undefined;
+  ul68: number | undefined;
+  ul95: number | undefined;
+  ul99: number | undefined;
   target: number;
-  alt_target: number;
+  alt_target: number | undefined;
 }
 
 type intervalData = {
   prob: number;
   quantile: number;
-  label: string;
+  label: "ll99" | "ll95" | "ll68" | "ul68" | "ul95" | "ul99";
 }
 
 type chartObjectConstructorT = {
-  seFunction: (x: dataObject) => number[];
-  seFunctionOD: (x: dataObject) => number[];
+  seFunction: (x: dataObject, plottingDenominators?: number[]) => number[];
+  seFunctionOD: (x: dataObject, plottingDenominators?: number[]) => number[];
   targetFunction: (x: dataObject) => number;
   targetFunctionTransformed: (x: dataObject) => number;
   yFunction: (x: dataObject) => number[];
@@ -51,25 +51,25 @@ type chartObjectConstructorT = {
 export default class chartClass {
   inputData: dataObject;
   inputSettings: settingsClass;
-  seFunction: (x: dataObject) => number[];
-  seFunctionOD: (x: dataObject) => number[];
+  seFunction: (x: dataObject, plottingDenominators?: number[]) => number[];
+  seFunctionOD: (x: dataObject, plottingDenominators?: number[]) => number[];
   targetFunction: (x: dataObject) => number;
   targetFunctionTransformed: (x: dataObject) => number;
   yFunction: (x: dataObject) => number[];
   zFunction: (x: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
-  odAdjust: boolean;
-  tau2: number;
-  zScores: number[];
-  seOD: number[]
+  odAdjust: boolean | undefined;
+  private variance: { tau2: number; zScores: number[]; seOD: number[] } | undefined;
 
   getPlottingDenominators(): number[] {
     const maxDenominator: number = max(this.inputData.denominators);
     const plotDenomLower: number = 1;
     const plotDenomUpper: number = maxDenominator + maxDenominator * 0.1;
     const plotDenomStep: number = maxDenominator * 0.01;
-    return seq(plotDenomLower, plotDenomUpper, plotDenomStep)
+    // Grid points strictly below the upper bound; an empty range adds no grid points.
+    const plotDenomCount: number = Math.floor((plotDenomUpper - plotDenomLower) / plotDenomStep);
+    return sequence(plotDenomLower, plotDenomCount, plotDenomStep)
             .concat(this.inputData.denominators)
             .filter((d, i, arr) => arr.indexOf(d) === i)
             .sort((a, b) => a - b);
@@ -82,14 +82,7 @@ export default class chartClass {
 
   getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
     const seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
-    if (par.plottingDenominators) {
-      const dummyArray: dataObject = JSON.parse(JSON.stringify(this.inputData))
-      dummyArray.numerators = null
-      dummyArray.denominators = par.plottingDenominators;
-      return seFun(dummyArray);
-    } else {
-      return seFun(this.inputData);
-    }
+    return seFun(this.inputData, par.plottingDenominators);
   }
 
   getY(): number[] {
@@ -97,18 +90,23 @@ export default class chartClass {
   }
 
   getZ(): number[] {
-    return this.zFunction(this.inputData, this.zScores, this.seOD, this.odAdjust, this.tau2);
+    if (this.variance === undefined || this.odAdjust === undefined) {
+      throw new Error("Calculate limits before requesting z-scores.");
+    }
+    return this.zFunction(this.inputData, this.variance.zScores, this.variance.seOD, this.odAdjust, this.variance.tau2);
   }
 
   getTau2(): number {
     const targetOD: number = this.getTarget({ transformed: true });
-    this.seOD = this.getSE({ odAdjust: true });
+    const seOD = this.getSE({ odAdjust: true });
     const yTransformed: number[] = this.getY();
-    this.zScores = getZScores(yTransformed, this.seOD, targetOD);
-    const zScoresWinsorized: number[] = winsoriseZScores(this.zScores);
+    const zScores = getZScores(yTransformed, seOD, targetOD);
+    const zScoresWinsorized: number[] = winsoriseZScores(zScores);
     const phi: number = getPhi(zScoresWinsorized);
 
-    return getTau2(phi, this.seOD);
+    const tau2 = getTau2(phi, seOD);
+    this.variance = { tau2, seOD, zScores };
+    return tau2;
   }
 
   getTau2Bool(): boolean {
@@ -136,31 +134,29 @@ export default class chartClass {
       1.95996398454005360534,
       3.09023230616781319213
     ];
-    const q_labels: string[] = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"];
+    const q_labels: intervalData["label"][] = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"];
 
-    return qs.map((d, idx) => {
-      return {
-        prob: probs[idx],
-        quantile: d,
-        label: q_labels[idx]
-      }
-    });
+    const result = new Array<intervalData>(qs.length);
+    for (let i = 0; i < qs.length; i++) {
+      result[i] = { prob: probs[i], quantile: qs[i], label: q_labels[i] };
+    }
+    return result;
   }
 
   getLimits(): limitData[] {
     const calculateTau2: boolean = this.getTau2Bool();
-    this.tau2 = this.getTau2();
+    const tau2 = this.getTau2();
     let curr_tau2: number;
     if (calculateTau2) {
-      curr_tau2 = this.tau2;
-      this.odAdjust = this.tau2 > 0;
+      curr_tau2 = tau2;
+      this.odAdjust = tau2 > 0;
     } else {
       curr_tau2 = 0;
       this.odAdjust = false;
     }
 
     const target: number = this.getTarget({ transformed: false });
-    const alt_target: number = this.inputSettings.settings.lines.alt_target;
+    const alt_target = this.inputSettings.settings.lines.alt_target;
     const target_transformed: number = this.getTarget({ transformed: true });
 
     const intervals: intervalData[] = this.getIntervals();
@@ -171,10 +167,13 @@ export default class chartClass {
       plottingDenominators: plottingDenominators
     });
 
-    const calcLimits: limitData[] = plottingDenominators.map((denom, idx) => {
-      const calcLimitEntries: [string, number][] = new Array<[string, number]>();
-      calcLimitEntries.push(["denominators", denom]);
-      intervals.forEach(interval => {
+    const calcLimits = new Array<limitData>(plottingDenominators.length);
+    for (let idx = 0; idx < plottingDenominators.length; idx++) {
+      const denom = plottingDenominators[idx];
+      const row: limitData = { denominators: denom, target, alt_target,
+        ll99: undefined, ll95: undefined, ll68: undefined, ul68: undefined, ul95: undefined, ul99: undefined };
+      for (let i = 0; i < intervals.length; i++) {
+        const interval = intervals[i];
         const functionArgs: limitArgs = {
           p: interval.prob,
           q: interval.quantile,
@@ -190,33 +189,33 @@ export default class chartClass {
           inputArgs: functionArgs
         });
 
-        calcLimitEntries.push([interval.label, limit])
-      });
-      calcLimitEntries.push(["target", target]);
-      calcLimitEntries.push(["alt_target", alt_target]);
-      return Object.fromEntries(calcLimitEntries) as limitData;
-    });
-
-    return calcLimits.map((d, idx) => {
-      const inner = d;
-      if (idx < (calcLimits.length - 1)) {
-        ["99", "95", "68"].forEach(type => {
-          const lower: string = `ll${type}`;
-          const upper: string = `ul${type}`;
-          if (inner[lower] > calcLimits[idx + 1][lower]) {
-            inner[lower] = undefined;
-          }
-          if (inner[upper] < calcLimits[idx + 1][upper]) {
-            inner[upper] = undefined;
-          }
-          if (inner[lower] >= inner[upper]) {
-            inner[lower] = undefined;
-            inner[upper] = undefined;
-          }
-        })
+        row[interval.label] = limit;
       }
-      return inner;
-    });
+      calcLimits[idx] = row;
+    }
+
+    const levels = ["99", "95", "68"] as const;
+    for (let idx = 0; idx < calcLimits.length - 1; idx++) {
+      const inner = calcLimits[idx];
+      const next = calcLimits[idx + 1];
+      for (let i = 0; i < levels.length; i++) {
+        const lower = `ll${levels[i]}` as const;
+        const upper = `ul${levels[i]}` as const;
+        const nextLower = next[lower];
+        const nextUpper = next[upper];
+        let low = inner[lower];
+        let high = inner[upper];
+        if (low !== undefined && nextLower !== undefined && low > nextLower) low = undefined;
+        if (high !== undefined && nextUpper !== undefined && high < nextUpper) high = undefined;
+        if (low !== undefined && high !== undefined && low >= high) {
+          low = undefined;
+          high = undefined;
+        }
+        inner[lower] = low;
+        inner[upper] = high;
+      }
+    }
+    return calcLimits;
   }
 
   constructor(args: chartObjectConstructorT) {

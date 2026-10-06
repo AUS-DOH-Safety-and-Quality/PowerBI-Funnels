@@ -1,6 +1,5 @@
-import log1pmx from './log1pmx';
+import { log1pmx, ldexp } from "powerbi-visuals-core/math";
 import frexp from './frexp';
-import ldexp from './ldexp';
 
 const bd0_scale: readonly [number, number, number, number][] = [
   [0.69314718246459961, -1.9046542121259336e-09, -8.7831837385893394e-17, 3.0618407385293692e-24],

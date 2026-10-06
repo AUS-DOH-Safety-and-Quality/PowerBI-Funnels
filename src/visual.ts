@@ -8,7 +8,10 @@ import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           initialiseSVG, drawErrors, drawValueLabels, drawLineLabels } from "./D3 Plotting Functions"
 import { viewModelClass, type viewModelValidationT, type plotData, type lineData, plotPropertiesClass } from "./Classes"
 import getAesthetic from "./Functions/getAesthetic";
-import identitySelected from "./Functions/identitySelected";
+import { identitySelected, selectedKeys } from "powerbi-visuals-core/powerbi";
+import type { LineName } from "./Functions/getAesthetic";
+import drawMisc from "./D3 Plotting Functions/drawMisc";
+import type { miscPoint } from "./Classes/viewModelClass";
 
 export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
 
@@ -16,14 +19,21 @@ export class Visual implements powerbi.extensibility.IVisual {
   host: powerbi.extensibility.visual.IVisualHost;
   svg: svgBaseType;
   viewModel: viewModelClass;
-  plotProperties: plotPropertiesClass;
+  private currentPlotProperties: plotPropertiesClass | undefined;
+
+  get plotProperties(): plotPropertiesClass {
+    if (this.currentPlotProperties === undefined) throw new Error("Plot properties require validated data.");
+    return this.currentPlotProperties;
+  }
   selectionManager: powerbi.extensibility.ISelectionManager;
 
-  constructor(options: powerbi.extensibility.visual.VisualConstructorOptions) {
+  constructor(options: powerbi.extensibility.visual.VisualConstructorOptions | undefined) {
+    if (options === undefined) {
+      throw new Error("Visual constructor options are required.");
+    }
     this.svg = d3.select(options.element).append("svg");
     this.host = options.host;
-    this.viewModel = new viewModelClass();
-    this.plotProperties = new plotPropertiesClass();
+    this.viewModel = new viewModelClass(this.host);
 
     this.selectionManager = this.host.createSelectionManager();
     this.selectionManager.registerOnSelectCallback(() => this.updateHighlighting());
@@ -41,10 +51,10 @@ export class Visual implements powerbi.extensibility.IVisual {
       // update status to false
       const update_status: viewModelValidationT = this.viewModel.update(options, this.host);
       if (!update_status.status) {
-        this.plotProperties.displayPlot = false;
+        this.currentPlotProperties = undefined;
         this.resizeCanvas(options.viewport.width, options.viewport.height);
         if (this.viewModel?.inputSettings?.settings?.canvas?.show_errors ?? true) {
-          this.svg.call(drawErrors, options, update_status?.error, update_status?.type);
+          this.svg.call(drawErrors, options, this.viewModel.colourPalette, update_status.error, update_status.type);
         } else {
           this.svg.call(initialiseSVG, true);
         }
@@ -53,23 +63,29 @@ export class Visual implements powerbi.extensibility.IVisual {
         return;
       }
 
-      this.plotProperties.update(options, this.viewModel);
-
       if (update_status.warning) {
         this.host.displayWarningIcon("Invalid inputs or settings ignored.\n",
                                       update_status.warning);
       }
 
       this.resizeCanvas(options.viewport.width, options.viewport.height);
+      if (this.viewModel.inputSettings.showMisc) {
+        this.currentPlotProperties = undefined;
+        this.svg.call(drawMisc, this);
+        this.updateHighlighting();
+        this.host.eventService.renderingFinished(options);
+        return;
+      }
+      if (!this.svg.select(".misc-root").empty()) this.svg.call(initialiseSVG, true);
+      this.currentPlotProperties = new plotPropertiesClass(options, this.viewModel, update_status.data);
       this.drawVisual();
       this.adjustPaddingForOverflow();
 
       this.updateHighlighting();
       this.host.eventService.renderingFinished(options);
     } catch (caught_error) {
-      this.plotProperties.displayPlot = false;
-      this.resizeCanvas(options.viewport.width, options.viewport.height);
-      this.svg.call(drawErrors, options, caught_error.message, "internal");
+      this.currentPlotProperties = undefined;
+      this.svg.call(drawErrors, options, this.viewModel.colourPalette, caught_error instanceof Error ? caught_error.message : String(caught_error), "internal");
       console.error(caught_error)
       this.host.eventService.renderingFailed(options);
     }
@@ -82,29 +98,40 @@ export class Visual implements powerbi.extensibility.IVisual {
   updateHighlighting(): void {
     const anyHighlights: boolean = this.viewModel.inputData ? this.viewModel.inputData.anyHighlights : false;
     const allSelectionIDs: ISelectionId[] = this.selectionManager.getSelectionIds() as ISelectionId[];
+    const selected = selectedKeys(allSelectionIDs);
 
-    const dotsSelection = this.svg.selectAll(".dotsgroup").selectChildren();
-    const linesSelection = this.svg.selectAll(".linesgroup").selectChildren();
+    if (this.viewModel.inputSettings.showMisc) {
+      const active = this.viewModel.miscAnyHighlights || allSelectionIDs.length > 0;
+      this.svg.selectAll<SVGRectElement, miscPoint>(".misc-bar").attr("opacity", point => !active
+        ? point.aesthetics.opacity : identitySelected(point.identity, selected) || point.highlighted
+          ? point.aesthetics.opacity_selected : point.aesthetics.opacity_unselected);
+      return;
+    }
+
+    const dotsSelection = this.svg.selectAll(".dotsgroup").selectChildren<SVGGElement, plotData>();
+    const linesSelection = this.svg.selectAll(".linesgroup").selectAll<SVGPathElement, [LineName, lineData[]]>("path");
 
     // Set the default opacity for all lines and dots
-    linesSelection.style("stroke-opacity", (d: [string, lineData[]]) => {
+    linesSelection.style("stroke-opacity", (d: [LineName, lineData[]]) => {
       return getAesthetic(d[0], "lines", "opacity", this.viewModel.inputSettings.settings)
     });
     dotsSelection.style("fill-opacity", (d: plotData) => d.aesthetics.opacity);
     dotsSelection.style("stroke-opacity", (d: plotData) => d.aesthetics.opacity);
 
     if (anyHighlights || (allSelectionIDs.length > 0)) {
-      linesSelection.style("stroke-opacity", (d: [string, lineData[]]) => {
+      linesSelection.style("stroke-opacity", (d: [LineName, lineData[]]) => {
         return getAesthetic(d[0], "lines", "opacity_unselected", this.viewModel.inputSettings.settings)
       });
-      dotsSelection.nodes().forEach(currentDotNode => {
-        const dot: plotData = d3.select(currentDotNode).datum() as plotData;
-        const currentPointSelected: boolean = identitySelected(dot.identity, this.selectionManager);
+      const nodes = dotsSelection.nodes();
+      for (let i = 0; i < nodes.length; i++) {
+        const currentDotNode = nodes[i];
+        const dot = d3.select<SVGGElement, plotData>(currentDotNode).datum();
+        const currentPointSelected: boolean = identitySelected(dot.identity, selected);
         const currentPointHighlighted: boolean = dot.highlighted;
         const newDotOpacity: number = (currentPointSelected || currentPointHighlighted) ? dot.aesthetics.opacity_selected : dot.aesthetics.opacity_unselected;
         d3.select(currentDotNode).style("fill-opacity", newDotOpacity);
         d3.select(currentDotNode).style("stroke-opacity", newDotOpacity);
-      })
+      }
     }
   }
 
@@ -126,7 +153,9 @@ export class Visual implements powerbi.extensibility.IVisual {
     }
     const svgWidth: number = this.viewModel.svgWidth;
     const svgHeight: number = this.viewModel.svgHeight;
-    const svgBBox: DOMRect = this.svg.node().getBBox();
+    const node = this.svg.node();
+    if (node === null) return;
+    const svgBBox: DOMRect = node.getBBox();
     const overflowLeft: number = Math.abs(Math.min(0, svgBBox.x));
     const overflowRight: number = Math.max(0, svgBBox.width + svgBBox.x - svgWidth);
     const overflowTop: number = Math.abs(Math.min(0, svgBBox.y));

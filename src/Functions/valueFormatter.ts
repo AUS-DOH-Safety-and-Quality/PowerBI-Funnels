@@ -1,29 +1,11 @@
-import type { derivedSettingsClass } from "../Classes";
 import type { settingsValueType } from "../settings";
-import isNullOrUndefined from "./isNullOrUndefined";
+import type derivedSettingsClass from "../Classes/derivedSettingsClass";
+import { formatNumber } from "powerbi-visuals-core/data";
 
-const formatValues = function<T>(value: T, name: string,
-                                        inputSettings: settingsValueType,
-                                        derivedSettings: derivedSettingsClass): string {
-  const suffix: string = derivedSettings.percentLabels ? "%" : "";
-  const sig_figs: number = inputSettings.funnel.sig_figs;
-  if (isNullOrUndefined(value)) {
-    return "";
-  }
-  switch (name) {
-    case "date":
-      return value as string;
-    case "integer": {
-      return (value as number).toFixed(0);
-    }
-    default:
-      return (value as number).toFixed(sig_figs) + suffix;
-  }
-}
-
-export default function valueFormatter(inputSettings: settingsValueType, derivedSettings: derivedSettingsClass) {
-  const formatValuesImpl = function<T>(value: T, name: string): string {
-    return formatValues(value, name, inputSettings, derivedSettings);
-  }
-  return formatValuesImpl;
+export default function valueFormatter(settings: settingsValueType, derivedSettings: derivedSettingsClass) {
+  const decimalPlaces = settings.funnel.sig_figs;
+  const integerPlaces = 0;
+  const suffix = derivedSettings.percentLabels ? "%" : "";
+  return (value: number | undefined, name: "integer" | "value"): string =>
+    formatNumber(value, name === "integer" ? integerPlaces : decimalPlaces, name === "integer" ? "" : suffix) ?? "";
 }

@@ -1,3 +1,4 @@
+import { DBL_MIN } from "powerbi-visuals-core/math";
 import gammaCDF from "./gammaCDF";
 import gammaDensity from "./gammaDensity";
 
@@ -40,7 +41,7 @@ export default function gammaNewtonIter(ch: number, p: number, alpha: number, sc
   if (x === 0) {
     const _1_p: number = 1. + 1e-7;  // Tolerance factor (upper)
     const _1_m: number = 1. - 1e-7;  // Tolerance factor (lower)
-    x = Number.MIN_VALUE;
+    x = DBL_MIN;
     p_ = gammaCDF(x, alpha, scale, lower_tail, log_p);
     // Check if p is so small that the quantile is effectively 0
     if ((lower_tail && p_ > p * _1_p) || (!lower_tail && p_ < p * _1_m)) {

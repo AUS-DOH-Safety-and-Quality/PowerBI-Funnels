@@ -1,5 +1,4 @@
-import {
-  dropdownOption, colourOption, numberOption, toggleOption, fontOption, fontSizeOption, textOption } from "./common";
+import { dropdownOption, colourOption, numberOption, toggleOption, fontOption, fontSizeOption, textOption } from "powerbi-visuals-core/settings";
 
 const xAxisSettings = {
   description: "X Axis Settings",

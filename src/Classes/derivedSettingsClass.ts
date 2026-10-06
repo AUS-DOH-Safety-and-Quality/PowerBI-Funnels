@@ -4,7 +4,19 @@ export default class derivedSettingsClass {
   multiplier: number
   percentLabels: boolean
 
+  constructor(inputSettings: settingsValueType) {
+    const values = this.calculate(inputSettings);
+    this.multiplier = values.multiplier;
+    this.percentLabels = values.percentLabels;
+  }
+
   update(inputSettings: settingsValueType) {
+    const values = this.calculate(inputSettings);
+    this.multiplier = values.multiplier;
+    this.percentLabels = values.percentLabels;
+  }
+
+  private calculate(inputSettings: settingsValueType) {
     const chartType: string = inputSettings.funnel.chart_type;
     const pChartType: boolean = ["PR"].includes(chartType);
     const percentSettingString: string = inputSettings.funnel.perc_labels;
@@ -25,7 +37,6 @@ export default class derivedSettingsClass {
       percentLabels = percentSettingString === "Yes";
     }
 
-    this.multiplier = multiplier
-    this.percentLabels = percentLabels
+    return { multiplier, percentLabels };
   }
 }

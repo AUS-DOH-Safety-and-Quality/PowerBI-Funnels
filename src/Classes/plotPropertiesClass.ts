@@ -1,13 +1,10 @@
-import * as d3 from "../D3 Plotting Functions/D3 Modules";
 import type powerbi from "powerbi-visuals-api";
 type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import type { settingsValueType } from "../settings";
 import type { plotData, viewModelClass } from "../Classes";
-import isNullOrUndefined from "../Functions/isNullOrUndefined";
 import type { dataObject } from "../Functions/extractInputData";
-import max from "../Functions/max";
+import { max, scaleLinear, type LinearScale } from "powerbi-visuals-core/math";
 import { type colourPaletteType } from "./viewModelClass";
-import scaleLinear from "../Functions/scaleLinear";
 
 export type axisProperties = {
   lower: number,
@@ -39,26 +36,24 @@ export default class plotPropertiesClass {
   displayPlot: boolean;
   xAxis: axisProperties;
   yAxis: axisProperties;
-  xScale: d3.AxisScale<number>;
-  yScale: d3.AxisScale<number>;
+  xScale: LinearScale = scaleLinear();
+  yScale: LinearScale = scaleLinear();
 
   // Separate function so that the axis can be re-calculated on changes to padding
   initialiseScale(svgWidth: number, svgHeight: number): void {
     this.xScale = scaleLinear()
                     .domain([this.xAxis.lower, this.xAxis.upper])
                     .range([this.xAxis.start_padding,
-                            svgWidth - this.xAxis.end_padding]) as unknown as d3.AxisScale<number>;
+                            svgWidth - this.xAxis.end_padding]);
     this.yScale = scaleLinear()
                     .domain([this.yAxis.lower, this.yAxis.upper])
                     .range([svgHeight - this.yAxis.start_padding,
-                            this.yAxis.end_padding]) as unknown as d3.AxisScale<number>;
+                            this.yAxis.end_padding]);
   }
 
-  update(options: VisualUpdateOptions,
-        viewModel: viewModelClass) {
+  constructor(options: VisualUpdateOptions, viewModel: viewModelClass, inputData: dataObject) {
 
     const plotPoints: plotData[] = viewModel.plotPoints;
-    const inputData: dataObject = viewModel.inputData;
     const inputSettings: settingsValueType = viewModel.inputSettings.settings;
     const colorPalette: colourPaletteType = viewModel.colourPalette;
 
@@ -72,12 +67,8 @@ export default class plotPropertiesClass {
     const xTicksCount: number = inputSettings.x_axis.xlimit_tick_count;
     const yTicksCount: number = inputSettings.y_axis.ylimit_tick_count;
 
-    const xLowerLimit: number = inputSettings.x_axis.xlimit_l;
-    let xUpperLimit: number = inputSettings.x_axis.xlimit_u;
-
-    if (!isNullOrUndefined(inputData?.denominators)) {
-      xUpperLimit ??= max(inputData.denominators) * 1.1;
-    }
+    const xLowerLimit = inputSettings.x_axis.xlimit_l;
+    const xUpperLimit = inputSettings.x_axis.xlimit_u ?? max(inputData.denominators) * 1.1;
     const leftLabelPadding: number = inputSettings.y_axis.ylimit_label
                                       ? inputSettings.y_axis.ylimit_label_size
                                       : 0;
@@ -109,10 +100,10 @@ export default class plotPropertiesClass {
       grid_width: inputSettings.x_axis.xlimit_grid_width
     };
 
-    const yLowerLimit: number = inputSettings.y_axis.ylimit_l;
-    let yUpperLimit: number = inputSettings.y_axis.ylimit_u;
-
-    if (isNullOrUndefined(yUpperLimit) && plotPoints.length > 0) {
+    const yLowerLimit = inputSettings.y_axis.ylimit_l;
+    let yUpperLimit = inputSettings.y_axis.ylimit_u;
+    if (yUpperLimit === undefined) {
+      // Automatic bound follows the plotted (transformed and scaled) values
       yUpperLimit = -Infinity;
       for (let i = 0; i < plotPoints.length; i++) {
         yUpperLimit = Math.max(yUpperLimit, plotPoints[i].value);

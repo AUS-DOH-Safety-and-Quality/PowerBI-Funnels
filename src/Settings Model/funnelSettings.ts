@@ -1,4 +1,4 @@
-import { toggleOption, textOption, dropdownOption, numberOption } from "./common";
+import { toggleOption, textOption, dropdownOption, numberOption } from "powerbi-visuals-core/settings";
 
 const funnelSettings = {
   description: "Funnel Settings",

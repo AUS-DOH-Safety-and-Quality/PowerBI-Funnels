@@ -1,4 +1,4 @@
-import lgamma1p from "./lgamma1p";
+import { lgamma1p } from "powerbi-visuals-core/math";
 import normalQuantile from "./normalQuantile";
 import logP from "./logP";
 

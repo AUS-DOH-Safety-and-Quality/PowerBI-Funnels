@@ -1,5 +1,4 @@
-import lgamma1p from "./lgamma1p";
-import stirlingError from "./stirlingError";
+import { lgamma1p, stirlingError, DBL_MIN } from "powerbi-visuals-core/math";
 import binomialDeviance from "./binomialDeviance";
 import { TWO_PI, SQRT_TWO_PI } from "./Constants";
 
@@ -27,13 +26,13 @@ export default function poissonDensity(x: number, lambda: number, log_p: boolean
   }
 
   // For very small x relative to lambda, use limit: f(x) ≈ exp(-lambda)
-  if (x <= lambda * Number.MIN_VALUE) {
+  if (x <= lambda * DBL_MIN) {
     return log_p ? -lambda : Math.exp(-lambda);
   }
 
   // For very small lambda relative to x, use direct formula
   // f(x) = exp(-lambda + x*log(lambda) - log(Gamma(x+1)))
-  if (lambda < x * Number.MIN_VALUE) {
+  if (lambda < x * DBL_MIN) {
     if (!Number.isFinite(x)) {
       return zeroBound;
     }
@@ -48,10 +47,10 @@ export default function poissonDensity(x: number, lambda: number, log_p: boolean
   let {yh, yl} = binomialDeviance(x, lambda);
   yl += stirlingError(x);
 
-  // Handle very large x separately to avoid overflow in sqrt(2*pi*x)
-  let Lrg_x: boolean = (x >= Number.MAX_VALUE);
-  let r: number = Lrg_x ? SQRT_TWO_PI * Math.sqrt(x)
-                        : TWO_PI * x;
+  // R's x_LRG = 2^1023 / pi: beyond it 2*pi*x overflows, so use sqrt(2*pi) * sqrt(x)
+  const Lrg_x: boolean = (x >= 2.86111748575702815380240589208115399625e307);
+  const r: number = Lrg_x ? SQRT_TWO_PI * Math.sqrt(x)
+                          : TWO_PI * x;
 
   return log_p ? -yl - yh - (Lrg_x ? Math.log(r) : 0.5 * Math.log(r))
                 : Math.exp(-yl) * Math.exp(-yh) / (Lrg_x ? r : Math.sqrt(r));

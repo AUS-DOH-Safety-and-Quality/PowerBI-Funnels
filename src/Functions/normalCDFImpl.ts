@@ -1,5 +1,5 @@
 import { SQRT_THIRTY_TWO, ONE_DIV_SQRT_TWO_PI } from "./Constants";
-import ldexp from "./ldexp";
+import { ldexp } from "powerbi-visuals-core/math";
 
 /**
  * Implementation of the normal cumulative distribution function (CDF).

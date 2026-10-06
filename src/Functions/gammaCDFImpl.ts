@@ -1,5 +1,5 @@
 import poissonDensity from "./poissonDensity";
-import lgamma1p from "./lgamma1p";
+import { lgamma1p, DBL_MIN } from "powerbi-visuals-core/math";
 import poissonDensityPrev from "./poissonDensityPrev";
 import gammaContFrac from "./gammaContFrac";
 import poissonCDFAsymp from "./poissonCDFAsymp";
@@ -131,7 +131,7 @@ export default function gammaCDFImpl(x: number, alph: number,
   }
 
   // Final check for underflow in non-log case to improve precision by using log scale first
-  if (!log_p && res < Number.MIN_VALUE / Number.EPSILON) {
+  if (!log_p && res < DBL_MIN / Number.EPSILON) {
     return Math.exp(gammaCDFImpl(x, alph, lower_tail, true));
   }
 

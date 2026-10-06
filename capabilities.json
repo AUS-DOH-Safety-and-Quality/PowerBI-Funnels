@@ -3,7 +3,7 @@
   "supportsKeyboardFocus": true,
   "supportsMultiVisualSelection": true,
   "sorting": {
-    "implicit": { "clauses": [{ "role": "key", "direction": 1 }] }
+    "implicit": { "clauses": [{ "role": "indicator", "direction": 1 }, { "role": "key", "direction": 1 }] }
   },
   "tooltips": {
     "supportedTypes": { "default": true, "canvas": true },
@@ -15,10 +15,21 @@
     { "displayName": "Numerator",    "name": "numerators",   "kind": "Measure" },
     { "displayName": "Denominator",  "name": "denominators", "kind": "Measure" },
     { "displayName": "Groups",       "name": "key",          "kind": "Grouping" },
+    { "displayName": "Indicator (MISC)", "name": "indicator", "kind": "Grouping" },
     { "displayName": "Tooltips",     "name": "tooltips",     "kind": "Measure" },
     { "displayName": "Value Labels", "name": "labels",       "kind": "Measure" }
   ],
   "objects": {
+    "misc": {
+      "properties": {
+        "group": { "type": { "enumeration": [] } },
+        "lower": { "type": { "numeric": true } },
+        "upper": { "type": { "numeric": true } },
+        "bar_height": { "type": { "numeric": true } },
+        "unfavourable_label": { "type": { "text": true } },
+        "favourable_label": { "type": { "text": true } }
+      }
+    },
     "funnel" : {
       "properties": {
         "chart_type": {
@@ -616,7 +627,7 @@
     }],
     "categorical": {
       "categories": {
-        "for": { "in": "key" },
+        "select": [{ "for": { "in": "key" } }, { "for": { "in": "indicator" } }],
         "dataReductionAlgorithm": { "top": {} }
       },
       "values": {

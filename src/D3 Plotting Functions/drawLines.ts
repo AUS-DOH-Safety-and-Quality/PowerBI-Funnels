@@ -1,7 +1,7 @@
 import * as d3 from "./D3 Modules";
 import type { lineData } from "../Classes";
-import between from "../Functions/between";
 import getAesthetic from "../Functions/getAesthetic";
+import { between } from "powerbi-visuals-core/math";
 import type { svgBaseType, Visual } from "../visual";
 
 export default function drawLines(selection: svgBaseType, visualObj: Visual) {
@@ -17,9 +17,9 @@ export default function drawLines(selection: svgBaseType, visualObj: Visual) {
       const xupper: number = visualObj.plotProperties.xAxis.upper;
       return d3.line<lineData>()
                 .x(d => visualObj.plotProperties.xScale(d.x))
-                .y(d => visualObj.plotProperties.yScale(d.line_value))
+                .y(d => d.line_value === undefined ? NaN : visualObj.plotProperties.yScale(d.line_value))
                 .defined(d => {
-                  return d.line_value !== null
+                  return d.line_value !== undefined
                     && between(d.line_value, ylower, yupper)
                     && between(d.x, xlower, xupper)
                 })(d[1])

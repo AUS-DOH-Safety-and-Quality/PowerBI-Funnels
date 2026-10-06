@@ -1,5 +1,4 @@
-import { LOG_TWO_PI } from "./Constants";
-import ldexp from "./ldexp";
+import { LOG_TWO_PI, ldexp } from "powerbi-visuals-core/math";
 
 /**
  * Evaluates a rational polynomial P(x)/Q(x) using Horner's method.

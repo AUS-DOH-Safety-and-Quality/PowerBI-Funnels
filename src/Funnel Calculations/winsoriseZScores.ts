@@ -1,4 +1,4 @@
-import winsorise from "../Functions/winsorise"
+import { clamp } from "powerbi-visuals-core/math";
 import quantile from "../Functions/quantile";
 
 /**
@@ -9,10 +9,14 @@ import quantile from "../Functions/quantile";
  * @param z
  * @returns
  */
-export default function winsoriseZScores(z: number[]): number[] {
-  const z_sorted: number[] = [...z].sort(function(a, b){ return a - b; });
-  const lower_z: number = quantile(z_sorted, 0.1) as number;
-  const upper_z: number = quantile(z_sorted, 0.9) as number;
-
-  return winsorise(z, {lower: lower_z, upper: upper_z});
+export default function winsoriseZScores(z: readonly number[]): number[] {
+  const z_sorted: readonly number[] = [...z].sort(function(a, b){ return a - b; });
+  const lower_z: number | undefined = quantile(z_sorted, 0.1);
+  const upper_z: number | undefined = quantile(z_sorted, 0.9);
+  const n: number = z.length;
+  const result: number[] = new Array<number>(n);
+  for (let i: number = 0; i < n; i++) {
+    result[i] = clamp(z[i], lower_z, upper_z);
+  }
+  return result;
 }

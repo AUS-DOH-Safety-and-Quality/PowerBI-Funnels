@@ -1,48 +1,41 @@
-export type ValidationT = { status: number, messages: string[], error?: string };
+export type ValidationT =
+  | { status: 0; messages: string[] }
+  | { status: 1; messages: string[]; error: string };
 
-const allInvalidErrors: Record<string, string> = {
-  "Group missing": "All Groups/IDs are missing or null!",
-  "Numerator missing": "All numerators are missing or null!",
-  "Numerator is not a number": "All numerators are not numbers!",
-  "Numerator negative": "All numerators are negative!",
-  "Denominator missing": "All denominators missing or null!",
-  "Denominator is not a number": "All denominators are not numbers!",
-  "Denominator negative": "All denominators are negative!",
-  "Denominator zero": "All denominators are zero!",
-  "Denominator < numerator": "All denominators are smaller than numerators!"
-};
+const rowMessages = ["", "Group missing", "Numerator missing", "Numerator is not a number", "Numerator negative",
+  "Denominator missing", "Denominator is not a number", "Denominator is not finite", "Denominator negative",
+  "Denominator is zero", "Denominator < numerator"];
+const errors = ["", "All Groups/IDs are missing or null!", "All numerators are missing or null!",
+  "All numerators are not numbers!", "All numerators are negative!", "All denominators missing or null!",
+  "All denominators are not numbers!", "All denominators are not finite!", "All denominators are negative!",
+  "All denominators are zero!", "All denominators are smaller than numerators!"];
 
-function validateRow(key: string | undefined, numerator: number | undefined,
-                      denominator: number | undefined, data_type: string): string {
-  if (key == null) return "Group missing";
-  if (numerator == null) return "Numerator missing";
-  if (!Number.isFinite(numerator)) return "Numerator is not a number";
-  if (numerator < 0) return "Numerator negative";
-  if (denominator == null) return "Denominator missing";
-  if (!Number.isFinite(denominator)) return "Denominator is not a number";
-  if (denominator < 0) return "Denominator negative";
-  if (denominator === 0) return "Denominator zero";
-  if (data_type === "PR" && denominator < numerator) return "Denominator < numerator";
-  return "";
-}
-
-export default function validateInputData(keys: string[], numerators: number[], denominators: number[], data_type: string): ValidationT {
-  const n: number = keys.length;
-  const messages: string[] = new Array<string>(n);
+export default function validateInputData(keys: readonly (string | undefined)[], numerators: readonly (number | undefined)[],
+  denominators: readonly (number | undefined)[], data_type: string): ValidationT {
+  const messages = new Array<string>(keys.length);
   let anyValid = false;
-  let sameError = n > 0;
-  for (let i = 0; i < n; i++) {
-    const message = validateRow(keys[i], numerators[i], denominators[i], data_type);
-    messages[i] = message;
-    anyValid = anyValid || message === "";
-    sameError = sameError && message === messages[0];
+  let sameStage = keys.length > 0;
+  let firstStage = 0;
+  for (let i = 0; i < keys.length; i++) {
+    const numerator = numerators[i];
+    const denominator = denominators[i];
+    let stage = 0;
+    if (keys[i] === undefined) stage = 1;
+    else if (numerator === undefined) stage = 2;
+    else if (isNaN(numerator)) stage = 3;
+    else if (numerator < 0) stage = 4;
+    else if (denominator === undefined) stage = 5;
+    else if (isNaN(denominator)) stage = 6;
+    else if (!Number.isFinite(denominator)) stage = 7;
+    else if (denominator < 0) stage = 8;
+    else if (denominator === 0) stage = 9;
+    else if (data_type === "PR" && !(denominator >= numerator)) stage = 10;
+    messages[i] = rowMessages[stage];
+    if (stage === 0) anyValid = true;
+    if (i === 0) firstStage = stage;
+    else if (stage !== firstStage) sameStage = false;
   }
-  if (anyValid) {
-    return { status: 0, messages };
-  }
-  return {
-    status: 1,
-    messages,
-    error: sameError ? allInvalidErrors[messages[0]] : "No valid data found!"
-  };
+  if (anyValid) return { status: 0, messages };
+  // A single shared failure names it; mixed failures get the generic error.
+  return { status: 1, messages, error: sameStage ? errors[firstStage] : "No valid data found!" };
 }

@@ -1,151 +1,60 @@
-import type powerbi from "powerbi-visuals-api"
-type DataView = powerbi.DataView;
-import extractConditionalFormatting from "../Functions/extractConditionalFormatting";
-import isNullOrUndefined from "../Functions/isNullOrUndefined";
-import { default as settingsModel, defaultSettings, type settingsValueType,
-  type settingsValueTypesUnion
- } from "../settings";
+import type powerbi from "powerbi-visuals-api";
+import { readSettingsGroups, buildFormattingModel, type FormattingItem, type SettingsValidation } from "powerbi-visuals-core/powerbi";
+import settingsModel, { type settingsValueType } from "../settings";
+import { createDefaultValues } from "powerbi-visuals-core/settings";
 import derivedSettingsClass from "./derivedSettingsClass";
-import { type ConditionalReturnT, type SettingsValidationT } from "../Functions/extractConditionalFormatting";
+import miscFormattingSchema from "../Functions/miscFormattingSchema";
 
-// Re-declare enum to avoid importing powerbi module everywhere settingsClass is used
-const enum VisualEnumerationInstanceKinds {
-  Constant = 1 << 0,
-  Rule = 1 << 1,
-  ConstantOrRule = Constant | Rule,
-}
-
-/**
- * This is the core class which controls the initialisation and
- * updating of user-settings. Each member is its own class defining
- * the types and default values for a given group of settings.
- *
- * These are defined in the settingsGroups.ts file
- */
 export default class settingsClass {
   settings: settingsValueType;
   derivedSettings: derivedSettingsClass;
-  validationStatus: SettingsValidationT;
+  validationStatus: SettingsValidation;
+  groupSettings: settingsValueType[] = [];
+  messagePositionByRowIndex = new Map<number, number>();
+  miscGroups: FormattingItem[] = [];
+  showMisc = false;
 
-  /**
-   * Function to read the values from the settings pane and update the
-   * values stored in the class.
-   *
-   * @param inputObjects
-   */
-  update(inputView: DataView): void {
-    this.validationStatus
-      = JSON.parse(JSON.stringify({ status: 0, messages: new Array<string[]>(), error: "" }))
-    // Get the names of all classes in settingsObject which have values to be updated
-    const allSettingGroups: string[] = Object.keys(this.settings);
-
-    allSettingGroups.forEach((settingGroup) => {
-      const condFormatting: ConditionalReturnT<settingsValueTypesUnion>
-        = extractConditionalFormatting(inputView?.categorical, settingGroup, this.settings);
-
-      if (condFormatting.validation.status !== 0) {
-        this.validationStatus.status = condFormatting.validation.status;
-        this.validationStatus.error = condFormatting.validation.error;
+  update(inputView: powerbi.DataView | undefined, groups?: readonly (readonly number[])[]): void {
+    this.validationStatus = { status: 0, messages: [] };
+    const category = inputView?.categorical?.categories?.[0];
+    if (category === undefined) {
+      this.settings = createDefaultValues(settingsModel);
+      this.groupSettings = [];
+      this.messagePositionByRowIndex = new Map<number, number>();
+    } else {
+      if (groups === undefined) {
+        const rows = new Array<number>(category.values.length);
+        for (let i = 0; i < rows.length; i++) rows[i] = i;
+        groups = [rows];
       }
+      const result = readSettingsGroups(settingsModel, category, groups);
+      this.groupSettings = result.values;
+      this.settings = result.values[0] ?? createDefaultValues(settingsModel);
+      this.validationStatus = result.validation;
+      this.messagePositionByRowIndex = result.messagePositionByRowIndex;
+    }
+    const selectedGroup = inputView?.metadata?.objects?.misc?.group;
+    this.settings.misc.group = typeof selectedGroup === "string" ? selectedGroup : "";
+    this.derivedSettings.update(this.settings);
+  }
 
-      if (this.validationStatus.messages.length === 0) {
-        this.validationStatus.messages = condFormatting.validation.messages;
-      } else if (!condFormatting.validation.messages.every(d => d.length === 0)) {
-        condFormatting.validation.messages.forEach((message, idx) => {
-          if (message.length > 0) {
-            this.validationStatus.messages[idx] = this.validationStatus.messages[idx].concat(message)
-          }
-        });
-      }
-
-      // Get the names of all settings in a given class and
-      // use those to extract and update the relevant values
-      const settingNames: string[] = Object.keys(this.settings[settingGroup]);
-      settingNames.forEach((settingName) => {
-        this.settings[settingGroup][settingName]
-          = condFormatting?.values
-            ? condFormatting?.values[0][settingName]
-            : defaultSettings[settingGroup][settingName]
-      })
-    })
-    this.derivedSettings.update(this.settings)
+  forGroup(index: number): settingsClass {
+    const result = new settingsClass(this.groupSettings[index]);
+    result.validationStatus = this.validationStatus;
+    result.messagePositionByRowIndex = this.messagePositionByRowIndex;
+    return result;
   }
 
   public getFormattingModel(): powerbi.visuals.FormattingModel {
-    const formattingModel: powerbi.visuals.FormattingModel = {
-      cards: []
-    };
-
-    for (const curr_card_name in settingsModel) {
-      let curr_card: powerbi.visuals.FormattingCard = {
-        description: settingsModel[curr_card_name].description,
-        displayName: settingsModel[curr_card_name].displayName,
-        uid: curr_card_name + "_card_uid",
-        groups: [],
-        revertToDefaultDescriptors: []
-      };
-
-      for (const card_group in settingsModel[curr_card_name].settingsGroups) {
-        let curr_group: powerbi.visuals.FormattingGroup = {
-          displayName: card_group === "all" ? settingsModel[curr_card_name].displayName : card_group,
-          uid: curr_card_name + "_" + card_group + "_uid",
-          slices: []
-        };
-
-        for (const setting in settingsModel[curr_card_name].settingsGroups[card_group]) {
-          curr_card.revertToDefaultDescriptors.push({
-            objectName: curr_card_name,
-            propertyName: setting
-          });
-
-          let curr_slice: powerbi.visuals.FormattingSlice = {
-            uid: curr_card_name + "_" + card_group + "_" + setting + "_slice_uid",
-            displayName: settingsModel[curr_card_name].settingsGroups[card_group][setting].displayName,
-            control: {
-              type: settingsModel[curr_card_name].settingsGroups[card_group][setting].type,
-              properties: {
-                descriptor: {
-                  objectName: curr_card_name,
-                  propertyName: setting,
-                  selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] },
-                  instanceKind: (typeof this.settings[curr_card_name][setting]) != "boolean"
-                                ? (<any>VisualEnumerationInstanceKinds.ConstantOrRule as powerbi.VisualEnumerationInstanceKinds)
-                                : null
-                },
-                value: this.valueLookup(curr_card_name, card_group, setting),
-                items: settingsModel[curr_card_name].settingsGroups[card_group][setting]?.items,
-                options: settingsModel[curr_card_name].settingsGroups[card_group][setting]?.options
-              }
-            }
-          };
-
-          curr_group.slices.push(curr_slice);
-        }
-
-        curr_card.groups.push(curr_group);
-      }
-
-      formattingModel.cards.push(curr_card);
-    }
-
-    return formattingModel;
+    // API 5.1 omits the visual's unset numeric values and legacy option shapes.
+    const { misc, ...funnelModel } = settingsModel;
+    if (!this.showMisc) return buildFormattingModel(funnelModel, this.settings) as powerbi.visuals.FormattingModel;
+    return buildFormattingModel(miscFormattingSchema(this.miscGroups), this.settings) as powerbi.visuals.FormattingModel;
   }
 
-  valueLookup(settingCardName: string, settingGroupName: string, settingName: string) {
-    if (settingName.includes("colour")) {
-      return { value: this.settings[settingCardName][settingName] }
-    }
-    if (!isNullOrUndefined(settingsModel[settingCardName].settingsGroups[settingGroupName][settingName]?.items)) {
-      const allItems: powerbi.IEnumMember[] = settingsModel[settingCardName].settingsGroups[settingGroupName][settingName].items;
-      const currValue: string = this.settings[settingCardName][settingName];
-      return allItems.find(item => item.value === currValue);
-    }
-    return this.settings[settingCardName][settingName];
-  }
-
-  constructor() {
-    this.validationStatus = { status: 0, messages: new Array<string[]>(), error: "" };
-    this.settings = settingsModel.defaultValues as settingsValueType;
-    this.derivedSettings = new derivedSettingsClass();
+  constructor(settings = createDefaultValues(settingsModel)) {
+    this.validationStatus = { status: 0, messages: [] };
+    this.settings = settings;
+    this.derivedSettings = new derivedSettingsClass(this.settings);
   }
 }

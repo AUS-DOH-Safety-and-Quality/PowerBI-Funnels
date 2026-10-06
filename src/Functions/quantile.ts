@@ -1,21 +1,16 @@
 /**
- * Calculates the q-quantile of an array of numbers.
- * @param {number[]} values - The input array of data points.
- * @param {number} q - The target quantile (0 <= q <= 1).
- * @returns {number} The calculated quantile value.
+ * Calculates the q-quantile of ascending-sorted values by linear interpolation.
+ * @param sorted - Values already sorted ascending.
+ * @param q - The target quantile (0 <= q <= 1).
+ * @returns The quantile, or undefined for empty input.
  */
-export default function quantile(values: number[], q: number): number | undefined {
-  if (values.length === 0) return undefined;
+export default function quantile(sorted: readonly number[], q: number): number | undefined {
+  if (sorted.length === 0) return undefined;
 
-  // 1. Create a shallow copy and sort ascending
-  const sorted = [...values].sort((a, b) => a - b);
-
-  // 2. Find the target position
   const pos = (sorted.length - 1) * q;
   const base = Math.floor(pos);
   const rest = pos - base;
 
-  // 3. Linearly interpolate if the position falls between indexes
   if (sorted[base + 1] !== undefined) {
     return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
   } else {

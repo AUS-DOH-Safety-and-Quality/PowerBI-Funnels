@@ -1,5 +1,5 @@
-import { LOG_SQRT_TWO_PI, ONE_DIV_SQRT_TWO_PI } from "./Constants";
-import ldexp from "./ldexp";
+import { ONE_DIV_SQRT_TWO_PI } from "./Constants";
+import { LOG_SQRT_TWO_PI, ldexp } from "powerbi-visuals-core/math";
 
 /**
  * Calculates the probability density function (PDF) of the normal distribution.

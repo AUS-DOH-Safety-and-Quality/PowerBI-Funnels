@@ -1,10 +1,10 @@
 import type { limitData } from "../Classes";
 
 export default function three_sigma(value: number,
-                                    limits: limitData): string {
-  if ((limits.ll99 !== null) && (value < limits.ll99)) {
+                                    limits: limitData): "lower" | "upper" | "none" {
+  if ((limits.ll99 !== undefined) && (value < limits.ll99)) {
     return "lower";
-  } else if ((limits.ul99 !== null) && (value > limits.ul99)) {
+  } else if ((limits.ul99 !== undefined) && (value > limits.ul99)) {
     return "upper";
   } else {
     return "none";

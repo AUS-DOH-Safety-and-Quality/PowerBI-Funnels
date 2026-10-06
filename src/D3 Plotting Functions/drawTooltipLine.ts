@@ -1,30 +1,22 @@
 import type { svgBaseType, Visual } from "../visual";
 import type { plotData, plotPropertiesClass } from "../Classes/";
+import { drawCrosshairs } from "powerbi-visuals-core/rendering";
 
 export default function drawTooltipLine(selection: svgBaseType, visualObj: Visual) {
   const plotProperties: plotPropertiesClass = visualObj.plotProperties;
-  const colour: string = visualObj.viewModel.colourPalette.isHighContrast
-    ? visualObj.viewModel.colourPalette.foregroundColour
-    : "black";
-
-  const xAxisLine = selection
-                      .select(".ttip-line-x")
-                      .attr("x1", 0)
-                      .attr("x2", 0)
-                      .attr("y1", plotProperties.yAxis.end_padding)
-                      .attr("y2", plotProperties.height - plotProperties.yAxis.start_padding)
-                      .attr("stroke-width", "1px")
-                      .attr("stroke", colour)
-                      .style("stroke-opacity", 0);
-  const yAxisLine = selection
-                      .select(".ttip-line-y")
-                      .attr("x1", plotProperties.xAxis.start_padding)
-                      .attr("x2", plotProperties.width - plotProperties.xAxis.end_padding)
-                      .attr("y1", 0)
-                      .attr("y2", 0)
-                      .attr("stroke-width", "1px")
-                      .attr("stroke", colour)
-                      .style("stroke-opacity", 0);
+  const vertical = selection.select<SVGLineElement>(".ttip-line-x").node();
+  const horizontal = selection.select<SVGLineElement>(".ttip-line-y").node();
+  if (vertical === null || horizontal === null) return;
+  const crosshairs = drawCrosshairs({
+    vertical, horizontal,
+    left: plotProperties.xAxis.start_padding,
+    right: plotProperties.width - plotProperties.xAxis.end_padding,
+    top: plotProperties.yAxis.end_padding,
+    bottom: plotProperties.height - plotProperties.yAxis.start_padding,
+    colour: visualObj.viewModel.colourPalette.isHighContrast
+      ? visualObj.viewModel.colourPalette.foregroundColour
+      : "black"
+  });
 
   selection.on("mousemove", (event) => {
     if (!plotProperties.displayPlot) {
@@ -32,48 +24,37 @@ export default function drawTooltipLine(selection: svgBaseType, visualObj: Visua
     }
     const plotPoints: plotData[] = visualObj.viewModel.plotPoints
 
-    const boundRect = visualObj.svg.node().getBoundingClientRect();
+    const node = visualObj.svg.node();
+    if (node === null) return;
+    const boundRect = node.getBoundingClientRect();
     const xValue: number = (event.clientX - boundRect.left);
     const yValue: number = (event.clientY - boundRect.top);
-    let indexNearestValue: number | undefined;
+    let nearest: { index: number; x: number; y: number } | undefined;
     let nearestDistance: number = Infinity;
-    let x_coord: number;
-    let y_coord: number;
     for (let i = 0; i < plotPoints.length; i++) {
       const curr_x: number = plotProperties.xScale(plotPoints[i].x);
       const curr_y: number = plotProperties.yScale(plotPoints[i].value);
       const curr_diff: number = Math.abs(curr_x - xValue) + Math.abs(curr_y - yValue);
       if (curr_diff < nearestDistance) {
         nearestDistance = curr_diff;
-        indexNearestValue = i;
-        x_coord = curr_x;
-        y_coord = curr_y;
+        nearest = { index: i, x: curr_x, y: curr_y };
       }
     }
 
-    if (indexNearestValue === undefined) {
-      return;
-    }
-
+    if (nearest === undefined) return;
     visualObj.host.tooltipService.show({
-      dataItems: plotPoints[indexNearestValue].tooltip,
-      identities: [plotPoints[indexNearestValue].identity],
-      coordinates: [x_coord, y_coord],
+      dataItems: plotPoints[nearest.index].tooltip,
+      identities: [plotPoints[nearest.index].identity],
+      coordinates: [nearest.x, nearest.y],
       isTouchEvent: false
     });
-    xAxisLine.style("stroke-opacity", 0.4)
-              .attr("x1", x_coord)
-              .attr("x2", x_coord);
-    yAxisLine.style("stroke-opacity", 0.4)
-              .attr("y1", y_coord)
-              .attr("y2", y_coord);
+    crosshairs.show(nearest.x, nearest.y);
   })
   .on("mouseleave", () => {
     if (!plotProperties.displayPlot) {
       return;
     }
     visualObj.host.tooltipService.hide({ immediately: true, isTouchEvent: false });
-    xAxisLine.style("stroke-opacity", 0);
-    yAxisLine.style("stroke-opacity", 0);
+    crosshairs.hide();
   });
 }

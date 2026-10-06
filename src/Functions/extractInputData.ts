@@ -1,105 +1,119 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import extractValues from "./extractValues";
 import validateInputData from "./validateInputData";
-import extractDataColumn from "./extractDataColumn";
-import extractConditionalFormatting from "./extractConditionalFormatting";
-import rep from "./rep";
-import isNullOrUndefined from "./isNullOrUndefined";
-import { settingsClass } from "../Classes"
-import type { settingsValueType } from "../settings";
-import { type ValidationT } from "./validateInputData";
+import type { settingsClass } from "../Classes";
+import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
+import { formatPrimitiveValue, indexColumnsByRole, readSettingsRows } from "powerbi-visuals-core/powerbi";
+import type { ValidationT } from "./validateInputData";
 
 export type dataObject = {
-  keys: { x: number, id: number, label: string }[];
+  keys: { x: number; id: number; label: string }[];
   id: number[];
   numerators: number[];
   denominators: number[];
-  highlights: powerbi.PrimitiveValue[];
+  highlights: (Exclude<powerbi.PrimitiveValue, null> | undefined)[] | undefined;
   anyHighlights: boolean;
   categories: powerbi.DataViewCategoryColumn;
   scatter_formatting: settingsValueType["scatter"][];
   label_formatting: settingsValueType["labels"][];
-  tooltips: VisualTooltipDataItem[][];
-  labels: string[];
+  tooltips: VisualTooltipDataItem[][] | undefined;
+  labels: (string | undefined)[] | undefined;
   anyLabels: boolean;
   warningMessage: string;
-  validationStatus: ValidationT;
-}
+  validationStatus: Extract<ValidationT, { status: 0 }>;
+};
 
-export default function extractInputData(inputView: powerbi.DataViewCategorical, inputSettingsClass: settingsClass): dataObject {
-  const inputSettings: settingsValueType = inputSettingsClass.settings;
-  const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
-  const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
-  const keys: string[] = extractDataColumn<string[]>(inputView, "key");
-  const labels: string[] = extractDataColumn<string[]>(inputView, "labels");
-  let scatter_cond = extractConditionalFormatting<settingsValueType["scatter"]>(inputView, "scatter", inputSettings)?.values;
-  scatter_cond = scatter_cond === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
-  let labels_cond = extractConditionalFormatting<settingsValueType["labels"]>(inputView, "labels", inputSettings)?.values;
-  labels_cond = labels_cond === null ? rep(inputSettings.labels, numerators.length) : labels_cond;
-  const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
-  const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
+export type InputDataResult = { status: "valid"; data: dataObject } | { status: "invalid"; error: string };
 
-  const inputValidStatus: ValidationT = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
-
-  if (inputValidStatus.status !== 0) {
-    return {
-      keys: null,
-      id: null,
-      numerators: null,
-      denominators: null,
-      highlights: null,
-      anyHighlights: null,
-      categories: null,
-      scatter_formatting: null,
-      label_formatting: null,
-      tooltips: null,
-      labels: null,
-      anyLabels: false,
-      warningMessage: inputValidStatus.error,
-      validationStatus: inputValidStatus
-    }
+export default function extractInputData(inputView: powerbi.DataViewCategorical, inputSettingsClass: settingsClass,
+  rows?: readonly number[]): InputDataResult {
+  const inputSettings = inputSettingsClass.settings;
+  const categoryRoles = indexColumnsByRole(inputView.categories ?? []);
+  const valueRoles = indexColumnsByRole(inputView.values ?? []);
+  const keyColumn = categoryRoles.key?.[0];
+  const numeratorColumn = valueRoles.numerators?.[0];
+  const denominatorColumn = valueRoles.denominators?.[0];
+  const categories = inputView.categories?.[0];
+  if (keyColumn === undefined || categories === undefined) return { status: "invalid", error: "No grouping/ID variable passed!" };
+  if (numeratorColumn === undefined) return { status: "invalid", error: "No Numerators passed!" };
+  if (denominatorColumn === undefined) return { status: "invalid", error: "No denominators passed!" };
+  const count = keyColumn.values.length;
+  if (count !== numeratorColumn.values.length || count !== denominatorColumn.values.length) {
+    return { status: "invalid", error: "Groups, numerators and denominators must have matching row counts." };
   }
+  if (rows === undefined) {
+    const allRows = new Array<number>(count);
+    for (let i = 0; i < count; i++) allRows[i] = i;
+    rows = allRows;
+  }
+  const keys = new Array<string | undefined>(rows.length);
+  const numerators = new Array<number | undefined>(rows.length);
+  const denominators = new Array<number | undefined>(rows.length);
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    keys[i] = formatPrimitiveValue(keyColumn.values[row]);
+    const numerator = numeratorColumn.values[row];
+    const denominator = denominatorColumn.values[row];
+    numerators[i] = numerator == null ? undefined : Number(numerator);
+    denominators[i] = denominator == null ? undefined : Number(denominator);
+  }
+  const validation = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
+  if (validation.status !== 0) return { status: "invalid", error: validation.error };
 
-  const valid_ids: number[] = new Array<number>();
-  const valid_keys: { x: number, id: number, label: string }[] = new Array<{ x: number, id: number, label: string }>();
-  const removalMessages: string[] = new Array<string>();
-  const groupVarName: string = inputView.categories[0].source.displayName;
-  const settingsMessages = inputSettingsClass.validationStatus.messages;
-  let valid_x: number = 0;
-  for (let i: number = 0; i < numerators.length; i++) {
-    if (inputValidStatus.messages[i] === "") {
-      valid_ids.push(i);
-      valid_keys.push({ x: valid_x, id: i, label: keys[i] })
-      valid_x += 1;
-
-      if (settingsMessages[i].length > 0) {
-        settingsMessages[i].forEach(setting_removal_message => {
-          removalMessages.push(
-            `Conditional formatting for ${groupVarName} ${keys[i]} ignored due to: ${setting_removal_message}.`
-          )}
-        );
+  const labels = valueRoles.labels?.[0];
+  const tooltips = valueRoles.tooltips;
+  const highlights = inputView.values?.[0]?.highlights;
+  const scatter = readSettingsRows(settingsModel.scatter, "scatter", defaultSettings.scatter, categories, rows).values;
+  const labelSettings = readSettingsRows(settingsModel.labels, "labels", defaultSettings.labels, categories, rows).values;
+  const result: dataObject = {
+    keys: [], id: [], numerators: [], denominators: [], categories,
+    scatter_formatting: [], label_formatting: [],
+    tooltips: tooltips === undefined ? undefined : [],
+    labels: labels === undefined ? undefined : [],
+    highlights: highlights === undefined ? undefined : [],
+    anyHighlights: false, anyLabels: false, warningMessage: "", validationStatus: validation
+  };
+  const removalMessages: string[] = [];
+  const groupName = categories.source.displayName;
+  for (let i = 0; i < keys.length; i++) {
+    const row = rows[i];
+    const key = keys[i];
+    const numerator = numerators[i];
+    const denominator = denominators[i];
+    if (validation.messages[i] !== "") {
+      removalMessages.push(`${groupName} ${key} removed due to: ${validation.messages[i]}.`);
+      continue;
+    }
+    if (key === undefined || numerator === undefined || denominator === undefined) {
+      throw new Error("Validated row contains a missing required value.");
+    }
+    result.keys.push({ x: result.id.length, id: row, label: key });
+    result.id.push(row);
+    result.numerators.push(numerator);
+    result.denominators.push(denominator);
+    result.scatter_formatting.push(scatter[i]);
+    result.label_formatting.push(labelSettings[i]);
+    const label = formatPrimitiveValue(labels?.values[row]);
+    result.labels?.push(label);
+    result.anyLabels ||= label !== undefined && label !== "";
+    if (tooltips !== undefined) {
+      const rowTooltips: VisualTooltipDataItem[] = [];
+      for (let j = 0; j < tooltips.length; j++) {
+        rowTooltips.push({ displayName: tooltips[j].source.displayName, value: formatPrimitiveValue(tooltips[j].values[row]) ?? "" });
       }
-    } else {
-      removalMessages.push(`${groupVarName} ${keys[i]} removed due to: ${inputValidStatus.messages[i]}.`)
+      result.tooltips?.push(rowTooltips);
+    }
+    const highlight = highlights?.[row] ?? undefined;
+    result.highlights?.push(highlight);
+    result.anyHighlights ||= highlight !== undefined;
+    const position = inputSettingsClass.messagePositionByRowIndex.get(row);
+    const messages = position === undefined ? undefined : inputSettingsClass.validationStatus.messages[position];
+    if (messages !== undefined) {
+      for (let j = 0; j < messages.length; j++) {
+        removalMessages.push(`Conditional formatting for ${groupName} ${key} ignored due to: ${messages[j]}.`);
+      }
     }
   }
-
-  const valid_labels: string[] = extractValues(labels, valid_ids);
-  return {
-    keys: valid_keys,
-    id: valid_ids,
-    numerators: extractValues(numerators, valid_ids),
-    denominators: extractValues(denominators, valid_ids),
-    tooltips: extractValues(tooltips, valid_ids),
-    labels: valid_labels,
-    anyLabels: valid_labels.filter(d => !isNullOrUndefined(d) && d !== "").length > 0,
-    highlights: extractValues(highlights, valid_ids),
-    anyHighlights: highlights != null,
-    categories: inputView.categories[0],
-    scatter_formatting: extractValues(scatter_cond, valid_ids),
-    label_formatting: extractValues(labels_cond, valid_ids),
-    warningMessage: removalMessages.length >0 ? removalMessages.join("\n") : "",
-    validationStatus: inputValidStatus
-  }
+  result.warningMessage = removalMessages.join("\n");
+  return { status: "valid", data: result };
 }

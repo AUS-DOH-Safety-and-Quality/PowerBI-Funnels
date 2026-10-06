@@ -53,7 +53,7 @@ describe("Chart", () => {
     ));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
     expect(visual.viewModel.chartBase.odAdjust).toBe(true);
-    expect(visual.viewModel.chartBase.tau2).toBeGreaterThan(0);
+    expect(visual.viewModel.chartBase.getTau2()).toBeGreaterThan(0);
     expect(visual.viewModel.plotPoints.every(d => Number.isFinite(d.z))).toBe(true);
   });
 
@@ -85,7 +85,7 @@ describe("Chart", () => {
       update(views[i]);
       expect(element.querySelector(".errormessage")?.textContent).not.toContain("Internal Error");
       expect(element.querySelector(".errormessage")).not.toBeNull();
-      expect(visual.plotProperties.displayPlot).toBe(false);
+      expect(() => visual.plotProperties).toThrow("Plot properties require validated data.");
     }
     vi.mocked(host.eventService.renderingFailed).mockClear();
     update(buildDataView(sample));
@@ -100,7 +100,7 @@ describe("Chart", () => {
     update(invalid);
     update(invalid, 4);
     expect(element.querySelector(".errormessage")?.textContent).toBe("No valid data found!");
-    expect(visual.plotProperties.displayPlot).toBe(false);
+    expect(() => visual.plotProperties).toThrow("Plot properties require validated data.");
     vi.mocked(host.eventService.renderingFailed).mockClear();
     update(buildDataView(sample));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
@@ -148,7 +148,7 @@ describe("Chart", () => {
     const limits = visual.viewModel.calculatedLimits.find(d => d.denominators === 1)!;
     expect(limits.ll99).toBeUndefined();
     const tooltip = visual.viewModel.plotPoints[0].tooltip;
-    expect(tooltip.find(d => d.displayName === "Lower 99% Limit")?.value).toBe("");
+    expect(tooltip.find(d => d.displayName === "Lower 99% Limit")?.value).toBe("(Blank)");
     expect(tooltip.some(d => d.value === "NaN%")).toBe(false);
   });
 

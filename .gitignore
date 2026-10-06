@@ -20,3 +20,7 @@ doc/*
 
 # Coverage reports
 coverage
+
+# Vitest browser artifacts
+/.vitest-attachments/
+/test/**/__screenshots__/

@@ -1,4 +1,4 @@
-import { dropdownOption, toggleOption, colourOption } from "./common";
+import { dropdownOption, toggleOption, colourOption } from "powerbi-visuals-core/settings";
 
 const outliersSettings = {
   description: "Outlier Settings",

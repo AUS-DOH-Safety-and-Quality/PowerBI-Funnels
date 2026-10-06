@@ -1,6 +1,6 @@
 import { FormattingComponent, toggleOption, numberOption, lineLabelPositionOption,
   lineTypeOption, colourOption, textOption, fontOption, fontSizeOption
- } from "./common";
+ } from "powerbi-visuals-core/settings";
 
 const linesSettings = {
   description: "Line Settings",

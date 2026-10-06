@@ -1,4 +1,4 @@
-import lgamma from "./lgamma";
+import { lgamma } from "powerbi-visuals-core/math";
 import gammaCDFImpl from "./gammaCDFImpl";
 import gammaNewtonIter from "./gammaNewtonIter";
 import chisqQuantileApprox from "./chisqQuantileApprox";
