@@ -2,7 +2,7 @@ import { chartClass, type limitArgs, type settingsClass } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import { clamp, chisqCDF, chisqQuantile, normalQuantile } from "powerbi-visuals-core/math";
 
-const smrSE = function(inputData: dataObject): number[] {
+const smrSE = function(): number[] {
   return [];
 }
 
@@ -16,7 +16,7 @@ const smrSEOD = function(inputData: dataObject, plottingDenominators?: readonly 
   return result;
 }
 
-const smrTarget = function(inputData: dataObject): number {
+const smrTarget = function(): number {
   return 1;
 }
 
@@ -60,7 +60,6 @@ const smrZ = function(inputData: dataObject, zScores: number[], seOD: number[], 
 }
 
 const smrLimitOD = function(args: limitArgs) {
-  if (args.SE === undefined) throw new Error("Adjusted standardised-ratio limits require a standard error.");
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;

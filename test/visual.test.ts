@@ -3,6 +3,7 @@ import { testDom, createVisualHost } from "powerbi-visuals-utils-testutils";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Visual } from "../src/visual";
 import buildDataView from "./helpers/buildDataView";
+import { cells } from "powerbi-visuals-core/testing";
 
 const sample = { key: ["A", "B", "C"], numerators: [10, 20, 30], denominators: [100, 120, 140] };
 
@@ -25,15 +26,15 @@ describe("Chart", () => {
   });
 
   function update(view: powerbi.DataView | undefined, type = 2): void {
-    visual.update({ dataViews: view ? [view] : undefined, viewport: { width: 500, height: 500 }, type });
+    visual.update({ dataViews: view ? [view] : [], viewport: { width: 500, height: 500 }, type });
   }
 
   it.each([
     ["PR", 100 / 6, 10],
     ["RC", 1 / 6, 0.1],
     ["SR", 1, 0.1]
-  ])("renders %s calculations and tooltips", (chart_type, target, value) => {
-    update(buildDataView(sample, { funnel: { chart_type: chart_type as string } }));
+  ] as const)("renders %s calculations and tooltips", (chart_type, target, value) => {
+    update(buildDataView(sample, { funnel: { chart_type } }));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
     expect(host.eventService.renderingFinished).toHaveBeenCalledOnce();
     expect(visual.viewModel.plotPoints).toHaveLength(3);
@@ -46,14 +47,14 @@ describe("Chart", () => {
     expect(visual.viewModel.plotPoints[0].tooltip.find(d => d.displayName === "Group")?.value).toBe("A");
   });
 
-  it.each(["PR", "RC", "SR"])("renders %s with overdispersion adjustment", chart_type => {
+  it.each(["PR", "RC", "SR"] as const)("renders %s with overdispersion adjustment", chart_type => {
     update(buildDataView(
       { key: ["A", "B", "C"], numerators: [5, 50, 90], denominators: [100, 100, 100] },
       { funnel: { chart_type, od_adjust: "yes" } }
     ));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    expect(visual.viewModel.chartBase.odAdjust).toBe(true);
-    expect(visual.viewModel.chartBase.getTau2()).toBeGreaterThan(0);
+    expect(visual.viewModel.chartBase!.odAdjust).toBe(true);
+    expect(visual.viewModel.chartBase!.getTau2()).toBeGreaterThan(0);
     expect(visual.viewModel.plotPoints.every(d => Number.isFinite(d.z))).toBe(true);
   });
 
@@ -69,10 +70,10 @@ describe("Chart", () => {
     const view = buildDataView({
       key: [10, null, 30], numerators: [10, 20, 30], denominators: [100, 120, 140], labels: ["First", "Removed", "Last"]
     });
-    view.categorical!.values![0].highlights = [null, null, 30];
+    view.categorical!.values![0].highlights = cells([null, null, 30]);
     update(view);
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    expect(visual.viewModel.inputData.id).toEqual([0, 2]);
+    expect(visual.viewModel.inputData!.id).toEqual([0, 2]);
     expect(visual.viewModel.plotPoints).toMatchObject([
       { group_text: "10", label: { text_value: "First" }, highlighted: false },
       { group_text: "30", label: { text_value: "Last" }, highlighted: true }

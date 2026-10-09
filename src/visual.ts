@@ -61,7 +61,7 @@ export class Visual implements powerbi.extensibility.IVisual {
         this.currentPlotProperties = undefined;
         this.resizeCanvas(options.viewport.width, options.viewport.height);
         this.drawErrors(options, update_status.error, update_status.type,
-                        this.viewModel?.inputSettings?.settings?.canvas?.show_errors ?? true);
+                        this.viewModel.inputSettings.settings.canvas.show_errors);
 
         this.host.eventService.renderingFailed(options);
         return;
@@ -209,6 +209,7 @@ export class Visual implements powerbi.extensibility.IVisual {
   }
 
   public getFormattingModel(): powerbi.visuals.FormattingModel {
-    return this.viewModel.inputSettings.getFormattingModel();
+    // API 5.1 omits the visual's unset numeric values and legacy option shapes.
+    return this.viewModel.inputSettings.getFormattingModel() as powerbi.visuals.FormattingModel;
   }
 }

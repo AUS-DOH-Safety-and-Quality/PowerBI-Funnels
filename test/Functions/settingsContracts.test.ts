@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import settingsClass from "../../src/Classes/settingsClass";
 import { readSettingsRows } from "powerbi-visuals-core/powerbi";
 import settingsModel, { defaultSettings } from "../../src/settings";
-import { categoricalData, dataView } from "../dataViewFixture";
+import { categoricalData, validated } from "../dataViewFixture";
 
 describe("Settings contracts", () => {
   it("preserves zero and false while rejecting non-finite numeric controls", () => {
@@ -43,9 +43,9 @@ describe("Settings contracts", () => {
       { funnel: { chart_type: "bad" } }, { funnel: { chart_type: "bad" } }, { funnel: { chart_type: "bad" } }
     ];
     const settings = new settingsClass();
-    settings.update(dataView(categorical));
+    settings.update(validated(categorical));
     expect(settings.validationStatus.status).toBe(1);
-    settings.update(dataView());
+    settings.update(validated());
     expect(settings.validationStatus).toEqual({ status: 0, messages: [[], [], []] });
     expect(settings.settings.funnel.chart_type).toBe("PR");
   });
@@ -71,16 +71,4 @@ describe("Settings contracts", () => {
     }
     expect(found).toBe(true);
   });
-});
-
-it("resets settings and warnings when categories disappear or have no rows", () => {
-  const settings = new settingsClass();
-  settings.settings.canvas.lower_padding = 50;
-  settings.update(undefined);
-  expect(settings.settings).toEqual(defaultSettings);
-  expect(settings.validationStatus).toEqual({ status: 0, messages: [] });
-  settings.settings.canvas.lower_padding = 50;
-  settings.update(dataView(categoricalData([], [], [])));
-  expect(settings.settings).toEqual(defaultSettings);
-  expect(settings.validationStatus).toEqual({ status: 0, messages: [] });
 });

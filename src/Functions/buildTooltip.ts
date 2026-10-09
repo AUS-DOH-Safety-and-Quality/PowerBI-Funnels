@@ -13,7 +13,7 @@ const valueLabel: Record<string, string> = {
 }
 
 export default function buildTooltip(index: number,
-                                      calculatedLimits: limitData[],
+                                      limits: limitData,
                                       outliers: { two_sigma: boolean, three_sigma: boolean },
                                       inputData: dataObject,
                                       inputSettings: settingsValueType,
@@ -26,9 +26,6 @@ export default function buildTooltip(index: number,
   const group: string = inputData.keys[index].label;
   const numerator: number = inputData.numerators[index];
   const denominator: number = inputData.denominators[index];
-
-  const limits = calculatedLimits.find(d => d.denominators === denominator);
-  if (limits === undefined) throw new Error("Missing limits for an observed denominator.");
 
   const ratio: number = transform((numerator / denominator) * multiplier);
   const formatValues = derivedSettings.formatValue;
@@ -56,6 +53,6 @@ export default function buildTooltip(index: number,
   if (outliers.two_sigma) {
     patterns.push("Two Sigma Outlier")
   }
-  appendPatternTooltips(tooltip, patterns, inputData.tooltips?.[index]);
+  appendPatternTooltips(tooltip, patterns, inputData.tooltips[index]);
   return tooltip;
 }

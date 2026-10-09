@@ -3,27 +3,30 @@ import extractInputData from "../../src/Functions/extractInputData";
 
 import validateInputData from "../../src/Functions/validateInputData";
 import settingsClass from "../../src/Classes/settingsClass";
-import { categoricalData } from "../dataViewFixture";
+import { categoricalData, dataView, validated } from "../dataViewFixture";
+import { validateDataView } from "powerbi-visuals-core/powerbi";
+import { cells } from "powerbi-visuals-core/testing";
 
 describe("Input contracts", () => {
   it("distinguishes absent columns, empty columns and missing cells", () => {
-    const result = extractInputData(categoricalData([0, null, 2]), new settingsClass());
+    const result = extractInputData(validated(categoricalData([0, null, 2])), new settingsClass());
     if (result.status !== "valid") throw new Error(result.error);
     expect(result.data.numerators).toEqual([0, 2]);
-    expect(result.data.labels).toBeUndefined();
-    const empty = extractInputData(categoricalData([], [], []), new settingsClass());
-    expect(empty.status).toBe("invalid");
+    expect(result.data.labels).toEqual([undefined, undefined]);
+    expect(result.data.anyLabels).toBe(false);
+    expect(validateDataView([dataView(categoricalData([], [], []))], ["numerators", "denominators"]))
+      .toEqual({ status: "invalid", error: "No data present" });
   });
 
   it("keeps optional row data aligned when required rows are rejected", () => {
     const data = categoricalData([4, null, 25]);
     data.values?.push(
-      { source: { displayName: "Label", roles: { labels: true } }, values: [null, "removed", "C label"] },
+      { source: { displayName: "Label", roles: { labels: true } }, values: cells([null, "removed", "C label"]) },
       { source: { displayName: "Tooltip", roles: { tooltips: true } }, values: [0, "removed", false] }
     );
     if (data.values === undefined) throw new Error("Missing fixture values");
-    data.values[0].highlights = [0, 16, null];
-    const result = extractInputData(data, new settingsClass());
+    data.values[0].highlights = cells([0, 16, null]);
+    const result = extractInputData(validated(data), new settingsClass());
     expect(result.status).toBe("valid");
     if (result.status !== "valid") throw new Error(result.error);
     expect(result.data.id).toEqual([0, 2]);
@@ -43,32 +46,32 @@ describe("Input contracts", () => {
   it("does not activate highlighting when no accepted row is highlighted", () => {
     const data = categoricalData([4, null, 25]);
     if (data.values === undefined) throw new Error("Missing fixture values");
-    data.values[0].highlights = [null, 16, null];
-    const result = extractInputData(data, new settingsClass());
+    data.values[0].highlights = cells([null, 16, null]);
+    const result = extractInputData(validated(data), new settingsClass());
     if (result.status !== "valid") throw new Error(result.error);
     expect(result.data.highlights).toEqual([undefined, undefined]);
     expect(result.data.anyHighlights).toBe(false);
     data.values[0].highlights = [];
-    const empty = extractInputData(data, new settingsClass());
+    const empty = extractInputData(validated(data), new settingsClass());
     if (empty.status !== "valid") throw new Error(empty.error);
     expect(empty.data.anyHighlights).toBe(false);
   });
 
-  it("returns complete numeric arrays without fabricating optional columns", () => {
-    const result = extractInputData(categoricalData(), new settingsClass());
+  it("returns complete numeric arrays and blank rows for absent optional columns", () => {
+    const result = extractInputData(validated(), new settingsClass());
     if (result.status !== "valid") throw new Error(result.error);
-    expect(result.data.labels).toBeUndefined();
-    expect(result.data.tooltips).toBeUndefined();
-    expect(result.data.highlights).toBeUndefined();
+    expect(result.data.labels).toEqual([undefined, undefined, undefined]);
+    expect(result.data.tooltips).toEqual([[], [], []]);
+    expect(result.data.highlights).toEqual([undefined, undefined, undefined]);
     expect(result.data.anyHighlights).toBe(false);
     expect(result.data.scatter_formatting[0]).not.toBe(result.data.scatter_formatting[1]);
   });
 
   it("returns an error without a data record for invalid or mismatched columns", () => {
-    expect(extractInputData(categoricalData([null, null, null]), new settingsClass())).toEqual({
+    expect(extractInputData(validated(categoricalData([null, null, null])), new settingsClass())).toEqual({
       status: "invalid", error: "All numerators are missing or null!"
     });
-    expect(extractInputData(categoricalData([1]), new settingsClass()).status).toBe("invalid");
+    expect(extractInputData(validated(categoricalData([1])), new settingsClass()).status).toBe("invalid");
   });
 
   it("reports a shared failure by name and mixed failures generically", () => {
@@ -76,7 +79,7 @@ describe("Input contracts", () => {
       status: 1, messages: ["Group missing", "Numerator missing", "Numerator negative"],
       error: "No valid data found!"
     });
-    expect(validateInputData(["A", "B"], [-1, -2], [2, 2], "PR").error).toBe("All numerators are negative!");
+    expect(validateInputData(["A", "B"], [-1, -2], [2, 2], "PR")).toMatchObject({ error: "All numerators are negative!" });
     expect(validateInputData([], [], [], "PR")).toEqual({ status: 1, messages: [], error: "No valid data found!" });
     expect(validateInputData(["A", "B"], [2, 1], [1, 2], "PR")).toEqual({
       status: 0, messages: ["Denominator < numerator", ""]
@@ -96,7 +99,7 @@ describe("Input contracts", () => {
       status: 1, messages: ["Denominator is not finite"], error: "All denominators are not finite!"
     });
     const data = categoricalData([4, 16, 25], [10, 0, 100]);
-    const result = extractInputData(data, new settingsClass());
+    const result = extractInputData(validated(data), new settingsClass());
     if (result.status !== "valid") throw new Error(result.error);
     expect(result.data.id).toEqual([0, 2]);
     expect(result.data.denominators).toEqual([10, 100]);
@@ -112,7 +115,7 @@ it("preserves shortened optional columns and scalar keys without shifting rows",
     { source: { displayName: "Label", roles: { labels: true } }, values: [] }
   );
   data.values![0].highlights = [0];
-  const result = extractInputData(data, new settingsClass());
+  const result = extractInputData(validated(data), new settingsClass());
   if (result.status !== "valid") throw new Error(result.error);
   expect(result.data.keys).toEqual([{ x: 0, id: 0, label: "0" }, { x: 1, id: 2, label: "false" }]);
   expect(result.data.labels).toEqual([undefined, undefined]);

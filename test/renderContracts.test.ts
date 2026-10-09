@@ -1,3 +1,4 @@
+import type powerbi from "powerbi-visuals-api";
 import { describe, expect, it, vi } from "vitest";
 import { ChartBuilder } from "./visualBuilder";
 import { categoricalData, dataView } from "./dataViewFixture";
@@ -62,7 +63,7 @@ describe("Validated visual rendering", () => {
   it("clears invalid data and rebuilds it on a later resize", () => {
     const builder = new ChartBuilder(500, 500);
     builder.update(dataView());
-    builder.instance.update({ dataViews: [dataView(categoricalData([null, null, null]))], viewport: builder.viewport, type: 6 });
+    builder.instance.update({ dataViews: [dataView(categoricalData([null, null, null]))], viewport: builder.viewport, type: 6 as powerbi.VisualUpdateType });
     expect(builder.instance.viewModel.inputData).toBeUndefined();
     expect(builder.instance.viewModel.plotPoints).toEqual([]);
     const failed = vi.spyOn(builder.visualHost.eventService, "renderingFailed").mockClear();

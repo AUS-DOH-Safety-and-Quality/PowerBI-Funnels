@@ -33,7 +33,7 @@ const prY = function(inputData: dataObject): number[] {
   return result;
 }
 
-const prZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
+const prZ = function(_inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
   if (odAdjust) {
     const n: number = zScores.length;
     const rtn: number[] = new Array<number>(n);
@@ -51,7 +51,6 @@ const prZ = function(inputData: dataObject, zScores: number[], seOD: number[], o
 }
 
 const prLimit = function(args: limitArgs) {
-  if (args.SE === undefined) throw new Error("Proportion limits require a standard error.");
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;

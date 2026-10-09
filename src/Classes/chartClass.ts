@@ -10,7 +10,7 @@ export type limitArgs = {
   p: number;
   q: number;
   target_transformed: number;
-  SE: number | undefined;
+  SE: number;
   tau2: number;
   denominators: number;
 }

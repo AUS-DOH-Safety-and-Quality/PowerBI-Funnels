@@ -1,19 +1,18 @@
 import type powerbi from "powerbi-visuals-api";
-type VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import settingsClass from "./settingsClass";
 import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
 import {
-  groupCategoryRows, indexColumnsByRole, readSettingsRows, readColourPalette, validateDataView,
-  type CategoryGroups, type ColourPalette
+  groupCategoryRows, readSettingsRows, readColourPalette, validateDataView,
+  type CategoryGroups, type ColourPalette, type UpdateOptions, type ValidatedDataView
 } from "powerbi-visuals-core/powerbi";
 import { chartClass, type limitData } from "../Classes"
 import extractInputData, { type dataObject } from "../Functions/extractInputData";
 import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
-import { groupBy, checkFlagDirection } from "powerbi-visuals-core/data";
+import { groupBy, checkFlagDirection, type FlagDirection } from "powerbi-visuals-core/data";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
@@ -34,10 +33,12 @@ export type lineData = {
 
 export type plotData = {
   x: number;
-  numerator?: number;
+  numerator: number;
   value: number;
   z: number;
   group_text: string;
+  // Limits at this point's denominator
+  limits: limitData;
   aesthetics: settingsValueType["scatter"];
   // ISelectionId allows the visual to report the selection choice to PowerBI
   identity: ISelectionId;
@@ -51,8 +52,8 @@ export type plotData = {
     angle: number | undefined,
     distance: number | undefined
   };
-  two_sigma?: string;
-  three_sigma?: string;
+  two_sigma: FlagDirection;
+  three_sigma: FlagDirection;
 }
 
 export type miscPoint = plotData & { indicator: string; score: number };
@@ -85,14 +86,15 @@ export default class viewModelClass {
     this.headless = false;
   }
 
-  update(options: VisualUpdateOptions & { headless?: boolean; frontend?: boolean }, host: IVisualHost): viewModelValidationT {
+  update(options: UpdateOptions, host: IVisualHost): viewModelValidationT {
     // Read before any early return so error rendering is themed
     this.colourPalette = readColourPalette(host);
-    const view = options.dataViews?.[0];
+    const checkDV = validateDataView(options.dataViews, ["numerators", "denominators"]);
+    if (checkDV.status !== "valid") return this.invalidate(checkDV.error);
+    const view = checkDV.view;
     const dataChanged = (options.type & (2 | 16)) !== 0 || this.firstRun;
-    const categoryRoles = indexColumnsByRole(view?.categorical?.categories ?? []);
-    const indicators = categoryRoles.indicator ?? [];
-    const indicatorGroups = groupCategoryRows(indicators, categoryRoles.key?.[0]?.values.length ?? 0);
+    const indicators = view.categories.indicator ?? [];
+    const indicatorGroups = groupCategoryRows(indicators, view.rowCount);
     if (dataChanged) {
       this.inputSettings.showMisc = indicators.length > 0;
       this.inputSettings.miscGroups = [];
@@ -100,10 +102,6 @@ export default class viewModelClass {
     }
     const settingsValidation = this.inputSettings.validationStatus;
     if (settingsValidation.status !== 0) return this.invalidate(settingsValidation.error, "settings");
-    const checkDV = validateDataView(options.dataViews, ["numerators", "denominators"]);
-    if (checkDV !== "valid") return this.invalidate(checkDV);
-    const categorical = view?.categorical;
-    if (categorical === undefined) return this.invalidate("No categorical data present");
 
     this.svgWidth = options.viewport.width;
     this.svgHeight = options.viewport.height;
@@ -113,12 +111,12 @@ export default class viewModelClass {
     if (dataChanged) {
       this.miscPoints = [];
       this.miscAnyHighlights = false;
-      if (this.inputSettings.showMisc) return this.initialiseMisc(categorical, host, indicatorGroups, indicators);
+      if (this.inputSettings.showMisc) return this.initialiseMisc(view, host, indicatorGroups, indicators);
       const chartType = this.inputSettings.settings.funnel.chart_type;
       if (chartType !== "PR" && chartType !== "SR" && chartType !== "RC") {
         return this.invalidate("Invalid chart type", "settings");
       }
-      const result = extractInputData(categorical, this.inputSettings);
+      const result = extractInputData(view, this.inputSettings);
       if (result.status === "invalid") return this.invalidate(result.error);
       this.inputData = result.data;
       this.chartBase = new chartObjects[chartType](result.data, this.inputSettings);
@@ -144,10 +142,9 @@ export default class viewModelClass {
     return { status: false, error, type };
   }
 
-  private initialiseMisc(categorical: powerbi.DataViewCategorical, host: IVisualHost,
+  private initialiseMisc(view: ValidatedDataView<"numerators" | "denominators">, host: IVisualHost,
     indicators: CategoryGroups, indicatorColumns: powerbi.DataViewCategoryColumn[]): viewModelValidationT {
-    const keyColumn = indexColumnsByRole(categorical.categories ?? []).key?.[0];
-    if (keyColumn === undefined) return this.invalidate("No grouping/ID variable passed!");
+    const keyColumn = view.categories.key[0];
     for (let i = 0; i < indicatorColumns.length; i++) {
       if (indicatorColumns[i].values.length !== keyColumn.values.length) {
         return this.invalidate("Indicators and groups must have matching row counts.");
@@ -175,8 +172,7 @@ export default class viewModelClass {
       const rows = indicators.rows[i];
       const settings = this.inputSettings.forGroup(i);
       const indicator = indicators.names[i].join(" / ");
-      const directions = readSettingsRows(settingsModel.outliers, "outliers", defaultSettings.outliers,
-        categorical.categories![0], rows).values;
+      const directions = readSettingsRows(settingsModel.outliers, "outliers", defaultSettings.outliers, view.category, rows).values;
       const direction = directions[0].improvement_direction;
       for (let j = 0; j < directions.length; j++) {
         if (direction === "neutral" || directions[j].improvement_direction !== direction) {
@@ -184,7 +180,7 @@ export default class viewModelClass {
         }
       }
       settings.settings.outliers = { ...settings.settings.outliers, three_sigma: true, two_sigma: false };
-      const result = extractInputData(categorical, settings, rows);
+      const result = extractInputData(view, settings, rows);
       if (result.status === "invalid") return this.invalidate(`${indicator}: ${result.error}`);
       const data = result.data;
       this.inputData ??= data;
@@ -263,21 +259,22 @@ export default class viewModelClass {
         value: value,
         z: zScores[i],
         group_text: category,
+        limits,
         aesthetics: aesthetics,
         identity: host.createSelectionIdBuilder()
                       .withCategory(inputData.categories, original_index)
                       .createSelectionId(),
-        highlighted: inputData.highlights?.[i] != null,
+        highlighted: inputData.highlights[i] !== undefined,
         tooltip: buildTooltip(
           i,
-          this.calculatedLimits,
+          limits,
           { two_sigma: two_sigma_outlier !== "none", three_sigma: three_sigma_outlier !== "none" },
           inputData,
           inputSettings.settings,
           inputSettings.derivedSettings
         ),
         label: {
-          text_value: inputData.labels?.[i],
+          text_value: inputData.labels[i],
           aesthetics: inputData.label_formatting[i],
           angle: undefined,
           distance: undefined

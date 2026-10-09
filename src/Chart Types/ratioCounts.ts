@@ -42,7 +42,7 @@ const rcY = function(inputData: dataObject): number[] {
   return result;
 }
 
-const rcZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
+const rcZ = function(_inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
   if (odAdjust) {
     const n: number = zScores.length;
     const rtn: number[] = new Array<number>(n);
@@ -60,7 +60,6 @@ const rcZ = function(inputData: dataObject, zScores: number[], seOD: number[], o
 }
 
 const rcLimit = function(args: limitArgs): number {
-  if (args.SE === undefined) throw new Error("Ratio-of-counts limits require a standard error.");
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;

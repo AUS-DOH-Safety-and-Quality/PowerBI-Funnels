@@ -3,10 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import { Visual } from "../src/visual";
 import viewModelClass from "../src/Classes/viewModelClass";
 import { categoricalData, dataView } from "./dataViewFixture";
-import { keyedHost } from "powerbi-visuals-core/testing";
+import { cells, keyedHost } from "powerbi-visuals-core/testing";
+import type { PrimitiveValue } from "powerbi-visuals-core/powerbi";
 
-function miscView(): powerbi.DataView {
-  const categorical = categoricalData([80, 4, 20, 20, 24, 24, 30, 30], Array(8).fill(100), ["A", "A", "B", "B", "C", "C", "D", "D"]);
+function miscView(numerators: PrimitiveValue[] = [80, 4, 20, 20, 24, 24, 30, 30]): powerbi.DataView {
+  const categorical = categoricalData(numerators, Array(8).fill(100), ["A", "A", "B", "B", "C", "C", "D", "D"]);
   categorical.categories!.push({ source: { displayName: "Indicator", roles: { indicator: true } },
     values: ["Higher", "Lower", "Higher", "Lower", "Higher", "Lower", "Higher", "Lower"] });
   categorical.categories![0].objects = new Array(8);
@@ -71,10 +72,9 @@ describe("MISC calculations", () => {
   });
 
   it("keeps raw-row warnings, formatting and highlights aligned across interleaved indicators", () => {
-    const view = miscView();
+    const view = miscView([80, 4, null, 20, 24, 24, 30, 30]);
     const categorical = view.categorical!;
-    categorical.values![0].values[2] = null;
-    categorical.values![0].highlights = [null, 4, null, null, null, null, null, null];
+    categorical.values![0].highlights = cells([null, 4, null, null, null, null, null, null]);
     categorical.categories![0].objects![1].scatter = { colour: { solid: { color: "#123456" } }, opacity_selected: 0.7 };
     categorical.categories![0].objects![5].labels = { label_size: -1 };
     const model = new viewModelClass(keyedHost());
@@ -134,8 +134,7 @@ describe("MISC calculations", () => {
   });
 
   it("omits indicators with no valid selected group", () => {
-    const view = miscView();
-    view.categorical!.values![0].values[1] = null;
+    const view = miscView([80, null, 20, 20, 24, 24, 30, 30]);
     const model = new viewModelClass(keyedHost());
     expect(update(model, view).status).toBe(true);
     expect(model.miscPoints).toHaveLength(1);
@@ -153,7 +152,7 @@ describe("MISC rendering", () => {
     const visual = new Visual({ element, host });
     const menu = vi.spyOn(visual.selectionManager, "showContextMenu");
     const view = miscView();
-    view.categorical!.values![0].highlights = [null, 4, null, null, null, null, null, null];
+    view.categorical!.values![0].highlights = cells([null, 4, null, null, null, null, null, null]);
     try {
       visual.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: 2 });
       const bars = element.querySelectorAll(".misc-bar");

@@ -3,7 +3,7 @@ import validateInputData from "./validateInputData";
 import type { settingsClass } from "../Classes";
 import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
 import {
-  formatPrimitiveValue, indexColumnsByRole, readRowAnnotations, rowWarnings, type RowAnnotations
+  formatPrimitiveValue, readRowAnnotations, rowWarnings, type RowAnnotations, type ValidatedDataView
 } from "powerbi-visuals-core/powerbi";
 import type { ValidationT } from "./validateInputData";
 
@@ -19,18 +19,13 @@ export type dataObject = RowAnnotations<settingsValueType["scatter"], settingsVa
 
 export type InputDataResult = { status: "valid"; data: dataObject } | { status: "invalid"; error: string };
 
-export default function extractInputData(inputView: powerbi.DataViewCategorical, inputSettingsClass: settingsClass,
+export default function extractInputData(view: ValidatedDataView<"numerators" | "denominators">, inputSettingsClass: settingsClass,
   rows?: readonly number[]): InputDataResult {
   const inputSettings = inputSettingsClass.settings;
-  const categoryRoles = indexColumnsByRole(inputView.categories ?? []);
-  const valueRoles = indexColumnsByRole(inputView.values ?? []);
-  const keyColumn = categoryRoles.key?.[0];
-  const numeratorColumn = valueRoles.numerators?.[0];
-  const denominatorColumn = valueRoles.denominators?.[0];
-  const categories = inputView.categories?.[0];
-  if (keyColumn === undefined || categories === undefined) return { status: "invalid", error: "No grouping/ID variable passed!" };
-  if (numeratorColumn === undefined) return { status: "invalid", error: "No numerators passed!" };
-  if (denominatorColumn === undefined) return { status: "invalid", error: "No denominators passed!" };
+  const keyColumn = view.categories.key[0];
+  const numeratorColumn = view.values.numerators[0];
+  const denominatorColumn = view.values.denominators[0];
+  const categories = view.category;
   const count = keyColumn.values.length;
   if (count !== numeratorColumn.values.length || count !== denominatorColumn.values.length) {
     return { status: "invalid", error: "Groups, numerators and denominators must have matching row counts." };
@@ -75,7 +70,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
     kept.push(i);
   }
   const annotations = readRowAnnotations({
-    categorical: inputView, values: valueRoles, categories,
+    categorical: view.categorical, values: view.values, categories,
     cards: { scatter: settingsModel.scatter, labels: settingsModel.labels },
     defaults: { scatter: defaultSettings.scatter, labels: defaultSettings.labels }
   }, rows, kept);

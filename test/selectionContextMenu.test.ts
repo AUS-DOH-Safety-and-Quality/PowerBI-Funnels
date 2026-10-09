@@ -38,8 +38,7 @@ describe("Selection and context menu", () => {
 
   it("shows the context menu for points and the background, prevents the default menu and rebinds without duplicates", () => {
     const { element, visual } = render();
-    const show = vi.fn(() => Promise.resolve({}));
-    visual.selectionManager.showContextMenu = show;
+    const show = vi.spyOn(visual.selectionManager, "showContextMenu").mockResolvedValue({});
     const svg = element.querySelector("svg");
     const dot = element.querySelector(".dotsgroup path");
     if (svg === null || dot === null) throw new Error("Missing chart elements");
@@ -57,14 +56,14 @@ describe("Selection and context menu", () => {
     expect(show).toHaveBeenLastCalledWith({}, { x: 3, y: 4 });
     expect(onBackground.defaultPrevented).toBe(true);
 
-    visual.plotProperties.displayPlot = false;
+    const hidden = vi.spyOn(visual, "plotProperties", "get").mockReturnValue({ ...visual.plotProperties, displayPlot: false });
     visual.svg.call(addContextMenu, visual);
     const disabled = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 1, clientY: 1 });
     dot.dispatchEvent(disabled);
     expect(show).toHaveBeenCalledTimes(2);
     expect(disabled.defaultPrevented).toBe(false);
 
-    visual.plotProperties.displayPlot = true;
+    hidden.mockRestore();
     visual.svg.call(addContextMenu, visual);
     visual.svg.call(addContextMenu, visual);
     dot.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 5, clientY: 6 }));
