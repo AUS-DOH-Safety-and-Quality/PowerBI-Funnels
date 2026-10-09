@@ -2,6 +2,7 @@ import type { plotData } from "../Classes";
 import { between } from "powerbi-visuals-core/math";
 import type { svgBaseType, Visual } from "../visual";
 import * as d3 from "./D3 Modules"
+import { screenToSvg } from "powerbi-visuals-core/rendering";
 
 type DataPointSelection<E extends SVGGraphicsElement> = d3.Selection<E, plotData, d3.BaseType, unknown>;
 const shapes = { Circle: d3.symbolCircle, Cross: d3.symbolCross, Diamond: d3.symbolDiamond,
@@ -76,10 +77,10 @@ function dot_tooltips(selection: DataPointSelection<SVGGElement>, visualObj: Vis
     .on("mouseover", (event, d: plotData) => {
       // Pointer coordinates relative to the SVG, matching drawTooltipLine
       const node = visualObj.svg.node();
-      if (node === null) return;
-      const boundRect = node.getBoundingClientRect();
-      const x = event.clientX - boundRect.left;
-      const y = event.clientY - boundRect.top;
+      if (node === null) {
+        return;
+      }
+      const { x, y } = screenToSvg(node, event.clientX, event.clientY);
 
       visualObj.host.tooltipService.show({
         dataItems: d.tooltip,

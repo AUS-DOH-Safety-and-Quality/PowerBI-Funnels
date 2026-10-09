@@ -1,6 +1,6 @@
 import type { svgBaseType, Visual } from "../visual";
 import type { plotData, plotPropertiesClass } from "../Classes/";
-import { drawCrosshairs } from "powerbi-visuals-core/rendering";
+import { drawCrosshairs, screenToSvg } from "powerbi-visuals-core/rendering";
 
 export default function drawTooltipLine(selection: svgBaseType, visualObj: Visual) {
   const plotProperties: plotPropertiesClass = visualObj.plotProperties;
@@ -25,10 +25,10 @@ export default function drawTooltipLine(selection: svgBaseType, visualObj: Visua
     const plotPoints: plotData[] = visualObj.viewModel.plotPoints
 
     const node = visualObj.svg.node();
-    if (node === null) return;
-    const boundRect = node.getBoundingClientRect();
-    const xValue: number = (event.clientX - boundRect.left);
-    const yValue: number = (event.clientY - boundRect.top);
+    if (node === null) {
+      return;
+    }
+    const { x: xValue, y: yValue } = screenToSvg(node, event.clientX, event.clientY);
     let nearest: { index: number; x: number; y: number } | undefined;
     let nearestDistance: number = Infinity;
     for (let i = 0; i < plotPoints.length; i++) {

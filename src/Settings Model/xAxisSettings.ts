@@ -1,4 +1,4 @@
-import { dropdownOption, colourOption, numberOption, toggleOption, fontOption, fontSizeOption, textOption } from "powerbi-visuals-core/settings";
+import { dropdownOption, fontStyleOption, colourOption, numberOption, toggleOption, fontOption, fontSizeOption, textOption } from "powerbi-visuals-core/settings";
 
 const xAxisSettings = {
   description: "X Axis Settings",
@@ -23,7 +23,7 @@ const xAxisSettings = {
       xlimit_label_font: fontOption("Label Font"),
       xlimit_label_size: fontSizeOption("Label Font Size"),
       xlimit_label_colour: colourOption("Label Font Colour", "standard"),
-      xlimit_label_style: dropdownOption("Label Font Style", "normal", ["normal", "italic"], "sentence"),
+      xlimit_label_style: fontStyleOption("Label Font Style"),
       xlimit_label_align: dropdownOption("Label Alignment", "center", ["left", "center", "right"], "sentence")
     },
     "Gridlines": {

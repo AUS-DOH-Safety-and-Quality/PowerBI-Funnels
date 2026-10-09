@@ -5,6 +5,7 @@ import type { plotData, viewModelClass } from "../Classes";
 import type { dataObject } from "../Functions/extractInputData";
 import { max, scaleLinear, type LinearScale } from "powerbi-visuals-core/math";
 import { type colourPaletteType } from "./viewModelClass";
+import type { AxisLabelAlign } from "powerbi-visuals-core/rendering";
 
 export type axisProperties = {
   lower: number,
@@ -24,7 +25,7 @@ export type axisProperties = {
   label_font: string,
   label_colour: string,
   label_style: string,
-  label_align: string,
+  label_align: AxisLabelAlign,
   grid_show: boolean,
   grid_colour: string,
   grid_width: number
