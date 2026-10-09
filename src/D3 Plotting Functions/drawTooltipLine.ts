@@ -33,8 +33,8 @@ export default function drawTooltipLine(selection: svgBaseType, visualObj: Visua
     const plotPoints: plotData[] = visualObj.viewModel.plotPoints
 
     const boundRect = visualObj.svg.node().getBoundingClientRect();
-    const xValue: number = (event.pageX - boundRect.left);
-    const yValue: number = (event.pageY - boundRect.top);
+    const xValue: number = (event.clientX - boundRect.left);
+    const yValue: number = (event.clientY - boundRect.top);
     let indexNearestValue: number | undefined;
     let nearestDistance: number = Infinity;
     let x_coord: number;
