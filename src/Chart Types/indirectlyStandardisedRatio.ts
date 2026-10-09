@@ -31,32 +31,22 @@ const smrY = function(inputData: dataObject): number[] {
   return result;
 }
 
-const smrZ = function(inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
-  if (odAdjust) {
-    const n: number = zScores.length;
-    const rtn: number[] = new Array<number>(n);
-    for (let i: number = 0; i < n; i++) {
-      // Scale z-score to od-adjusted scale, by first un-standardising using the SE
-      // and then re-standardising using the OD-adjusted variance
-      rtn[i] = (zScores[i] * seOD[i]) / Math.sqrt(Math.pow(seOD[i], 2) + tau2);
-    }
-    return rtn;
-  } else {
-    const numerators: readonly number[] = inputData.numerators;
-    const denominators: readonly number[] = inputData.denominators;
-    const n: number = numerators.length;
-    const rtn: number[] = new Array<number>(n);
-    // Un-adjusted limits are exact limits, using the relationship between the Poisson and
-    // Chi-Square distributions. To map the values to z-scores, we simply use the Chi-Square CDF
-    // and Standard-normal quantile functions
-    for (let i: number = 0; i < n; i++) {
-      const ratio: number = numerators[i] / denominators[i];
-      const offset: number = ratio > 1 ? 1 : 0;
-      const log_p: number = chisqCDF(ratio * 2 * denominators[i], 2 * (denominators[i] + offset), true, true);
-      rtn[i] = normalQuantile(log_p, 0, 1, true, true)
-    }
-    return rtn;
+/**
+ * Un-adjusted limits are exact via the Poisson/chi-square relationship, so z-scores
+ * map through the chi-square CDF and the standard normal quantile
+ */
+const smrZ = function(inputData: dataObject) {
+  const numerators: readonly number[] = inputData.numerators;
+  const denominators: readonly number[] = inputData.denominators;
+  const n: number = numerators.length;
+  const rtn: number[] = new Array<number>(n);
+  for (let i: number = 0; i < n; i++) {
+    const ratio: number = numerators[i] / denominators[i];
+    const offset: number = ratio > 1 ? 1 : 0;
+    const log_p: number = chisqCDF(ratio * 2 * denominators[i], 2 * (denominators[i] + offset), true, true);
+    rtn[i] = normalQuantile(log_p, 0, 1, true, true)
   }
+  return rtn;
 }
 
 const smrLimitOD = function(args: limitArgs) {

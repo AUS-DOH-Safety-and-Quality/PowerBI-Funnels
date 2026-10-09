@@ -3,7 +3,7 @@ import type { AxisBounds } from "powerbi-visuals-core/rendering";
 import type viewModelClass from "../Classes/viewModelClass";
 import type { dataObject } from "./extractInputData";
 
-// Explicit axis limits win; otherwise x spans the denominators with headroom and y the plotted values
+/** Explicit axis limits win; otherwise x spans the denominators with headroom and y the plotted values */
 export default function axisRanges(viewModel: viewModelClass, inputData: dataObject): { x: AxisBounds; y: AxisBounds } {
   const settings = viewModel.inputSettings.settings;
   let yUpperLimit = settings.y_axis.ylimit_u;

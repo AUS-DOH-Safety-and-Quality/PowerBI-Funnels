@@ -1,13 +1,6 @@
 import { clamp, quantile } from "powerbi-visuals-core/math";
 
-/**
- * Winsorise unadjusted z-scores to remove influence of
- *    extreme observations prior to assessing/correcting
- *    for dispersion.
- *
- * @param z
- * @returns
- */
+/** Clamps z-scores to their 10th-90th percentiles so outlying units don't drive the dispersion estimate. */
 export default function winsoriseZScores(z: readonly number[]): number[] {
   const z_sorted: readonly number[] = [...z].sort(function(a, b){ return a - b; });
   const lower_z: number | undefined = quantile(z_sorted, 0.1);

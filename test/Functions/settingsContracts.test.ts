@@ -7,7 +7,9 @@ import { categoricalData, validated } from "../dataViewFixture";
 describe("Settings contracts", () => {
   it("preserves zero and false while rejecting non-finite numeric controls", () => {
     const categorical = categoricalData();
-    if (categorical.categories === undefined) throw new Error("Missing fixture category");
+    if (categorical.categories === undefined) {
+      throw new Error("Missing fixture category");
+    }
     categorical.categories[0].objects = [
       { y_axis: { ylimit_sig_figs: 0, ylimit_ticks: false } },
       { y_axis: { ylimit_sig_figs: NaN } }, { y_axis: { ylimit_sig_figs: Infinity } }
@@ -22,7 +24,9 @@ describe("Settings contracts", () => {
 
   it("checks supplied optional numbers against descriptor constraints", () => {
     const categorical = categoricalData();
-    if (categorical.categories === undefined) throw new Error("Missing fixture category");
+    if (categorical.categories === undefined) {
+      throw new Error("Missing fixture category");
+    }
     categorical.categories[0].objects = [
       { y_axis: { ylimit_sig_figs: -1 } }, { y_axis: { ylimit_sig_figs: 3 } }, {}
     ];
@@ -38,7 +42,9 @@ describe("Settings contracts", () => {
 
   it("rejects an invalid dropdown on all rows and recovers on the next update", () => {
     const categorical = categoricalData();
-    if (categorical.categories === undefined) throw new Error("Missing fixture category");
+    if (categorical.categories === undefined) {
+      throw new Error("Missing fixture category");
+    }
     categorical.categories[0].objects = [
       { funnel: { chart_type: "bad" } }, { funnel: { chart_type: "bad" } }, { funnel: { chart_type: "bad" } }
     ];

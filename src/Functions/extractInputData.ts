@@ -32,7 +32,9 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
   }
   if (rows === undefined) {
     const allRows = new Array<number>(count);
-    for (let i = 0; i < count; i++) allRows[i] = i;
+    for (let i = 0; i < count; i++) {
+      allRows[i] = i;
+    }
     rows = allRows;
   }
   const keys = new Array<string | undefined>(rows.length);
@@ -47,7 +49,9 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
     denominators[i] = denominator == null ? undefined : Number(denominator);
   }
   const validation = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
-  if (validation.status !== 0) return { status: "invalid", error: validation.error };
+  if (validation.status !== 0) {
+    return { status: "invalid", error: validation.error };
+  }
 
   const keyRows: dataObject["keys"] = [];
   const id: number[] = [];
@@ -55,7 +59,9 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
   const validDenominators: number[] = [];
   const kept: number[] = [];
   for (let i = 0; i < keys.length; i++) {
-    if (validation.messages[i] !== "") continue;
+    if (validation.messages[i] !== "") {
+      continue;
+    }
     const row = rows[i];
     const key = keys[i];
     const numerator = numerators[i];

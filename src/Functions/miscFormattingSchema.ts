@@ -3,7 +3,12 @@ import type { SettingDefinition } from "powerbi-visuals-core/settings";
 import settingsModel from "../settings";
 
 export default function miscFormattingSchema(items: FormattingItem[]) {
-  const { canvas, funnel, misc, outliers, scatter, lines, x_axis, y_axis } = settingsModel;
+  const misc = settingsModel.misc;
+  const outliers = settingsModel.outliers;
+  const scatter = settingsModel.scatter;
+  const lines = settingsModel.lines;
+  const x_axis = settingsModel.x_axis;
+  const y_axis = settingsModel.y_axis;
   const lineSettings: Record<string, SettingDefinition> = {};
   const levels = ["target", "95", "99"] as const;
   const properties = ["show", "width", "type", "colour", "opacity", "ttip_show", "ttip_label"] as const;
@@ -14,7 +19,8 @@ export default function miscFormattingSchema(items: FormattingItem[]) {
     }
   }
   return {
-    canvas, funnel,
+    canvas: settingsModel.canvas,
+    funnel: settingsModel.funnel,
     misc: { ...misc, settingsGroups: { all: { ...misc.settingsGroups.all, group: { ...misc.group, items } } } },
     outliers: { ...outliers, settingsGroups: { all: {
       improvement_direction: outliers.improvement_direction, process_flag_type: outliers.process_flag_type,

@@ -5,21 +5,25 @@ import { categoricalData, dataView } from "./dataViewFixture";
 import { keyedHost } from "powerbi-visuals-core/testing";
 import addContextMenu from "../src/D3 Plotting Functions/addContextMenu";
 
-function render(): { element: HTMLElement; visual: Visual } {
-  const element = testDom("500", "500");
+function render(element: HTMLElement): Visual {
   const visual = new Visual({ element, host: keyedHost() });
   visual.update({ dataViews: [dataView()], viewport: { width: 500, height: 500 }, type: 2 });
-  return { element, visual };
+  return visual;
+}
+
+function contextMenu(clientX: number, clientY: number): MouseEvent {
+  return new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX, clientY });
 }
 
 function dotOpacity(element: HTMLElement, index: number): string {
   return element.querySelectorAll<SVGGElement>(".dotsgroup path")[index].style.fillOpacity;
 }
 
-// Changeset 7: selection matching by key and the shared context-menu binding.
+// Selection matching by key and the shared context-menu binding.
 describe("Selection and context menu", () => {
   it("keeps a selected point highlighted after a data update rebuilds identities", async () => {
-    const { element, visual } = render();
+    const element = testDom("500", "500");
+    const visual = render(element);
     const before = visual.viewModel.plotPoints[1];
     expect(before.identity.getKey()).not.toBe(visual.viewModel.plotPoints[0].identity.getKey());
     await visual.selectionManager.select(before.identity);
@@ -37,20 +41,23 @@ describe("Selection and context menu", () => {
   });
 
   it("shows the context menu for points and the background, prevents the default menu and rebinds without duplicates", () => {
-    const { element, visual } = render();
+    const element = testDom("500", "500");
+    const visual = render(element);
     const show = vi.spyOn(visual.selectionManager, "showContextMenu").mockResolvedValue({});
     const svg = element.querySelector("svg");
     const dot = element.querySelector(".dotsgroup path");
-    if (svg === null || dot === null) throw new Error("Missing chart elements");
+    if (svg === null || dot === null) {
+      throw new Error("Missing chart elements");
+    }
     const point = visual.viewModel.plotPoints[0];
 
-    const onPoint = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 11, clientY: 22 });
+    const onPoint = contextMenu(11, 22);
     dot.dispatchEvent(onPoint);
     expect(show).toHaveBeenCalledTimes(1);
     expect(show).toHaveBeenLastCalledWith(point.identity, { x: 11, y: 22 });
     expect(onPoint.defaultPrevented).toBe(true);
 
-    const onBackground = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 3, clientY: 4 });
+    const onBackground = contextMenu(3, 4);
     svg.dispatchEvent(onBackground);
     expect(show).toHaveBeenCalledTimes(2);
     expect(show).toHaveBeenLastCalledWith({}, { x: 3, y: 4 });
@@ -58,7 +65,7 @@ describe("Selection and context menu", () => {
 
     const hidden = vi.spyOn(visual, "plotProperties", "get").mockReturnValue({ ...visual.plotProperties, displayPlot: false });
     visual.svg.call(addContextMenu, visual);
-    const disabled = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 1, clientY: 1 });
+    const disabled = contextMenu(1, 1);
     dot.dispatchEvent(disabled);
     expect(show).toHaveBeenCalledTimes(2);
     expect(disabled.defaultPrevented).toBe(false);
@@ -66,7 +73,7 @@ describe("Selection and context menu", () => {
     hidden.mockRestore();
     visual.svg.call(addContextMenu, visual);
     visual.svg.call(addContextMenu, visual);
-    dot.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 5, clientY: 6 }));
+    dot.dispatchEvent(contextMenu(5, 6));
     expect(show).toHaveBeenCalledTimes(3);
     expect(show).toHaveBeenLastCalledWith(point.identity, { x: 5, y: 6 });
   });

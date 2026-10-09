@@ -21,6 +21,8 @@ export function dataView(categorical = categoricalData()): powerbi.DataView {
 
 export function validated(categorical = categoricalData()): ValidatedDataView<"numerators" | "denominators"> {
   const result = validateDataView([dataView(categorical)], ["numerators", "denominators"]);
-  if (result.status !== "valid") throw new Error(result.error);
+  if (result.status !== "valid") {
+    throw new Error(result.error);
+  }
   return result.view;
 }

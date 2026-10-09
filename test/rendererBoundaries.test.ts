@@ -5,11 +5,13 @@ import { ChartBuilder } from "./visualBuilder";
 import { categoricalData, dataView } from "./dataViewFixture";
 
 function must<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) throw new Error("Missing element");
+  if (value === null || value === undefined) {
+    throw new Error("Missing element");
+  }
   return value;
 }
 
-// Changeset 8: line-label placement, error text and tooltip crosshairs render through Core
+// Line-label placement, error text and tooltip crosshairs render through Core
 describe("renderer boundaries", () => {
   it("places line labels through the shared geometry", () => {
     const builder = new ChartBuilder(500, 500);

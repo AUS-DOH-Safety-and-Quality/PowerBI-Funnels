@@ -3,6 +3,7 @@ import { testDom, createVisualHost } from "powerbi-visuals-utils-testutils";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Visual } from "../src/visual";
 import buildDataView from "./helpers/buildDataView";
+import findBy from "./helpers/findBy";
 import { cells } from "powerbi-visuals-core/testing";
 
 const sample = { key: ["A", "B", "C"], numerators: [10, 20, 30], denominators: [100, 120, 140] };
@@ -39,12 +40,12 @@ describe("Chart", () => {
     expect(host.eventService.renderingFinished).toHaveBeenCalledOnce();
     expect(visual.viewModel.plotPoints).toHaveLength(3);
     expect(visual.viewModel.plotPoints[0].value).toBeCloseTo(value as number, 10);
-    const limits = visual.viewModel.calculatedLimits.find(d => d.denominators === 100)!;
+    const limits = findBy(visual.viewModel.calculatedLimits, "denominators", 100)!;
     expect(limits.target).toBeCloseTo(target as number, 10);
     expect(limits.ll95).toBeLessThan(limits.target);
     expect(limits.ul95).toBeGreaterThan(limits.target);
     expect(element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
-    expect(visual.viewModel.plotPoints[0].tooltip.find(d => d.displayName === "Group")?.value).toBe("A");
+    expect(findBy(visual.viewModel.plotPoints[0].tooltip, "displayName", "Group")?.value).toBe("A");
   });
 
   it.each(["PR", "RC", "SR"] as const)("renders %s with overdispersion adjustment", chart_type => {
@@ -55,7 +56,10 @@ describe("Chart", () => {
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
     expect(visual.viewModel.chartBase!.odAdjust).toBe(true);
     expect(visual.viewModel.chartBase!.getTau2()).toBeGreaterThan(0);
-    expect(visual.viewModel.plotPoints.every(d => Number.isFinite(d.z))).toBe(true);
+    const points = visual.viewModel.plotPoints;
+    for (let i = 0; i < points.length; i++) {
+      expect(Number.isFinite(points[i].z)).toBe(true);
+    }
   });
 
   it("renders a single observation with axes", () => {
@@ -140,17 +144,22 @@ describe("Chart", () => {
     update(buildDataView(sample, { funnel: { chart_type: "RC", transformation: "sqrt" } }));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
     expect(visual.plotProperties.yAxis.upper).toBeCloseTo(Math.sqrt(30 / 140), 10);
-    expect(visual.viewModel.plotPoints.every(d => d.value <= visual.plotProperties.yAxis.upper)).toBe(true);
+    const points = visual.viewModel.plotPoints;
+    for (let i = 0; i < points.length; i++) {
+      expect(points[i].value).toBeLessThanOrEqual(visual.plotProperties.yAxis.upper);
+    }
   });
 
   it("preserves missing limits in low-count tooltips", () => {
     update(buildDataView({ key: ["A", "B"], numerators: [0, 10], denominators: [1, 100] }));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    const limits = visual.viewModel.calculatedLimits.find(d => d.denominators === 1)!;
+    const limits = findBy(visual.viewModel.calculatedLimits, "denominators", 1)!;
     expect(limits.ll99).toBeUndefined();
     const tooltip = visual.viewModel.plotPoints[0].tooltip;
-    expect(tooltip.find(d => d.displayName === "Lower 99% Limit")?.value).toBe("");
-    expect(tooltip.some(d => d.value === "NaN%")).toBe(false);
+    expect(findBy(tooltip, "displayName", "Lower 99% Limit")?.value).toBe("");
+    for (let i = 0; i < tooltip.length; i++) {
+      expect(tooltip[i].value).not.toBe("NaN%");
+    }
   });
 
   it("respects the host's interaction setting", () => {

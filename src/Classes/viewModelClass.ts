@@ -37,14 +37,12 @@ export type plotData = {
   value: number;
   z: number;
   group_text: string;
-  // Limits at this point's denominator
+  /** Limits at this point's denominator */
   limits: limitData;
   aesthetics: settingsValueType["scatter"];
-  // ISelectionId allows the visual to report the selection choice to PowerBI
   identity: ISelectionId;
-  // Flag for whether dot should be highlighted by selections in other charts
+  /** Highlighted by selections in other visuals */
   highlighted: boolean;
-  // Tooltip data to print
   tooltip: VisualTooltipDataItem[];
   label: {
     text_value: string | undefined,
@@ -90,7 +88,9 @@ export default class viewModelClass {
     // Read before any early return so error rendering is themed
     this.colourPalette = readColourPalette(host);
     const checkDV = validateDataView(options.dataViews, ["numerators", "denominators"]);
-    if (checkDV.status !== "valid") return this.invalidate(checkDV.error);
+    if (checkDV.status !== "valid") {
+      return this.invalidate(checkDV.error);
+    }
     const view = checkDV.view;
     const dataChanged = (options.type & (2 | 16)) !== 0 || this.firstRun;
     const indicators = view.categories.indicator ?? [];
@@ -101,7 +101,9 @@ export default class viewModelClass {
       this.inputSettings.update(view, indicatorGroups.rows);
     }
     const settingsValidation = this.inputSettings.validationStatus;
-    if (settingsValidation.status !== 0) return this.invalidate(settingsValidation.error, "settings");
+    if (settingsValidation.status !== 0) {
+      return this.invalidate(settingsValidation.error, "settings");
+    }
 
     this.svgWidth = options.viewport.width;
     this.svgHeight = options.viewport.height;
@@ -111,13 +113,17 @@ export default class viewModelClass {
     if (dataChanged) {
       this.miscPoints = [];
       this.miscAnyHighlights = false;
-      if (this.inputSettings.showMisc) return this.initialiseMisc(view, host, indicatorGroups, indicators);
+      if (this.inputSettings.showMisc) {
+        return this.initialiseMisc(view, host, indicatorGroups, indicators);
+      }
       const chartType = this.inputSettings.settings.funnel.chart_type;
       if (chartType !== "PR" && chartType !== "SR" && chartType !== "RC") {
         return this.invalidate("Invalid chart type", "settings");
       }
       const result = extractInputData(view, this.inputSettings);
-      if (result.status === "invalid") return this.invalidate(result.error);
+      if (result.status === "invalid") {
+        return this.invalidate(result.error);
+      }
       this.inputData = result.data;
       this.chartBase = new chartObjects[chartType](result.data, this.inputSettings);
       this.calculatedLimits = this.chartBase.getLimits();
@@ -126,7 +132,9 @@ export default class viewModelClass {
       this.initialiseGroupedLines();
       this.firstRun = false;
     }
-    if (this.inputData === undefined) return this.invalidate("No validated data present");
+    if (this.inputData === undefined) {
+      return this.invalidate("No validated data present");
+    }
     return { status: true, data: this.inputData, warning: this.inputData.warningMessage || undefined };
   }
 
@@ -154,14 +162,20 @@ export default class viewModelClass {
     const items = this.inputSettings.miscGroups;
     const rowsByGroup = new Map<string, number[]>();
     for (let i = 0; i < groups.rows.length; i++) {
-      if (keyColumn.values[groups.rows[i][0]] == null) continue;
+      if (keyColumn.values[groups.rows[i][0]] == null) {
+        continue;
+      }
       items.push({ displayName: groups.names[i][0], value: groups.keys[i] });
       rowsByGroup.set(groups.keys[i], groups.rows[i]);
     }
     const misc = this.inputSettings.settings.misc;
-    if (misc.group === "" && items.length > 0) misc.group = items[0].value;
+    if (misc.group === "" && items.length > 0) {
+      misc.group = items[0].value;
+    }
     const targetRows = rowsByGroup.get(misc.group);
-    if (targetRows === undefined) return this.invalidate("Select a MISC group present in the data.", "settings");
+    if (targetRows === undefined) {
+      return this.invalidate("Select a MISC group present in the data.", "settings");
+    }
     if (!(misc.lower < 0 && misc.upper > 0)) {
       return this.invalidate("MISC sigma bounds must span zero.", "settings");
     }
@@ -181,10 +195,14 @@ export default class viewModelClass {
       }
       settings.settings.outliers = { ...settings.settings.outliers, three_sigma: true, two_sigma: false };
       const result = extractInputData(view, settings, rows);
-      if (result.status === "invalid") return this.invalidate(`${indicator}: ${result.error}`);
+      if (result.status === "invalid") {
+        return this.invalidate(`${indicator}: ${result.error}`);
+      }
       const data = result.data;
       this.inputData ??= data;
-      if (data.warningMessage !== "") warnings.push(`${indicator}: ${data.warningMessage}`);
+      if (data.warningMessage !== "") {
+        warnings.push(`${indicator}: ${data.warningMessage}`);
+      }
       this.miscAnyHighlights ||= data.anyHighlights;
       const chart = new chartObjects[settings.settings.funnel.chart_type](data, settings);
       this.calculatedLimits = chart.getLimits();
@@ -192,14 +210,26 @@ export default class viewModelClass {
       this.initialisePlotData(host, data, chart, settings);
       for (let j = 0; j < data.id.length; j++) {
         const row = data.id[j];
-        if (!selectedRows.has(row)) continue;
+        if (!selectedRows.has(row)) {
+          continue;
+        }
         const point = this.plotPoints[j];
         const score = point.z * (direction === "decrease" ? -1 : 1);
         const identity = host.createSelectionIdBuilder().withCategory(keyColumn, row);
-        for (let k = 0; k < indicatorColumns.length; k++) identity.withCategory(indicatorColumns[k], row);
-        this.miscPoints.push({ ...point, indicator, score, identity: identity.createSelectionId(), tooltip: [
-          { displayName: "Indicator", value: indicator }, { displayName: "Z-score", value: score.toFixed(3) }, ...point.tooltip
-        ] });
+        for (let k = 0; k < indicatorColumns.length; k++) {
+          identity.withCategory(indicatorColumns[k], row);
+        }
+        this.miscPoints.push({
+          ...point,
+          indicator,
+          score,
+          identity: identity.createSelectionId(),
+          tooltip: [
+            { displayName: "Indicator", value: indicator },
+            { displayName: "Z-score", value: score.toFixed(3) },
+            ...point.tooltip
+          ]
+        });
       }
     }
     this.chartBase = undefined;
@@ -222,14 +252,20 @@ export default class viewModelClass {
     const flag_two_sigma: boolean = inputSettings.settings.outliers.two_sigma;
     const flag_three_sigma: boolean = inputSettings.settings.outliers.three_sigma;
     const zScores: number[] = chart.getZ();
+    const limitsByDenominator = new Map<number, limitData>();
+    for (let i = 0; i < this.calculatedLimits.length; i++) {
+      limitsByDenominator.set(this.calculatedLimits[i].denominators, this.calculatedLimits[i]);
+    }
 
     for (let i: number = 0; i < inputData.id.length; i++) {
       const original_index: number = inputData.id[i];
       const numerator: number = inputData.numerators[i];
       const denominator: number = inputData.denominators[i];
       const value: number = transform((numerator / denominator) * multiplier);
-      const limits = this.calculatedLimits.find(d => d.denominators === denominator);
-      if (limits === undefined) throw new Error("Missing limits for an observed denominator.");
+      const limits = limitsByDenominator.get(denominator);
+      if (limits === undefined) {
+        throw new Error("Missing limits for an observed denominator.");
+      }
       const aesthetics: settingsValueType["scatter"] = inputData.scatter_formatting[i]
       if (this.colourPalette.isHighContrast) {
         aesthetics.colour = this.colourPalette.foregroundColour;
@@ -327,7 +363,9 @@ export default class viewModelClass {
       for (let j = 0; j < names.length; j++) {
         const name = names[j];
         const value = limit[name];
-        if (value !== undefined) limit[name] = clamp(transform(value * multiplier), lower, upper);
+        if (value !== undefined) {
+          limit[name] = clamp(transform(value * multiplier), lower, upper);
+        }
       }
     }
   }

@@ -1,12 +1,4 @@
-/**
- * Generate (un-adjusted) z-scores using transformed
- * observations and standard errors
- *
- * @param y
- * @param SE
- * @param target
- * @returns
- */
+/** Un-adjusted z-scores of the transformed observations. */
 export default function getZScores(y: readonly number[], SE: readonly number[], target: number): number[] {
   const n: number = y.length;
   const result: number[] = new Array<number>(n);

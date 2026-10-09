@@ -35,7 +35,7 @@ extractInputData(validated(), settings);
 // @ts-expect-error Raw categorical data must pass validateDataView first.
 extractInputData(categoricalData(), settings);
 
-// Each plotted point carries the limits at its denominator; every limit call has a standard error
+/** Each plotted point carries the limits at its denominator; every limit call has a standard error */
 const limits: limitData = viewModel.plotPoints[0].limits;
 const se: number = args.SE;
 const labels: (string | undefined)[] = viewModel.plotPoints.length > 0 && viewModel.inputData !== undefined ? viewModel.inputData.labels : [];

@@ -5,11 +5,13 @@ import { bindContextMenu, select, type BaseType } from "powerbi-visuals-core/ren
 
 type ISelectionId = powerbi.visuals.ISelectionId;
 
-export default function addContextMenu(selection: svgBaseType, visualObj: Visual) {
+export default function addContextMenu(selection: svgBaseType, visualObj: Visual, enabled = visualObj.plotProperties.displayPlot) {
   const root = selection.node();
-  if (root === null) return;
+  if (root === null) {
+    return;
+  }
   bindContextMenu(root, {
-    enabled: visualObj.plotProperties.displayPlot,
+    enabled,
     // Background clicks keep the existing empty identity
     identity: target => (select(target as BaseType).datum() as plotData | undefined)?.identity ?? ({} as ISelectionId),
     show: (identity, position) => visualObj.selectionManager.showContextMenu(identity, position)

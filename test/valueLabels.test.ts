@@ -8,7 +8,9 @@ import { defaultSettings } from "../src/settings";
 function labelledView(labels: powerbi.DataViewObject, values: powerbi.PrimitiveValue[] = ["One", "", "Three"],
                       canvas: powerbi.DataViewObject = {}): powerbi.DataView {
   const categorical = categoricalData();
-  if (categorical.categories === undefined || categorical.values === undefined) throw new Error("Missing fixture columns");
+  if (categorical.categories === undefined || categorical.values === undefined) {
+    throw new Error("Missing fixture columns");
+  }
   categorical.values.push({ source: { displayName: "Label", roles: { labels: true } }, values });
   categorical.categories[0].objects = [{ labels, canvas }, { labels, canvas }, { labels, canvas }];
   return dataView(categorical);
@@ -19,11 +21,13 @@ function labelGroups(builder: ChartBuilder): NodeListOf<SVGGElement> {
 }
 
 function attribute(element: Element | null, name: string): number {
-  if (element === null) throw new Error(`Missing element for ${name}`);
+  if (element === null) {
+    throw new Error(`Missing element for ${name}`);
+  }
   return Number(element.getAttribute(name));
 }
 
-// Changeset 6: value labels render through Core's shared implementation.
+// Value labels render through Core's shared implementation.
 describe("Value labels", () => {
   it("labels points above by default, skips empty labels and anchors the connector at the point", () => {
     const builder = new ChartBuilder(500, 500);
@@ -75,7 +79,9 @@ describe("Value labels", () => {
       const text = group.querySelector("text");
       const line = group.querySelector("line");
       const path = group.querySelector("path");
-      if (text === null || line === null || path === null) throw new Error("Missing label elements");
+      if (text === null || line === null || path === null) {
+        throw new Error("Missing label elements");
+      }
       expect(text.style.fontSize).toBe("13px");
       expect(text.style.fontFamily).toContain("Arial Black");
       expect(text.style.fill).toBe("rgb(18, 52, 86)");
@@ -89,7 +95,7 @@ describe("Value labels", () => {
     }
   });
 
-  // Finding 31: the marker switch is honoured; the connector still ends at the marker position.
+  // The marker switch is honoured; the connector still ends at the marker position.
   it("omits the marker when the marker switch is off", () => {
     const builder = new ChartBuilder(500, 500);
     try {
@@ -103,14 +109,23 @@ describe("Value labels", () => {
     }
   });
 
-  // Finding 30: the origin is an ordinary position, not a suppression signal.
+  // The origin is an ordinary position, not a suppression signal.
   it("renders a label positioned exactly at the origin", () => {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     document.body.appendChild(svg);
     try {
       drawValueLabels(svg, {
         visible: true,
-        points: [{ x: 0, value: 0, label: { text_value: "Origin", aesthetics: defaultSettings.labels, angle: 0, distance: 0 } }],
+        points: [{
+          x: 0,
+          value: 0,
+          label: {
+            text_value: "Origin",
+            aesthetics: defaultSettings.labels,
+            angle: 0,
+            distance: 0
+          }
+        }],
         xScale: () => 0, yScale: () => 0, plotHeight: 400, bottomPadding: 30,
         line: { colour: "#000000", width: 1, type: "10 0" }, interactive: false
       });
@@ -162,7 +177,9 @@ describe("Value labels", () => {
     try {
       builder.update(labelledView({ label_marker_offset: 20 }));
       const svg = builder.element.querySelector("svg");
-      if (svg === null) throw new Error("Missing svg");
+      if (svg === null) {
+        throw new Error("Missing svg");
+      }
       const group = labelGroups(builder)[0];
       const point = builder.instance.viewModel.plotPoints[0];
       const pointX = builder.instance.plotProperties.xScale(point.x);
@@ -178,7 +195,9 @@ describe("Value labels", () => {
       svgPoint.x = clientX;
       svgPoint.y = clientY;
       const ctm = svg.getScreenCTM();
-      if (ctm === null) throw new Error("Missing CTM");
+      if (ctm === null) {
+        throw new Error("Missing CTM");
+      }
       const expected = svgPoint.matrixTransform(ctm.inverse());
       group.dispatchEvent(new PointerEvent("pointermove", { pointerId: 1, clientX, clientY }));
       const expectedAngle = Math.atan2(expected.y - pointY, expected.x - pointX) * 180 / Math.PI;
@@ -187,7 +206,7 @@ describe("Value labels", () => {
       const text = group.querySelector("text");
       expect(attribute(text, "x")).toBeCloseTo(expected.x, 6);
       expect(attribute(text, "y")).toBeCloseTo(expected.y, 6);
-      // Finding 32: the marker keeps the configured offset (20 + font size 10 / 2) while dragging
+      // The marker keeps the configured offset (20 + font size 10 / 2) while dragging
       const line = group.querySelector("line");
       const radians = expectedAngle * Math.PI / 180;
       expect(attribute(line, "x2")).toBeCloseTo(pointX + 25 * Math.cos(radians), 6);

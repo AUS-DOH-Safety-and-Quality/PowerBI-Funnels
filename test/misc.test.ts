@@ -5,15 +5,18 @@ import viewModelClass from "../src/Classes/viewModelClass";
 import { categoricalData, dataView } from "./dataViewFixture";
 import { cells, keyedHost } from "powerbi-visuals-core/testing";
 import type { PrimitiveValue } from "powerbi-visuals-core/powerbi";
+import findBy from "./helpers/findBy";
 
 function miscView(numerators: PrimitiveValue[] = [80, 4, 20, 20, 24, 24, 30, 30]): powerbi.DataView {
   const categorical = categoricalData(numerators, Array(8).fill(100), ["A", "A", "B", "B", "C", "C", "D", "D"]);
   categorical.categories!.push({ source: { displayName: "Indicator", roles: { indicator: true } },
     values: ["Higher", "Lower", "Higher", "Lower", "Higher", "Lower", "Higher", "Lower"] });
   categorical.categories![0].objects = new Array(8);
-  for (let i = 0; i < 8; i++) categorical.categories![0].objects[i] = {
-    outliers: { improvement_direction: i % 2 === 0 ? "increase" : "decrease" }
-  };
+  for (let i = 0; i < 8; i++) {
+    categorical.categories![0].objects[i] = {
+      outliers: { improvement_direction: i % 2 === 0 ? "increase" : "decrease" }
+    };
+  }
   categorical.values!.push({ source: { displayName: "Extra", roles: { tooltips: true } }, values: ["A-H", "A-L", "B-H", "B-L", "C-H", "C-L", "D-H", "D-L"] });
   return dataView(categorical);
 }
@@ -31,7 +34,9 @@ describe("MISC calculations", () => {
       const model = new viewModelClass(host);
       const view = miscView();
       const objects = view.categorical!.categories![0].objects!;
-      for (let i = 0; i < objects.length; i++) objects[i].funnel = { chart_type: chartType, od_adjust: "yes" };
+      for (let i = 0; i < objects.length; i++) {
+        objects[i].funnel = { chart_type: chartType, od_adjust: "yes" };
+      }
       expect(update(model, view, host).status).toBe(true);
       expect(model.miscPoints).toHaveLength(2);
       for (let i = 0; i < 2; i++) {
@@ -56,8 +61,13 @@ describe("MISC calculations", () => {
     const view = miscView();
     expect(update(model, view, host).status).toBe(true);
     const settings = model.inputSettings;
-    expect(settings.miscGroups.map(item => item.displayName)).toEqual(["A", "B", "C", "D"]);
-    const card = settings.getFormattingModel().cards.find(card => card.uid === "misc_card_uid")!;
+    expect(settings.miscGroups).toMatchObject([
+      { displayName: "A" },
+      { displayName: "B" },
+      { displayName: "C" },
+      { displayName: "D" }
+    ]);
+    const card = findBy(settings.getFormattingModel().cards, "uid", "misc_card_uid")!;
     expect(card.groups[0].slices![0]).toMatchObject({ control: { type: "Dropdown", properties: {
       descriptor: { objectName: "misc", propertyName: "group" }, items: settings.miscGroups, value: settings.miscGroups[0]
     } } });
@@ -80,7 +90,9 @@ describe("MISC calculations", () => {
     const model = new viewModelClass(keyedHost());
     const status = update(model, view);
     expect(status.status).toBe(true);
-    if (!status.status) throw new Error(status.error);
+    if (!status.status) {
+      throw new Error(status.error);
+    }
     expect(status.warning).toContain("Higher: Group B removed");
     expect(status.warning).toContain("Lower: Conditional formatting for Group C ignored");
     expect(model.miscPoints[1].highlighted).toBe(true);
@@ -104,7 +116,9 @@ describe("MISC calculations", () => {
     const view = miscView();
     const categorical = view.categorical!;
     categorical.categories![0].values = [1, 1, "1", "1", "C", "C", "D", "D"];
-    for (let i = 0; i < 8; i++) categorical.categories![0].objects![i].funnel = { chart_type: i % 2 === 0 ? "PR" : "RC" };
+    for (let i = 0; i < 8; i++) {
+      categorical.categories![0].objects![i].funnel = { chart_type: i % 2 === 0 ? "PR" : "RC" };
+    }
     const model = new viewModelClass(keyedHost());
     expect(update(model, view).status).toBe(true);
     const items = model.inputSettings.miscGroups;

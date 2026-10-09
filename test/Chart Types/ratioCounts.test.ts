@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import rcFunnelClass from "../../src/Chart Types/ratioCounts";
 import settingsClass from "../../src/Classes/settingsClass";
 import type { dataObject } from "../../src/Functions/extractInputData";
+import findBy from "../helpers/findBy";
 
 function createChart(numerators: number[]): rcFunnelClass {
   const inputData: dataObject = {
@@ -68,7 +69,7 @@ describe("ratio-count plotting standard errors", () => {
     const chart = createChart([4, 16]);
     chart.inputSettings.settings.funnel.od_adjust = "no";
     const limits = chart.getLimits();
-    const limit = limits.find(value => value.denominators === 90);
+    const limit = findBy(limits, "denominators", 90);
     expect(limit).toBeDefined();
     expect(limit?.target).toBe(0.2);
     expect(limit?.ll95).toBeCloseTo(0.12201011476061706, 12);

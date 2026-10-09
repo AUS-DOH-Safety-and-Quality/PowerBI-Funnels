@@ -12,13 +12,19 @@ export default function buildDataView(inputs: Inputs, settings: SettingsOverride
   const values: powerbi.DataViewValueColumns = Object.assign([], { grouped: () => [] });
 
   const perRowSettings = Array.isArray(settings);
-  for (const role in inputs) {
-    const input = inputs[role as keyof Inputs]!;
+  const roles = Object.keys(inputs) as (keyof Inputs)[];
+  for (let r = 0; r < roles.length; r++) {
+    const role = roles[r];
+    const input = inputs[role]!;
     const objects = role === "key" ? new Array<powerbi.DataViewObjects>(input.length) : undefined;
     let firstValue: PrimitiveValue;
     for (let i = 0; i < input.length; i++) {
-      if (firstValue == null) firstValue = input[i];
-      if (objects) objects[i] = (perRowSettings ? settings[i] : settings) as powerbi.DataViewObjects;
+      if (firstValue == null) {
+        firstValue = input[i];
+      }
+      if (objects) {
+        objects[i] = (perRowSettings ? settings[i] : settings) as powerbi.DataViewObjects;
+      }
     }
     const source: powerbi.DataViewMetadataColumn = {
       displayName: role,

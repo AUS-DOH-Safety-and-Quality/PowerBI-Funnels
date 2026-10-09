@@ -1,14 +1,17 @@
-import type powerbi from "powerbi-visuals-api";
 import { clamp, scaleLinear } from "powerbi-visuals-core/math";
-import { bindContextMenu, select, type BaseType } from "powerbi-visuals-core/rendering";
 import type { svgBaseType, Visual } from "../visual";
 import type { miscPoint } from "../Classes/viewModelClass";
+import addContextMenu from "./addContextMenu";
 
 export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   svg.selectChildren().remove();
   const model = visual.viewModel;
   const settings = model.inputSettings.settings;
-  const { canvas, misc, x_axis: xAxis, y_axis: yAxis, lines } = settings;
+  const canvas = settings.canvas;
+  const misc = settings.misc;
+  const xAxis = settings.x_axis;
+  const yAxis = settings.y_axis;
+  const lines = settings.lines;
   const palette = model.colourPalette;
   const colour = (value: string) => palette.isHighContrast ? palette.foregroundColour : value;
   svg.style("background", () => palette.isHighContrast ? palette.backgroundColour : null);
@@ -23,7 +26,9 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
     .attr("fill", colour(yAxis.ylimit_tick_colour)).text(point => point.indicator);
   let labelWidth = 0;
   const nodes = labels.nodes();
-  for (let i = 0; i < nodes.length; i++) labelWidth = Math.max(labelWidth, nodes[i].getBBox().width);
+  for (let i = 0; i < nodes.length; i++) {
+    labelWidth = Math.max(labelWidth, nodes[i].getBBox().width);
+  }
   const left = canvas.left_padding + labelWidth + 10;
   const right = Math.max(left, model.svgWidth - canvas.right_padding);
   labels.attr("x", left - 8);
@@ -35,8 +40,11 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
     { value: 0, level: "target" }
   ] as const;
   for (let i = 0; i < limits.length; i++) {
-    const { value, level } = limits[i];
-    if (!lines[`show_${level}`] || value < misc.lower || value > misc.upper) continue;
+    const value = limits[i].value;
+    const level = limits[i].level;
+    if (!lines[`show_${level}`] || value < misc.lower || value > misc.upper) {
+      continue;
+    }
     root.append("line").attr("class", level === "target" ? "misc-zero-line" : `misc-limit-${level}`)
       .attr("x1", scale(value)).attr("x2", scale(value)).attr("y1", top).attr("y2", bottom)
       .attr("stroke", colour(lines[`colour_${level}`])).attr("stroke-width", lines[`width_${level}`])
@@ -69,8 +77,11 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   }
   const legends = [{ level: "95", text: "95% Control Limits" }, { level: "99", text: "99.8% Control Limits" }] as const;
   for (let i = 0; i < legends.length; i++) {
-    const { level, text } = legends[i];
-    if (!lines[`show_${level}`]) continue;
+    const level = legends[i].level;
+    const text = legends[i].text;
+    if (!lines[`show_${level}`]) {
+      continue;
+    }
     const x = left + (right - left) * i / 2;
     root.append("line").attr("x1", x).attr("x2", x + 20).attr("y1", top - 35).attr("y2", top - 35)
       .attr("stroke", colour(lines[`colour_${level}`])).attr("stroke-dasharray", lines[`type_${level}`]);
@@ -84,18 +95,18 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
     .attr("width", point => Math.abs(scale(clamp(point.score, misc.lower, misc.upper)) - zero))
     .attr("height", rowHeight * misc.bar_height).attr("fill", point => colour(point.aesthetics.colour))
     .on("click", (event: MouseEvent, point) => {
-      if (!visual.host.hostCapabilities.allowInteractions) return;
+      if (!visual.host.hostCapabilities.allowInteractions) {
+        return;
+      }
       visual.selectionManager.select(point.identity, event.ctrlKey || event.metaKey).then(() => visual.updateHighlighting());
       event.stopPropagation();
     })
     .on("mouseover", (event: MouseEvent, point) => visual.host.tooltipService.show({
-      dataItems: point.tooltip, identities: [point.identity], coordinates: [event.clientX, event.clientY], isTouchEvent: false
+      dataItems: point.tooltip,
+      identities: [point.identity],
+      coordinates: [event.clientX, event.clientY],
+      isTouchEvent: false
     }))
     .on("mouseout", () => visual.host.tooltipService.hide({ immediately: true, isTouchEvent: false }));
-  const node = svg.node();
-  if (node !== null) bindContextMenu<powerbi.visuals.ISelectionId>(node, {
-    enabled: visual.host.hostCapabilities.allowInteractions === true,
-    identity: target => (select(target as BaseType).datum() as miscPoint | undefined)?.identity ?? ({} as powerbi.visuals.ISelectionId),
-    show: (identity, position) => visual.selectionManager.showContextMenu(identity, position)
-  });
+  svg.call(addContextMenu, visual, visual.host.hostCapabilities.allowInteractions === true);
 }

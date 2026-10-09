@@ -21,9 +21,9 @@ export default class derivedSettingsClass {
   }
 
   private calculate(inputSettings: settingsValueType) {
-    const { multiplier, percentLabels } = resolvePercentScaling(inputSettings.funnel.chart_type === "PR",
-                                                                inputSettings.funnel.perc_labels, inputSettings.funnel.multiplier);
-    const formatValue = createValueFormatter(inputSettings.funnel.sig_figs, 0, percentLabels ? "%" : "");
-    return { multiplier, percentLabels, formatValue };
+    const scaling = resolvePercentScaling(inputSettings.funnel.chart_type === "PR",
+                                          inputSettings.funnel.perc_labels, inputSettings.funnel.multiplier);
+    const formatValue = createValueFormatter(inputSettings.funnel.sig_figs, 0, scaling.percentLabels ? "%" : "");
+    return { multiplier: scaling.multiplier, percentLabels: scaling.percentLabels, formatValue };
   }
 }

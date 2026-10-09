@@ -16,7 +16,9 @@ export default class settingsClass {
   update(view: ValidatedDataView, groups?: readonly (readonly number[])[]): void {
     if (groups === undefined) {
       const rows = new Array<number>(view.category.values.length);
-      for (let i = 0; i < rows.length; i++) rows[i] = i;
+      for (let i = 0; i < rows.length; i++) {
+        rows[i] = i;
+      }
       groups = [rows];
     }
     const result = readSettingsGroups(settingsModel, view.category, groups);
@@ -38,7 +40,9 @@ export default class settingsClass {
 
   public getFormattingModel(): FormattingModel {
     const { misc, ...funnelModel } = settingsModel;
-    if (!this.showMisc) return buildFormattingModel(funnelModel, this.settings);
+    if (!this.showMisc) {
+      return buildFormattingModel(funnelModel, this.settings);
+    }
     return buildFormattingModel(miscFormattingSchema(this.miscGroups), this.settings);
   }
 

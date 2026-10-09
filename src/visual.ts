@@ -26,7 +26,9 @@ export class Visual implements powerbi.extensibility.IVisual {
   private currentPlotProperties: PlotFrame | undefined;
 
   get plotProperties(): PlotFrame {
-    if (this.currentPlotProperties === undefined) throw new Error("Plot properties require validated data.");
+    if (this.currentPlotProperties === undefined) {
+      throw new Error("Plot properties require validated data.");
+    }
     return this.currentPlotProperties;
   }
   selectionManager: powerbi.extensibility.ISelectionManager;
@@ -53,9 +55,6 @@ export class Visual implements powerbi.extensibility.IVisual {
       // Remove printed error if refreshing after a previous error run
       this.svg.select(".errormessage").remove();
 
-      // This step handles the updating of both the input data and settings
-      // If there are any errors or failures, the update exits early sets the
-      // update status to false
       const update_status: viewModelValidationT = this.viewModel.update(options, this.host);
       if (!update_status.status) {
         this.currentPlotProperties = undefined;
@@ -113,24 +112,28 @@ export class Visual implements powerbi.extensibility.IVisual {
   updateHighlighting(): void {
     const viewModel = this.viewModel;
     if (viewModel.inputSettings.showMisc) {
-      const { active, selected } = selectionState(this.selectionManager, viewModel.miscAnyHighlights);
+      const state = selectionState(this.selectionManager, viewModel.miscAnyHighlights);
       this.svg.selectAll<SVGRectElement, miscPoint>(".misc-bar").attr("opacity", point =>
-        highlightOpacity(point.aesthetics, active, identitySelected(point.identity, selected) || point.highlighted));
+        highlightOpacity(point.aesthetics, state.active, identitySelected(point.identity, state.selected) || point.highlighted));
       return;
     }
     const svg = this.svg.node();
     if (svg === null) {
       return;
     }
-    const { active, selected } = selectionState(this.selectionManager, viewModel.inputData ? viewModel.inputData.anyHighlights : false);
+    const state = selectionState(this.selectionManager, viewModel.inputData ? viewModel.inputData.anyHighlights : false);
     const settings = viewModel.inputSettings.settings;
     highlightPlot<plotData>(svg, {
-      active, selected,
-      lineOpacity: line => lineOpacity(settings.lines, lineKeys[line.name as LineName], active),
+      active: state.active,
+      selected: state.selected,
+      lineOpacity: line => lineOpacity(settings.lines, lineKeys[line.name as LineName], state.active),
       // Group text fades by its own opacities; markers by the dot ones
       dotOpacities: point => settings.scatter.use_group_text
-        ? { opacity: point.aesthetics.scatter_text_opacity, opacity_selected: point.aesthetics.scatter_text_opacity_selected,
-            opacity_unselected: point.aesthetics.scatter_text_opacity_unselected }
+        ? {
+          opacity: point.aesthetics.scatter_text_opacity,
+          opacity_selected: point.aesthetics.scatter_text_opacity_selected,
+          opacity_unselected: point.aesthetics.scatter_text_opacity_unselected
+        }
         : point.aesthetics
     });
   }

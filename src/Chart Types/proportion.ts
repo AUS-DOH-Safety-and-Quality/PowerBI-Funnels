@@ -33,21 +33,9 @@ const prY = function(inputData: dataObject): number[] {
   return result;
 }
 
-const prZ = function(_inputData: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) {
-  if (odAdjust) {
-    const n: number = zScores.length;
-    const rtn: number[] = new Array<number>(n);
-    for (let i: number = 0; i < n; i++) {
-      // Scale z-score to od-adjusted scale, by first un-standardising using the SE
-      // and then re-standardising using the OD-adjusted variance
-      rtn[i] = (zScores[i] * seOD[i]) / Math.sqrt(Math.pow(seOD[i], 2) + tau2);
-    }
-    return rtn;
-  } else {
-    // Non-adjusted limits are equivalent to adjusted limits with tau2 = 0, so
-    // return as-as
-    return zScores;
-  }
+/** Un-adjusted limits are the adjusted limits with tau2 = 0, so the z-scores are unchanged */
+const prZ = function(_inputData: dataObject, zScores: number[]) {
+  return zScores;
 }
 
 const prLimit = function(args: limitArgs) {

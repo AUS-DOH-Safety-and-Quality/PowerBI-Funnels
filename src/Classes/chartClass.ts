@@ -39,7 +39,7 @@ type chartObjectConstructorT = {
   targetFunction: (x: dataObject) => number;
   targetFunctionTransformed: (x: dataObject) => number;
   yFunction: (x: dataObject) => number[];
-  zFunction: (x: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) => number[];
+  zFunction: (x: dataObject, zScores: number[]) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
   inputData: dataObject;
@@ -54,7 +54,7 @@ export default class chartClass {
   targetFunction: (x: dataObject) => number;
   targetFunctionTransformed: (x: dataObject) => number;
   yFunction: (x: dataObject) => number[];
-  zFunction: (x: dataObject, zScores: number[], seOD: number[], odAdjust: boolean, tau2: number) => number[];
+  zFunction: (x: dataObject, zScores: number[]) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
   odAdjust: boolean | undefined;
@@ -67,10 +67,14 @@ export default class chartClass {
     const plotDenomStep: number = maxDenominator * 0.01;
     // Grid points strictly below the upper bound; an empty range adds no grid points.
     const plotDenomCount: number = Math.floor((plotDenomUpper - plotDenomLower) / plotDenomStep);
-    return sequence(plotDenomLower, plotDenomCount, plotDenomStep)
-            .concat(this.inputData.denominators)
-            .filter((d, i, arr) => arr.indexOf(d) === i)
-            .sort((a, b) => a - b);
+    const candidates = sequence(plotDenomLower, plotDenomCount, plotDenomStep).concat(this.inputData.denominators);
+    const unique: number[] = [];
+    for (let i = 0; i < candidates.length; i++) {
+      if (candidates.indexOf(candidates[i]) === i) {
+        unique.push(candidates[i]);
+      }
+    }
+    return unique.sort((a, b) => a - b);
   }
 
   getTarget(par: { transformed: boolean }): number {
@@ -91,7 +95,18 @@ export default class chartClass {
     if (this.variance === undefined || this.odAdjust === undefined) {
       throw new Error("Calculate limits before requesting z-scores.");
     }
-    return this.zFunction(this.inputData, this.variance.zScores, this.variance.seOD, this.odAdjust, this.variance.tau2);
+    const zScores = this.variance.zScores;
+    if (!this.odAdjust) {
+      return this.zFunction(this.inputData, zScores);
+    }
+    const seOD = this.variance.seOD;
+    const tau2 = this.variance.tau2;
+    const result = new Array<number>(zScores.length);
+    // Un-standardise with the SE, then re-standardise with the OD-adjusted variance
+    for (let i = 0; i < zScores.length; i++) {
+      result[i] = (zScores[i] * seOD[i]) / Math.sqrt(Math.pow(seOD[i], 2) + tau2);
+    }
+    return result;
   }
 
   getTau2(): number {
@@ -123,7 +138,7 @@ export default class chartClass {
 
   getIntervals(): intervalData[] {
     const probs: number[] = [0.001, 0.025, 0.16, 0.84, 0.975, 0.999];
-    // Specify the intervals for the limits: 68%, 95% and 99.8%
+    // Normal quantiles at probs: the 99.8%, 95% and 68% limits
     const qs: number[] = [
       -3.09023230616781319213,
       -1.95996398454005382739,
@@ -202,8 +217,12 @@ export default class chartClass {
         const nextUpper = next[upper];
         let low = inner[lower];
         let high = inner[upper];
-        if (low !== undefined && nextLower !== undefined && low > nextLower) low = undefined;
-        if (high !== undefined && nextUpper !== undefined && high < nextUpper) high = undefined;
+        if (low !== undefined && nextLower !== undefined && low > nextLower) {
+          low = undefined;
+        }
+        if (high !== undefined && nextUpper !== undefined && high < nextUpper) {
+          high = undefined;
+        }
         if (low !== undefined && high !== undefined && low >= high) {
           low = undefined;
           high = undefined;

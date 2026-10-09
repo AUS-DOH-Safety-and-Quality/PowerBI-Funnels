@@ -12,7 +12,9 @@ describe("Validated visual rendering", () => {
       const builder = new ChartBuilder(500, 500);
       const failed = vi.spyOn(builder.visualHost.eventService, "renderingFailed");
       const categorical = categoricalData();
-      if (categorical.categories === undefined) throw new Error("Missing fixture category");
+      if (categorical.categories === undefined) {
+        throw new Error("Missing fixture category");
+      }
       categorical.categories[0].objects = [
         { funnel: { chart_type: chartType }, lines: { plot_label_show_target: true, plot_label_show_95: true } }, {}, {}
       ];
@@ -26,11 +28,13 @@ describe("Validated visual rendering", () => {
     });
   }
 
-  // Core finding 18: outside/inside on non-interval lines place labels above/below.
+  // Outside/inside on non-interval lines place labels above/below.
   it("places outside and inside labels on target lines with finite offsets", () => {
     const builder = new ChartBuilder(500, 500);
     const categorical = categoricalData();
-    if (categorical.categories === undefined) throw new Error("Missing fixture category");
+    if (categorical.categories === undefined) {
+      throw new Error("Missing fixture category");
+    }
     categorical.categories[0].objects = [{ lines: {
       plot_label_show_target: true, plot_label_position_target: "outside",
       show_alt_target: true, alt_target: 0.5,
@@ -50,7 +54,9 @@ describe("Validated visual rendering", () => {
     const builder = new ChartBuilder(500, 500);
     const failed = vi.spyOn(builder.visualHost.eventService, "renderingFailed");
     const categorical = categoricalData();
-    if (categorical.categories === undefined) throw new Error("Missing fixture category");
+    if (categorical.categories === undefined) {
+      throw new Error("Missing fixture category");
+    }
     categorical.categories[0].objects = [{ lines: {
       show_target: false, show_alt_target: false, show_99: false, show_95: false, show_68: false
     } }, {}, {}];
@@ -81,7 +87,9 @@ it("keeps per-point formatting and warnings aligned after an input row is remove
   const builder = new ChartBuilder(500, 500);
   const failed = vi.spyOn(builder.visualHost.eventService, "renderingFailed");
   const categorical = categoricalData([4, null, 16, 25], [10, 20, 90, 100], ["A", "B", "C", "D"]);
-  if (categorical.categories === undefined || categorical.values === undefined) throw new Error("Missing fixture columns");
+  if (categorical.categories === undefined || categorical.values === undefined) {
+    throw new Error("Missing fixture columns");
+  }
   categorical.categories[0].objects = [
     { scatter: { size: 1, colour: { solid: { color: "#123456" } } }, labels: { label_size: 11 } },
     { scatter: { size: 90 }, labels: { label_size: 90 } },
@@ -93,7 +101,9 @@ it("keeps per-point formatting and warnings aligned after an input row is remove
     builder.update(dataView(categorical));
     expect(failed).not.toHaveBeenCalled();
     const input = builder.instance.viewModel.inputData;
-    if (input === undefined) throw new Error("Missing validated input");
+    if (input === undefined) {
+      throw new Error("Missing validated input");
+    }
     expect(input.id).toEqual([0, 2, 3]);
     expect(input.scatter_formatting[0].size).toBe(1);
     expect(input.scatter_formatting[0].colour).toBe("#123456");
@@ -119,7 +129,9 @@ it("preserves a blank tooltip label through settings reading and rendering", () 
   const builder = new ChartBuilder(500, 500);
   const failed = vi.spyOn(builder.visualHost.eventService, "renderingFailed");
   const categorical = categoricalData();
-  if (categorical.categories === undefined) throw new Error("Missing fixture category");
+  if (categorical.categories === undefined) {
+    throw new Error("Missing fixture category");
+  }
   categorical.categories[0].objects = [{ funnel: { ttip_label_numerator: "" } }, {}, {}];
   try {
     builder.update(dataView(categorical));
