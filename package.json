@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "d3-selection": "3.0.0",
-    "powerbi-visuals-core": "github:AUS-DOH-Safety-and-Quality/PowerBI-Visuals-Core#d38aabd1106cb0f1e10ae04c15b8372ab9a17c12"
+    "powerbi-visuals-core": "github:AUS-DOH-Safety-and-Quality/PowerBI-Visuals-Core#8d201fadc4394e584ec48a5c43d78456ef07f0d9"
   },
   "devDependencies": {
     "@types/d3-axis": "3.0.6",
