@@ -1,9 +1,8 @@
 import type powerbi from "powerbi-visuals-api";
 import { clamp, scaleLinear } from "powerbi-visuals-core/math";
-import { bindContextMenu } from "powerbi-visuals-core/rendering";
+import { bindContextMenu, select, type BaseType } from "powerbi-visuals-core/rendering";
 import type { svgBaseType, Visual } from "../visual";
 import type { miscPoint } from "../Classes/viewModelClass";
-import * as d3 from "./D3 Modules";
 
 export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   svg.selectChildren().remove();
@@ -96,7 +95,7 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   const node = svg.node();
   if (node !== null) bindContextMenu<powerbi.visuals.ISelectionId>(node, {
     enabled: visual.host.hostCapabilities.allowInteractions === true,
-    identity: target => (d3.select(target as d3.BaseType).datum() as miscPoint | undefined)?.identity ?? ({} as powerbi.visuals.ISelectionId),
+    identity: target => (select(target as BaseType).datum() as miscPoint | undefined)?.identity ?? ({} as powerbi.visuals.ISelectionId),
     show: (identity, position) => visual.selectionManager.showContextMenu(identity, position)
   });
 }

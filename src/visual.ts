@@ -1,7 +1,7 @@
 "use strict";
 
 import type powerbi from "powerbi-visuals-api";
-import * as d3 from "./D3 Plotting Functions/D3 Modules";
+import { select, type Selection } from "powerbi-visuals-core/rendering";
 import { drawLines, addContextMenu, drawLineLabels } from "./D3 Plotting Functions"
 import { viewModelClass, type viewModelValidationT, type plotData } from "./Classes"
 import axisRanges from "./Functions/axisRanges";
@@ -17,7 +17,7 @@ import {
 import drawMisc from "./D3 Plotting Functions/drawMisc";
 import type { miscPoint } from "./Classes/viewModelClass";
 
-export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
+export type svgBaseType = Selection<SVGSVGElement, unknown, null, undefined>;
 
 export class Visual implements powerbi.extensibility.IVisual {
   host: powerbi.extensibility.visual.IVisualHost;
@@ -35,7 +35,7 @@ export class Visual implements powerbi.extensibility.IVisual {
     if (options === undefined) {
       throw new Error("Visual constructor options are required.");
     }
-    this.svg = d3.select(options.element).append("svg");
+    this.svg = select(options.element).append("svg");
     this.host = options.host;
     this.viewModel = new viewModelClass(this.host);
 

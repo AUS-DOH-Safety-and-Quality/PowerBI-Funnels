@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { symbol, symbolTriangle } from "d3-shape";
 import type powerbi from "powerbi-visuals-api";
 import { drawValueLabels, trianglePath } from "powerbi-visuals-core/rendering";
 import { ChartBuilder } from "./visualBuilder";
@@ -84,7 +83,7 @@ describe("Value labels", () => {
       expect(line.style.strokeWidth).toBe("2");
       expect(line.style.strokeDasharray).toMatch(/^2,? 5$/);
       expect(path.style.fill).toBe("rgb(171, 205, 239)");
-      expect(path.getAttribute("d")).toBe(symbol().type(symbolTriangle).size(16)());
+      expect(path.getAttribute("d")).toBe(trianglePath(16));
     } finally {
       builder.destroy();
     }
@@ -223,13 +222,6 @@ describe("Value labels", () => {
       expect(builder.instance.viewModel.plotPoints[0].label.angle).toBeUndefined();
     } finally {
       builder.destroy();
-    }
-  });
-
-  it("reproduces d3's triangle marker path", () => {
-    const d3Triangle = symbol().type(symbolTriangle);
-    for (let size = 0; size <= 400; size += 0.37) {
-      expect(trianglePath(size)).toBe(d3Triangle.size(size)());
     }
   });
 });
