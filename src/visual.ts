@@ -5,10 +5,11 @@ type ISelectionId = powerbi.visuals.ISelectionId;
 import * as d3 from "./D3 Plotting Functions/D3 Modules";
 import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
           drawDots, addContextMenu,
-          initialiseSVG, drawErrors, drawValueLabels, drawLineLabels } from "./D3 Plotting Functions"
+          initialiseSVG, drawErrors, drawValueLabels, drawLineLabels, drawDownloadButton } from "./D3 Plotting Functions"
 import { viewModelClass, type viewModelValidationT, type plotData, type lineData, plotPropertiesClass } from "./Classes"
 import getAesthetic from "./Functions/getAesthetic";
 import { identitySelected, selectedKeys } from "powerbi-visuals-core/powerbi";
+import { adjustPaddingForOverflow, highlightOpacity } from "powerbi-visuals-core/rendering";
 import type { LineName } from "./Functions/getAesthetic";
 import drawMisc from "./D3 Plotting Functions/drawMisc";
 import type { miscPoint } from "./Classes/viewModelClass";
@@ -102,37 +103,19 @@ export class Visual implements powerbi.extensibility.IVisual {
 
     if (this.viewModel.inputSettings.showMisc) {
       const active = this.viewModel.miscAnyHighlights || allSelectionIDs.length > 0;
-      this.svg.selectAll<SVGRectElement, miscPoint>(".misc-bar").attr("opacity", point => !active
-        ? point.aesthetics.opacity : identitySelected(point.identity, selected) || point.highlighted
-          ? point.aesthetics.opacity_selected : point.aesthetics.opacity_unselected);
+      this.svg.selectAll<SVGRectElement, miscPoint>(".misc-bar").attr("opacity", point =>
+        highlightOpacity(point.aesthetics, active, identitySelected(point.identity, selected) || point.highlighted));
       return;
     }
 
     const dotsSelection = this.svg.selectAll(".dotsgroup").selectChildren<SVGGElement, plotData>();
     const linesSelection = this.svg.selectAll(".linesgroup").selectAll<SVGPathElement, [LineName, lineData[]]>("path");
 
-    // Set the default opacity for all lines and dots
-    linesSelection.style("stroke-opacity", (d: [LineName, lineData[]]) => {
-      return getAesthetic(d[0], "lines", "opacity", this.viewModel.inputSettings.settings)
-    });
-    dotsSelection.style("fill-opacity", (d: plotData) => d.aesthetics.opacity);
-    dotsSelection.style("stroke-opacity", (d: plotData) => d.aesthetics.opacity);
-
-    if (anyHighlights || (allSelectionIDs.length > 0)) {
-      linesSelection.style("stroke-opacity", (d: [LineName, lineData[]]) => {
-        return getAesthetic(d[0], "lines", "opacity_unselected", this.viewModel.inputSettings.settings)
-      });
-      const nodes = dotsSelection.nodes();
-      for (let i = 0; i < nodes.length; i++) {
-        const currentDotNode = nodes[i];
-        const dot = d3.select<SVGGElement, plotData>(currentDotNode).datum();
-        const currentPointSelected: boolean = identitySelected(dot.identity, selected);
-        const currentPointHighlighted: boolean = dot.highlighted;
-        const newDotOpacity: number = (currentPointSelected || currentPointHighlighted) ? dot.aesthetics.opacity_selected : dot.aesthetics.opacity_unselected;
-        d3.select(currentDotNode).style("fill-opacity", newDotOpacity);
-        d3.select(currentDotNode).style("stroke-opacity", newDotOpacity);
-      }
-    }
+    const active = anyHighlights || allSelectionIDs.length > 0;
+    const settings = this.viewModel.inputSettings.settings;
+    linesSelection.style("stroke-opacity", (d: [LineName, lineData[]]) => getAesthetic(d[0], "lines", active ? "opacity_unselected" : "opacity", settings));
+    const dotOpacity = (d: plotData) => highlightOpacity(d.aesthetics, active, identitySelected(d.identity, selected) || d.highlighted);
+    dotsSelection.style("fill-opacity", dotOpacity).style("stroke-opacity", dotOpacity);
   }
 
   drawVisual(): void {
@@ -143,6 +126,7 @@ export class Visual implements powerbi.extensibility.IVisual {
             .call(drawLineLabels, this)
             .call(drawDots, this)
             .call(addContextMenu, this)
+            .call(drawDownloadButton, this)
             .call(drawValueLabels, this);
   }
 
@@ -151,31 +135,22 @@ export class Visual implements powerbi.extensibility.IVisual {
     if (this.viewModel.headless) {
       return;
     }
-    const svgWidth: number = this.viewModel.svgWidth;
-    const svgHeight: number = this.viewModel.svgHeight;
     const node = this.svg.node();
-    if (node === null) return;
-    const svgBBox: DOMRect = node.getBBox();
-    const overflowLeft: number = Math.abs(Math.min(0, svgBBox.x));
-    const overflowRight: number = Math.max(0, svgBBox.width + svgBBox.x - svgWidth);
-    const overflowTop: number = Math.abs(Math.min(0, svgBBox.y));
-    const overflowBottom: number = Math.max(0, svgBBox.height + svgBBox.y - svgHeight);
-    if (overflowLeft > 0) {
-      this.plotProperties.xAxis.start_padding += overflowLeft + this.plotProperties.xAxis.start_padding;
+    if (node === null) {
+      return;
     }
-    if (overflowRight > 0) {
-      this.plotProperties.xAxis.end_padding += overflowRight + this.plotProperties.xAxis.end_padding;
+    const { xAxis, yAxis } = this.plotProperties;
+    const padding = adjustPaddingForOverflow(node.getBBox(), this.viewModel.svgWidth, this.viewModel.svgHeight,
+      { left: xAxis.start_padding, right: xAxis.end_padding, top: yAxis.end_padding, bottom: yAxis.start_padding });
+    if (padding === undefined) {
+      return;
     }
-    if (overflowTop > 0) {
-      this.plotProperties.yAxis.end_padding += overflowTop + this.plotProperties.yAxis.end_padding;
-    }
-    if (overflowBottom > 0) {
-      this.plotProperties.yAxis.start_padding += overflowBottom + this.plotProperties.yAxis.start_padding;
-    }
-    if (overflowLeft > 0 || overflowRight > 0 || overflowTop > 0 || overflowBottom > 0) {
-      this.plotProperties.initialiseScale(svgWidth, svgHeight);
-      this.drawVisual();
-    }
+    xAxis.start_padding = padding.left;
+    xAxis.end_padding = padding.right;
+    yAxis.end_padding = padding.top;
+    yAxis.start_padding = padding.bottom;
+    this.plotProperties.initialiseScale(this.viewModel.svgWidth, this.viewModel.svgHeight);
+    this.drawVisual();
   }
 
   public getFormattingModel(): powerbi.visuals.FormattingModel {

@@ -10,7 +10,9 @@
     "roles": [ "tooltips" ],
     "supportEnhancedTooltips": true
   },
-  "privileges": [],
+  "privileges": [
+    { "name": "ExportContent", "essential": false }
+  ],
   "dataRoles": [
     { "displayName": "Numerator",    "name": "numerators",   "kind": "Measure" },
     { "displayName": "Denominator",  "name": "denominators", "kind": "Measure" },
@@ -559,6 +561,14 @@
         },
         "ylimit_u": {
           "type": { "numeric": true }
+        }
+      }
+    },
+    "download_options" : {
+      "displayName" : "Download Options",
+      "properties": {
+        "show_button": {
+          "type" : { "bool" : true }
         }
       }
     },

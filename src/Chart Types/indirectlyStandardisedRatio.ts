@@ -1,9 +1,6 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
-import { clamp } from "powerbi-visuals-core/math";
-import chisqCDF from "../Functions/chisqCDF";
-import chisqQuantile from "../Functions/chisqQuantile";
-import normalQuantile from "../Functions/normalQuantile";
+import { clamp, chisqCDF, chisqQuantile, normalQuantile } from "powerbi-visuals-core/math";
 
 const smrSE = function(inputData: dataObject): number[] {
   return [];

@@ -1,5 +1,4 @@
 import { pickRows } from "powerbi-visuals-core/data";
-import valueFormatter from "../src/Functions/valueFormatter";
 import derivedSettingsClass from "../src/Classes/derivedSettingsClass";
 import { expect, it } from "vitest";
 import { d3, defaultSettings, Visual } from "../src/frontend";
@@ -28,7 +27,7 @@ it("uses Core data helpers while retaining Funnel display precision", () => {
   settings.funnel.sig_figs = 2;
   settings.funnel.chart_type = "PR";
   settings.funnel.perc_labels = "Yes";
-  const formatter = valueFormatter(settings, new derivedSettingsClass(settings));
+  const formatter = new derivedSettingsClass(settings).formatValue;
   expect(formatter(12.625, "integer")).toBe("13");
   expect(formatter(12.625, "value")).toBe("12.63%");
   expect(formatter(undefined, "value")).toBe("");

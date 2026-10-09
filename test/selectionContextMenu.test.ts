@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { testDom } from "powerbi-visuals-utils-testutils";
 import { Visual } from "../src/visual";
 import { dataView } from "./dataViewFixture";
-import keyedHost from "./keyedHost";
+import { keyedHost } from "powerbi-visuals-core/testing";
 import addContextMenu from "../src/D3 Plotting Functions/addContextMenu";
 
 function render(): { element: HTMLElement; visual: Visual } {

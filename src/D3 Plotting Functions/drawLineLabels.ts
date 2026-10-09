@@ -1,6 +1,5 @@
 import type { svgBaseType, Visual } from "../visual";
 import { lineNameMap, type LineName } from "../Functions/getAesthetic";
-import valueFormatter from "../Functions/valueFormatter";
 import { drawLineLabels, type LineLabel } from "powerbi-visuals-core/rendering";
 
 // Lower interval lines place outside labels below the line (finding 18)
@@ -15,7 +14,7 @@ export default function drawLabels(selection: svgBaseType, visualObj: Visual) {
   const inputSettings = visualObj.viewModel.inputSettings;
   const lineSettings = inputSettings.settings.lines;
   const lines = visualObj.viewModel.groupedLines;
-  const formatValue = valueFormatter(inputSettings.settings, inputSettings.derivedSettings);
+  const formatValue = inputSettings.derivedSettings.formatValue;
   const labels: LineLabel[] = [];
   for (let i = 0; i < lines.length; i++) {
     const [name, points] = lines[i];

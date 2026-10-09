@@ -1,5 +1,4 @@
-import { clamp } from "powerbi-visuals-core/math";
-import quantile from "../Functions/quantile";
+import { clamp, quantile } from "powerbi-visuals-core/math";
 
 /**
  * Winsorise unadjusted z-scores to remove influence of

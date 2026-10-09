@@ -5,6 +5,7 @@ import scatterSettings from "./Settings Model/scatterSettings";
 import linesSettings from "./Settings Model/linesSettings";
 import xAxisSettings from "./Settings Model/xAxisSettings";
 import yAxisSettings from "./Settings Model/yAxisSettings";
+import downloadSettings from "./Settings Model/downloadSettings";
 import { createCanvasCard, createLabelsCard, defineCard, createDefaultValues, type SettingsValues, type MergeUnions } from "powerbi-visuals-core/settings";
 
 const settingsModel = {
@@ -16,6 +17,7 @@ const settingsModel = {
   lines: defineCard(linesSettings),
   x_axis: defineCard(xAxisSettings),
   y_axis: defineCard(yAxisSettings),
+  download_options: defineCard(downloadSettings),
   labels: createLabelsCard()
 };
 

@@ -5,14 +5,13 @@ type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import settingsClass from "./settingsClass";
 import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
-import { groupCategoryRows, indexColumnsByRole, readSettingsRows, type CategoryGroups } from "powerbi-visuals-core/powerbi";
+import { groupCategoryRows, indexColumnsByRole, readSettingsRows, readColourPalette, type CategoryGroups, type ColourPalette } from "powerbi-visuals-core/powerbi";
 import { chartClass, type limitData } from "../Classes"
 import validateDataView from "../Functions/validateDataView";
 import extractInputData, { type dataObject } from "../Functions/extractInputData";
 import buildTooltip from "../Functions/buildTooltip";
-import checkFlagDirection from "../Functions/checkFlagDirection";
 import { clamp } from "powerbi-visuals-core/math";
-import { groupBy } from "powerbi-visuals-core/data";
+import { groupBy, checkFlagDirection } from "powerbi-visuals-core/data";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
@@ -56,14 +55,6 @@ export type plotData = {
   three_sigma?: string;
 }
 
-export type colourPaletteType = {
-  isHighContrast: boolean,
-  foregroundColour: string,
-  backgroundColour: string,
-  foregroundSelectedColour: string,
-  hyperlinkColour: string
-};
-
 export type miscPoint = plotData & { indicator: string; score: number };
 
 export default class viewModelClass {
@@ -74,7 +65,7 @@ export default class viewModelClass {
   plotPoints: plotData[];
   groupedLines: [LineName, lineData[]][];
   firstRun: boolean;
-  colourPalette: colourPaletteType;
+  colourPalette: ColourPalette;
   svgWidth = 0;
   svgHeight = 0;
   headless: boolean;
@@ -89,17 +80,13 @@ export default class viewModelClass {
     this.plotPoints = new Array<plotData>();
     this.groupedLines = new Array<[LineName, lineData[]]>();
     this.firstRun = true;
-    this.colourPalette = {
-      isHighContrast: host.colorPalette.isHighContrast,
-      foregroundColour: host.colorPalette.foreground.value,
-      backgroundColour: host.colorPalette.background.value,
-      foregroundSelectedColour: host.colorPalette.foregroundSelected.value,
-      hyperlinkColour: host.colorPalette.hyperlink.value
-    };
+    this.colourPalette = readColourPalette(host);
     this.headless = false;
   }
 
   update(options: VisualUpdateOptions & { headless?: boolean }, host: IVisualHost): viewModelValidationT {
+    // Read before any early return so error rendering is themed
+    this.colourPalette = readColourPalette(host);
     const view = options.dataViews?.[0];
     const dataChanged = (options.type & (2 | 16)) !== 0 || this.firstRun;
     const categoryRoles = indexColumnsByRole(view?.categorical?.categories ?? []);

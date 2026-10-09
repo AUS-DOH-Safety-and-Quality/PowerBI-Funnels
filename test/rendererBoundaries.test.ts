@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { testDom, createVisualHost } from "powerbi-visuals-utils-testutils";
 import { Visual } from "../src/visual";
 import { ChartBuilder } from "./visualBuilder";
@@ -115,6 +115,29 @@ describe("renderer boundaries", () => {
     expect(Number(must(xTransform.match(/translate\(([^,]+),/))[1])).toBeCloseTo((xAxis.start_padding + 500 - xAxis.end_padding) / 2, 6);
     expect(Number(must(element.querySelector(".yaxislabel text")).getAttribute("y"))).toBeCloseTo((500 - yAxis.start_padding + yAxis.end_padding) / 2, 6);
     builder.destroy();
+  });
+
+  it("draws a download link that exports the plotted rows as CSV", () => {
+    const host = createVisualHost({});
+    const exportVisualsContent = vi.fn();
+    Object.assign(host, { downloadService: { exportVisualsContent } });
+    const element = testDom("500", "500");
+    const visual = new Visual({ element, host });
+    const categorical = categoricalData();
+    const enabled = { download_options: { show_button: true } };
+    must(categorical.categories)[0].objects = [enabled, enabled, enabled];
+    visual.update({ dataViews: [dataView(categorical)], viewport: { width: 500, height: 500 }, type: 2 });
+    const button = must(element.querySelector<SVGTextElement>(".download-btn-group"));
+    expect(button.textContent).toBe("Download");
+    button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(exportVisualsContent).toHaveBeenCalledTimes(1);
+    const lines: string[] = exportVisualsContent.mock.calls[0][0].split("\n");
+    expect(lines[0]).toBe("group,numerator,denominator,value,target,alt_target,ll99,ll95,ll68,ul68,ul95,ul99,two_sigma,three_sigma");
+    expect(lines).toHaveLength(4);
+    expect(lines[1].startsWith("A,4,10,40,")).toBe(true);
+    visual.update({ dataViews: [dataView(categoricalData())], viewport: { width: 500, height: 500 }, type: 2 });
+    expect(element.querySelector(".download-btn-group")).toBeNull();
+    element.remove();
   });
 
   it("shows crosshairs at the nearest point on mouse move and hides them on leave", () => {

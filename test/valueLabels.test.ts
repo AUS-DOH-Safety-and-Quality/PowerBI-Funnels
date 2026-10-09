@@ -6,11 +6,12 @@ import { ChartBuilder } from "./visualBuilder";
 import { categoricalData, dataView } from "./dataViewFixture";
 import { defaultSettings } from "../src/settings";
 
-function labelledView(labels: powerbi.DataViewObject, values: powerbi.PrimitiveValue[] = ["One", "", "Three"]): powerbi.DataView {
+function labelledView(labels: powerbi.DataViewObject, values: powerbi.PrimitiveValue[] = ["One", "", "Three"],
+                      canvas: powerbi.DataViewObject = {}): powerbi.DataView {
   const categorical = categoricalData();
   if (categorical.categories === undefined || categorical.values === undefined) throw new Error("Missing fixture columns");
   categorical.values.push({ source: { displayName: "Label", roles: { labels: true } }, values });
-  categorical.categories[0].objects = [{ labels }, { labels }, { labels }];
+  categorical.categories[0].objects = [{ labels, canvas }, { labels, canvas }, { labels, canvas }];
   return dataView(categorical);
 }
 
@@ -28,7 +29,8 @@ describe("Value labels", () => {
   it("labels points above by default, skips empty labels and anchors the connector at the point", () => {
     const builder = new ChartBuilder(500, 500);
     try {
-      builder.update(labelledView({}));
+      // The labelled point is the maximum, so leave room above it for the default 20px label offset
+      builder.update(labelledView({}, undefined, { upper_padding: 40 }));
       const groups = labelGroups(builder);
       expect(groups).toHaveLength(2);
       const point = builder.instance.viewModel.plotPoints[0];

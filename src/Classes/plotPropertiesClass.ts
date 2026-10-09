@@ -4,7 +4,7 @@ import type { settingsValueType } from "../settings";
 import type { plotData, viewModelClass } from "../Classes";
 import type { dataObject } from "../Functions/extractInputData";
 import { max, scaleLinear, type LinearScale } from "powerbi-visuals-core/math";
-import { type colourPaletteType } from "./viewModelClass";
+import type { ColourPalette } from "powerbi-visuals-core/powerbi";
 import type { AxisLabelAlign } from "powerbi-visuals-core/rendering";
 
 export type axisProperties = {
@@ -56,7 +56,7 @@ export default class plotPropertiesClass {
 
     const plotPoints: plotData[] = viewModel.plotPoints;
     const inputSettings: settingsValueType = viewModel.inputSettings.settings;
-    const colorPalette: colourPaletteType = viewModel.colourPalette;
+    const colorPalette: ColourPalette = viewModel.colourPalette;
 
     // Get the width and height of plotting space
     this.width = options.viewport.width;

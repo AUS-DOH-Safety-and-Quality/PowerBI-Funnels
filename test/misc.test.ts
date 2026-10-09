@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Visual } from "../src/visual";
 import viewModelClass from "../src/Classes/viewModelClass";
 import { categoricalData, dataView } from "./dataViewFixture";
-import keyedHost from "./keyedHost";
+import { keyedHost } from "powerbi-visuals-core/testing";
 
 function miscView(): powerbi.DataView {
   const categorical = categoricalData([80, 4, 20, 20, 24, 24, 30, 30], Array(8).fill(100), ["A", "A", "B", "B", "C", "C", "D", "D"]);
