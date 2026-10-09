@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import extractInputData from "../../src/Functions/extractInputData";
 
 import validateInputData from "../../src/Functions/validateInputData";
-import validateDataView from "../../src/Functions/validateDataView";
 import settingsClass from "../../src/Classes/settingsClass";
 import { categoricalData } from "../dataViewFixture";
 
@@ -70,7 +69,6 @@ describe("Input contracts", () => {
       status: "invalid", error: "All numerators are missing or null!"
     });
     expect(extractInputData(categoricalData([1]), new settingsClass()).status).toBe("invalid");
-    expect(validateDataView(undefined)).toBe("No data present");
   });
 
   it("reports a shared failure by name and mixed failures generically", () => {

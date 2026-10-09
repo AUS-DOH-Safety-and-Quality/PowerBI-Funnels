@@ -201,7 +201,7 @@ describe("MISC rendering", () => {
       expect(visual.viewModel.miscPoints).toBe(points);
       visual.update({ dataViews: [dataView()], viewport: { width: 700, height: 400 }, type: 2 });
       expect(element.querySelectorAll(".misc-bar")).toHaveLength(0);
-      expect(element.querySelectorAll(".dotsgroup-child")).toHaveLength(3);
+      expect(element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
       expect(failed).not.toHaveBeenCalled();
     } finally {
       element.remove();

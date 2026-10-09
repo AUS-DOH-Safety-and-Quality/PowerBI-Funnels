@@ -8,7 +8,7 @@ describe("setting definitions", () => {
     expect(Object.keys(settingsModel)).toHaveLength(10);
     expect(defaultSettings.funnel.chart_type).toBe("PR");
     expect(defaultSettings.x_axis.xlimit_tick_rotation).toBe(0);
-    expect("xlimit_show" in defaultSettings.x_axis).toBe(false);
+    expect(defaultSettings.x_axis.xlimit_show).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(settingsModel.funnel.ll_truncate, "default")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(defaultSettings.funnel, "ll_truncate")).toBe(true);
     expect(defaultSettings.funnel.ll_truncate).toBeUndefined();

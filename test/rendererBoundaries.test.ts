@@ -91,10 +91,10 @@ describe("renderer boundaries", () => {
     expect(yGrid).toHaveLength(element.querySelectorAll(".yaxisgroup .tick").length);
     expect(yGrid[0].getAttribute("x1")).toBe(String(visual.plotProperties.xAxis.start_padding));
     expect(yGrid[0].getAttribute("x2")).toBe(String(500 - visual.plotProperties.xAxis.end_padding));
-    const xLabel = must(element.querySelector<SVGTextElement>(".xaxislabel text"));
+    const xLabel = must(element.querySelector<SVGTextElement>(".xaxislabel"));
     expect(xLabel.style.textAnchor).toBe("end");
-    expect(must(xLabel.getAttribute("transform")).startsWith(`translate(${500 - visual.plotProperties.xAxis.end_padding},`)).toBe(true);
-    const yLabel = must(element.querySelector<SVGTextElement>(".yaxislabel text"));
+    expect(xLabel.getAttribute("x")).toBe(String(500 - visual.plotProperties.xAxis.end_padding));
+    const yLabel = must(element.querySelector<SVGTextElement>(".yaxislabel"));
     expect(yLabel.style.textAnchor).toBe("end");
     expect(yLabel.getAttribute("y")).toBe(String(visual.plotProperties.yAxis.end_padding));
     expect(yLabel.style.fontStyle).toBe("italic");
@@ -111,9 +111,33 @@ describe("renderer boundaries", () => {
     builder.update(dataView(padded));
     const xAxis = visual.plotProperties.xAxis;
     const yAxis = visual.plotProperties.yAxis;
-    const xTransform = must(must(element.querySelector(".xaxislabel text")).getAttribute("transform"));
-    expect(Number(must(xTransform.match(/translate\(([^,]+),/))[1])).toBeCloseTo((xAxis.start_padding + 500 - xAxis.end_padding) / 2, 6);
-    expect(Number(must(element.querySelector(".yaxislabel text")).getAttribute("y"))).toBeCloseTo((500 - yAxis.start_padding + yAxis.end_padding) / 2, 6);
+    expect(Number(must(element.querySelector(".xaxislabel")).getAttribute("x"))).toBeCloseTo((xAxis.start_padding + 500 - xAxis.end_padding) / 2, 6);
+    expect(Number(must(element.querySelector(".yaxislabel")).getAttribute("y"))).toBeCloseTo((500 - yAxis.start_padding + yAxis.end_padding) / 2, 6);
+    builder.destroy();
+  });
+
+  it("re-adds hidden axes with ticks and labels, beneath the lines", () => {
+    const builder = new ChartBuilder(500, 500);
+    builder.update(dataView());
+    expect(builder.element.querySelectorAll(".xaxisgroup .tick").length).toBeGreaterThan(0);
+    const hidden = categoricalData();
+    const off = { x_axis: { xlimit_show: false }, y_axis: { ylimit_show: false } };
+    must(hidden.categories)[0].objects = [off, off, off];
+    builder.update(dataView(hidden));
+    expect(builder.element.querySelector(".xaxisgroup")).toBeNull();
+    expect(builder.element.querySelector(".yaxisgroup")).toBeNull();
+    builder.update(dataView());
+    const lines = must(builder.element.querySelector(".linesgroup"));
+    const xGroup = must(builder.element.querySelector(".xaxisgroup"));
+    const yGroup = must(builder.element.querySelector(".yaxisgroup"));
+    expect(xGroup.querySelectorAll(".tick").length).toBeGreaterThan(0);
+    expect(yGroup.querySelectorAll(".tick").length).toBeGreaterThan(0);
+    const xLabel = must(builder.element.querySelector(".xaxislabel"));
+    expect((xLabel.compareDocumentPosition(lines) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
+    expect(builder.element.querySelector(".yaxislabel")).not.toBeNull();
+    expect((xGroup.compareDocumentPosition(lines) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
+    expect((yGroup.compareDocumentPosition(lines) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
+    expect(builder.element.querySelectorAll(".xaxisgroup")).toHaveLength(1);
     builder.destroy();
   });
 

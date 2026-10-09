@@ -13,7 +13,7 @@ function render(): { element: HTMLElement; visual: Visual } {
 }
 
 function dotOpacity(element: HTMLElement, index: number): string {
-  return element.querySelectorAll<SVGGElement>(".dotsgroup-child")[index].style.fillOpacity;
+  return element.querySelectorAll<SVGGElement>(".dotsgroup path")[index].style.fillOpacity;
 }
 
 // Changeset 7: selection matching by key and the shared context-menu binding.
@@ -41,7 +41,7 @@ describe("Selection and context menu", () => {
     const show = vi.fn(() => Promise.resolve({}));
     visual.selectionManager.showContextMenu = show;
     const svg = element.querySelector("svg");
-    const dot = element.querySelector(".dotsgroup-child path");
+    const dot = element.querySelector(".dotsgroup path");
     if (svg === null || dot === null) throw new Error("Missing chart elements");
     const point = visual.viewModel.plotPoints[0];
 

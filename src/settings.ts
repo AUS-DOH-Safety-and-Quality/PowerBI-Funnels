@@ -3,10 +3,11 @@ import miscSettings from "./Settings Model/miscSettings";
 import outliersSettings from "./Settings Model/outliersSettings";
 import scatterSettings from "./Settings Model/scatterSettings";
 import linesSettings from "./Settings Model/linesSettings";
-import xAxisSettings from "./Settings Model/xAxisSettings";
-import yAxisSettings from "./Settings Model/yAxisSettings";
 import downloadSettings from "./Settings Model/downloadSettings";
-import { createCanvasCard, createLabelsCard, defineCard, createDefaultValues, type SettingsValues, type MergeUnions } from "powerbi-visuals-core/settings";
+import {
+  createCanvasCard, createLabelsCard, createAxisCard, defineCard, createDefaultValues,
+  type SettingsValues, type MergeUnions
+} from "powerbi-visuals-core/settings";
 
 const settingsModel = {
   canvas: createCanvasCard(),
@@ -15,8 +16,8 @@ const settingsModel = {
   outliers: defineCard(outliersSettings),
   scatter: defineCard(scatterSettings),
   lines: defineCard(linesSettings),
-  x_axis: defineCard(xAxisSettings),
-  y_axis: defineCard(yAxisSettings),
+  x_axis: createAxisCard("x", { tickRotation: 0 }),
+  y_axis: createAxisCard("y", { tickRotation: 0 }),
   download_options: defineCard(downloadSettings),
   labels: createLabelsCard()
 };

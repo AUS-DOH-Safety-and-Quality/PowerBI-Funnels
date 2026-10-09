@@ -5,9 +5,11 @@ type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
 import settingsClass from "./settingsClass";
 import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
-import { groupCategoryRows, indexColumnsByRole, readSettingsRows, readColourPalette, type CategoryGroups, type ColourPalette } from "powerbi-visuals-core/powerbi";
+import {
+  groupCategoryRows, indexColumnsByRole, readSettingsRows, readColourPalette, validateDataView,
+  type CategoryGroups, type ColourPalette
+} from "powerbi-visuals-core/powerbi";
 import { chartClass, type limitData } from "../Classes"
-import validateDataView from "../Functions/validateDataView";
 import extractInputData, { type dataObject } from "../Functions/extractInputData";
 import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
@@ -44,7 +46,7 @@ export type plotData = {
   // Tooltip data to print
   tooltip: VisualTooltipDataItem[];
   label: {
-    text_value: string,
+    text_value: string | undefined,
     aesthetics: settingsValueType["labels"],
     angle: number | undefined,
     distance: number | undefined,
@@ -69,6 +71,7 @@ export default class viewModelClass {
   svgWidth = 0;
   svgHeight = 0;
   headless: boolean;
+  frontend = false;
   miscPoints: miscPoint[] = [];
   miscAnyHighlights = false;
 
@@ -84,7 +87,7 @@ export default class viewModelClass {
     this.headless = false;
   }
 
-  update(options: VisualUpdateOptions & { headless?: boolean }, host: IVisualHost): viewModelValidationT {
+  update(options: VisualUpdateOptions & { headless?: boolean; frontend?: boolean }, host: IVisualHost): viewModelValidationT {
     // Read before any early return so error rendering is themed
     this.colourPalette = readColourPalette(host);
     const view = options.dataViews?.[0];
@@ -99,7 +102,7 @@ export default class viewModelClass {
     }
     const settingsValidation = this.inputSettings.validationStatus;
     if (settingsValidation.status !== 0) return this.invalidate(settingsValidation.error, "settings");
-    const checkDV = validateDataView(options.dataViews);
+    const checkDV = validateDataView(options.dataViews, ["numerators", "denominators"]);
     if (checkDV !== "valid") return this.invalidate(checkDV);
     const categorical = view?.categorical;
     if (categorical === undefined) return this.invalidate("No categorical data present");
@@ -107,6 +110,7 @@ export default class viewModelClass {
     this.svgWidth = options.viewport.width;
     this.svgHeight = options.viewport.height;
     this.headless = options.headless ?? false;
+    this.frontend = options.frontend ?? false;
 
     if (dataChanged) {
       this.miscPoints = [];
@@ -275,7 +279,7 @@ export default class viewModelClass {
           inputSettings.derivedSettings
         ),
         label: {
-          text_value: inputData.labels?.[i] ?? "",
+          text_value: inputData.labels?.[i],
           aesthetics: inputData.label_formatting[i],
           angle: undefined,
           distance: undefined,

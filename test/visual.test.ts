@@ -42,7 +42,7 @@ describe("Chart", () => {
     expect(limits.target).toBeCloseTo(target as number, 10);
     expect(limits.ll95).toBeLessThan(limits.target);
     expect(limits.ul95).toBeGreaterThan(limits.target);
-    expect(element.querySelectorAll(".dotsgroup-child")).toHaveLength(3);
+    expect(element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
     expect(visual.viewModel.plotPoints[0].tooltip.find(d => d.displayName === "Group")?.value).toBe("A");
   });
 
@@ -91,7 +91,7 @@ describe("Chart", () => {
     update(buildDataView(sample));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
     expect(element.querySelector(".errormessage")).toBeNull();
-    expect(element.querySelectorAll(".dotsgroup-child")).toHaveLength(3);
+    expect(element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
   });
 
   it("shows invalid-data errors through resize and recovers on the next data update", () => {
@@ -148,7 +148,7 @@ describe("Chart", () => {
     const limits = visual.viewModel.calculatedLimits.find(d => d.denominators === 1)!;
     expect(limits.ll99).toBeUndefined();
     const tooltip = visual.viewModel.plotPoints[0].tooltip;
-    expect(tooltip.find(d => d.displayName === "Lower 99% Limit")?.value).toBe("(Blank)");
+    expect(tooltip.find(d => d.displayName === "Lower 99% Limit")?.value).toBe("");
     expect(tooltip.some(d => d.value === "NaN%")).toBe(false);
   });
 
@@ -157,12 +157,12 @@ describe("Chart", () => {
     const clear = vi.spyOn(visual.selectionManager, "clear");
     host.hostCapabilities.allowInteractions = false;
     update(buildDataView(sample));
-    element.querySelector(".dotsgroup-child")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    element.querySelector(".dotsgroup path")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     visual.svg.node()!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(select).not.toHaveBeenCalled();
     expect(clear).not.toHaveBeenCalled();
     host.hostCapabilities.allowInteractions = true;
-    element.querySelector(".dotsgroup-child")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    element.querySelector(".dotsgroup path")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(select).toHaveBeenCalledOnce();
   });
 

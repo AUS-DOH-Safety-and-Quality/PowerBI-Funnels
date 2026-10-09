@@ -1,36 +1,20 @@
-import * as d3 from "./D3 Modules";
-import type { lineData } from "../Classes";
-import getAesthetic from "../Functions/getAesthetic";
-import { between } from "powerbi-visuals-core/math";
+import { lineNameMap } from "../Functions/getAesthetic";
 import type { svgBaseType, Visual } from "../visual";
+import { drawLines, type PlotLine } from "powerbi-visuals-core/rendering";
 
-export default function drawLines(selection: svgBaseType, visualObj: Visual) {
-  selection
-    .select(".linesgroup")
-    .selectAll("path")
-    .data(visualObj.viewModel.groupedLines)
-    .join("path")
-    .attr("d", d => {
-      const ylower: number = visualObj.plotProperties.yAxis.lower;
-      const yupper: number = visualObj.plotProperties.yAxis.upper;
-      const xlower: number = visualObj.plotProperties.xAxis.lower;
-      const xupper: number = visualObj.plotProperties.xAxis.upper;
-      return d3.line<lineData>()
-                .x(d => visualObj.plotProperties.xScale(d.x))
-                .y(d => d.line_value === undefined ? NaN : visualObj.plotProperties.yScale(d.line_value))
-                .defined(d => {
-                  return d.line_value !== undefined
-                    && between(d.line_value, ylower, yupper)
-                    && between(d.x, xlower, xupper)
-                })(d[1])
-    })
-    .attr("fill", "none")
-    .attr("stroke", d => {
-      if (visualObj.viewModel.colourPalette.isHighContrast) {
-        return visualObj.viewModel.colourPalette.foregroundColour;
-      }
-      return getAesthetic(d[0], "lines", "colour", visualObj.viewModel.inputSettings.settings)
-    })
-    .attr("stroke-width", d => getAesthetic(d[0], "lines", "width", visualObj.viewModel.inputSettings.settings))
-    .attr("stroke-dasharray", d => getAesthetic(d[0], "lines", "type", visualObj.viewModel.inputSettings.settings));
+export default function drawPlotLines(selection: svgBaseType, visualObj: Visual) {
+  const group = selection.select<SVGGElement>(".linesgroup").node();
+  if (group === null) {
+    return;
+  }
+  const lineSettings = visualObj.viewModel.inputSettings.settings.lines;
+  const grouped = visualObj.viewModel.groupedLines;
+  const lines = new Array<PlotLine>(grouped.length);
+  for (let i = 0; i < grouped.length; i++) {
+    const [name, points] = grouped[i];
+    const key = lineNameMap[name];
+    const style = { colour: lineSettings[`colour_${key}`], width: lineSettings[`width_${key}`], type: lineSettings[`type_${key}`] };
+    lines[i] = { name, points, style: () => style };
+  }
+  drawLines(group, { frame: visualObj.plotProperties, lines, palette: visualObj.viewModel.colourPalette });
 }

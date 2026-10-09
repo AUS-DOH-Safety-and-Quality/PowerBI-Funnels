@@ -272,10 +272,28 @@
         "ttip_label_99": {
           "type": { "text": true }
         },
+        "ttip_label_99_prefix_lower": {
+          "type": { "text": true }
+        },
+        "ttip_label_99_prefix_upper": {
+          "type": { "text": true }
+        },
         "ttip_label_95": {
           "type": { "text": true }
         },
+        "ttip_label_95_prefix_lower": {
+          "type": { "text": true }
+        },
+        "ttip_label_95_prefix_upper": {
+          "type": { "text": true }
+        },
         "ttip_label_68": {
+          "type": { "text": true }
+        },
+        "ttip_label_68_prefix_lower": {
+          "type": { "text": true }
+        },
+        "ttip_label_68_prefix_upper": {
           "type": { "text": true }
         },
         "ttip_label_target": {
@@ -441,6 +459,9 @@
     },
     "x_axis": {
       "properties": {
+        "xlimit_show": {
+          "type" : { "bool" : true }
+        },
         "xlimit_colour":{
           "type": { "fill": { "solid": { "color": true } } }
         },
@@ -502,6 +523,9 @@
     },
     "y_axis": {
       "properties": {
+        "ylimit_show": {
+          "type" : { "bool" : true }
+        },
         "ylimit_colour":{
           "type": { "fill": { "solid": { "color": true } } }
         },

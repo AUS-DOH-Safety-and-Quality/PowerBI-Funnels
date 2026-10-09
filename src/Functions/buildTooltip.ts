@@ -1,4 +1,3 @@
-import { formatNumber } from "powerbi-visuals-core/data";
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import type { settingsValueType } from "../settings";
@@ -25,10 +24,7 @@ export default function buildTooltip(index: number,
   if (limits === undefined) throw new Error("Missing limits for an observed denominator.");
 
   const ratio: number = transform((numerator / denominator) * multiplier);
-  const suffix: string = derivedSettings.percentLabels ? "%" : "";
-
-  const prop_labels: boolean = derivedSettings.percentLabels;
-  const sig_figs: number = inputSettings.funnel.sig_figs;
+  const formatValues = derivedSettings.formatValue;
   const valueLabel: Record<string, string> = {
     "PR" : "Proportion",
     "SR" : "Standardised Ratio",
@@ -46,19 +42,19 @@ export default function buildTooltip(index: number,
     const ttip_label_value: string = inputSettings.funnel.ttip_label_value;
     tooltip.push({
       displayName: ttip_label_value === "Automatic" ? valueLabel[data_type] : ttip_label_value,
-      value: formatNumber(ratio, sig_figs, suffix) ?? ""
+      value: formatValues(ratio, "value")
     });
   }
   if(inputSettings.funnel.ttip_show_numerator && !(numerator === null || numerator === undefined)) {
     tooltip.push({
       displayName: inputSettings.funnel.ttip_label_numerator,
-      value: formatNumber(numerator, prop_labels ? 0 : sig_figs, "") ?? ""
+      value: formatValues(numerator, "integer")
     });
   }
   if(inputSettings.funnel.ttip_show_denominator && !(denominator === null || denominator === undefined)) {
     tooltip.push({
       displayName: inputSettings.funnel.ttip_label_denominator,
-      value: formatNumber(denominator, prop_labels ? 0 : sig_figs, "") ?? ""
+      value: formatValues(denominator, "integer")
     });
   }
   const levels = ["68", "95", "99"] as const;
@@ -66,29 +62,29 @@ export default function buildTooltip(index: number,
     const limit = levels[i];
     if (inputSettings.lines[`ttip_show_${limit}`] && inputSettings.lines[`show_${limit}`]) {
       tooltip.push({
-        displayName: `Upper ${inputSettings.lines[`ttip_label_${limit}`]}`,
-        value: formatNumber(limits[`ul${limit}`], sig_figs, suffix) ?? "(Blank)"
+        displayName: `${inputSettings.lines[`ttip_label_${limit}_prefix_upper`]}${inputSettings.lines[`ttip_label_${limit}`]}`,
+        value: formatValues(limits[`ul${limit}`], "value")
       });
     }
   }
   if (inputSettings.lines.show_target && inputSettings.lines.ttip_show_target) {
     tooltip.push({
       displayName: inputSettings.lines.ttip_label_target,
-      value: formatNumber(limits.target, sig_figs, suffix) ?? ""
+      value: formatValues(limits.target, "value")
     });
   }
   if (inputSettings.lines.show_alt_target && inputSettings.lines.ttip_show_alt_target && !(limits.alt_target === null || limits.alt_target === undefined)) {
     tooltip.push({
       displayName: inputSettings.lines.ttip_label_alt_target,
-      value: formatNumber(limits.alt_target, sig_figs, suffix) ?? ""
+      value: formatValues(limits.alt_target, "value")
     });
   }
   for (let i = 0; i < levels.length; i++) {
     const limit = levels[i];
     if (inputSettings.lines[`ttip_show_${limit}`] && inputSettings.lines[`show_${limit}`]) {
       tooltip.push({
-        displayName: `Lower ${inputSettings.lines[`ttip_label_${limit}`]}`,
-        value: formatNumber(limits[`ll${limit}`], sig_figs, suffix) ?? "(Blank)"
+        displayName: `${inputSettings.lines[`ttip_label_${limit}_prefix_lower`]}${inputSettings.lines[`ttip_label_${limit}`]}`,
+        value: formatValues(limits[`ll${limit}`], "value")
       });
     }
   }

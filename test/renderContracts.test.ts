@@ -18,7 +18,7 @@ describe("Validated visual rendering", () => {
       builder.update(dataView(categorical));
       expect(failed).not.toHaveBeenCalled();
       expect(builder.element.querySelector(".errormessage")).toBeNull();
-      expect(builder.element.querySelectorAll(".dotsgroup-child")).toHaveLength(3);
+      expect(builder.element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
       expect(builder.element.querySelectorAll(".linesgroup text").length).toBeGreaterThan(0);
       expect(builder.instance.viewModel.plotPoints[0].tooltip.length).toBeGreaterThan(0);
       builder.destroy();
@@ -68,7 +68,7 @@ describe("Validated visual rendering", () => {
     const failed = vi.spyOn(builder.visualHost.eventService, "renderingFailed").mockClear();
     builder.instance.update({ dataViews: [dataView()], viewport: builder.viewport, type: 4 });
     expect(failed).not.toHaveBeenCalled();
-    expect(builder.element.querySelectorAll(".dotsgroup-child")).toHaveLength(3);
+    expect(builder.element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
     const chart = builder.instance.viewModel.chartBase;
     builder.instance.update({ dataViews: [dataView()], viewport: builder.viewport, type: 4 });
     expect(builder.instance.viewModel.chartBase).toBe(chart);
@@ -107,7 +107,7 @@ it("keeps per-point formatting and warnings aligned after an input row is remove
     expect(points[0].aesthetics.size).toBe(1);
     expect(points[1].label.aesthetics.label_size).toBe(defaultSettings.labels.label_size);
     expect(points[2].label.text_value).toBe("Four");
-    expect(builder.element.querySelectorAll(".dotsgroup-child")).toHaveLength(3);
+    expect(builder.element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
   } finally {
     failed.mockRestore();
     builder.destroy();

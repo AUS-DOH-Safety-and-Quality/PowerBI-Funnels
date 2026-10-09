@@ -35,7 +35,7 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const denominatorColumn = valueRoles.denominators?.[0];
   const categories = inputView.categories?.[0];
   if (keyColumn === undefined || categories === undefined) return { status: "invalid", error: "No grouping/ID variable passed!" };
-  if (numeratorColumn === undefined) return { status: "invalid", error: "No Numerators passed!" };
+  if (numeratorColumn === undefined) return { status: "invalid", error: "No numerators passed!" };
   if (denominatorColumn === undefined) return { status: "invalid", error: "No denominators passed!" };
   const count = keyColumn.values.length;
   if (count !== numeratorColumn.values.length || count !== denominatorColumn.values.length) {
