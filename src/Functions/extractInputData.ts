@@ -1,24 +1,18 @@
 import type powerbi from "powerbi-visuals-api";
-type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import validateInputData from "./validateInputData";
 import type { settingsClass } from "../Classes";
 import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
-import { formatPrimitiveValue, indexColumnsByRole, readSettingsRows } from "powerbi-visuals-core/powerbi";
+import {
+  formatPrimitiveValue, indexColumnsByRole, readRowAnnotations, rowWarnings, type RowAnnotations
+} from "powerbi-visuals-core/powerbi";
 import type { ValidationT } from "./validateInputData";
 
-export type dataObject = {
+export type dataObject = RowAnnotations<settingsValueType["scatter"], settingsValueType["labels"]> & {
   keys: { x: number; id: number; label: string }[];
   id: number[];
   numerators: number[];
   denominators: number[];
-  highlights: (Exclude<powerbi.PrimitiveValue, null> | undefined)[] | undefined;
-  anyHighlights: boolean;
   categories: powerbi.DataViewCategoryColumn;
-  scatter_formatting: settingsValueType["scatter"][];
-  label_formatting: settingsValueType["labels"][];
-  tooltips: VisualTooltipDataItem[][] | undefined;
-  labels: (string | undefined)[] | undefined;
-  anyLabels: boolean;
   warningMessage: string;
   validationStatus: Extract<ValidationT, { status: 0 }>;
 };
@@ -60,60 +54,35 @@ export default function extractInputData(inputView: powerbi.DataViewCategorical,
   const validation = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
   if (validation.status !== 0) return { status: "invalid", error: validation.error };
 
-  const labels = valueRoles.labels?.[0];
-  const tooltips = valueRoles.tooltips;
-  const highlights = inputView.values?.[0]?.highlights;
-  const scatter = readSettingsRows(settingsModel.scatter, "scatter", defaultSettings.scatter, categories, rows).values;
-  const labelSettings = readSettingsRows(settingsModel.labels, "labels", defaultSettings.labels, categories, rows).values;
-  const result: dataObject = {
-    keys: [], id: [], numerators: [], denominators: [], categories,
-    scatter_formatting: [], label_formatting: [],
-    tooltips: tooltips === undefined ? undefined : [],
-    labels: labels === undefined ? undefined : [],
-    highlights: highlights === undefined ? undefined : [],
-    anyHighlights: false, anyLabels: false, warningMessage: "", validationStatus: validation
-  };
-  const removalMessages: string[] = [];
-  const groupName = categories.source.displayName;
+  const keyRows: dataObject["keys"] = [];
+  const id: number[] = [];
+  const validNumerators: number[] = [];
+  const validDenominators: number[] = [];
+  const kept: number[] = [];
   for (let i = 0; i < keys.length; i++) {
+    if (validation.messages[i] !== "") continue;
     const row = rows[i];
     const key = keys[i];
     const numerator = numerators[i];
     const denominator = denominators[i];
-    if (validation.messages[i] !== "") {
-      removalMessages.push(`${groupName} ${key} removed due to: ${validation.messages[i]}.`);
-      continue;
-    }
     if (key === undefined || numerator === undefined || denominator === undefined) {
       throw new Error("Validated row contains a missing required value.");
     }
-    result.keys.push({ x: result.id.length, id: row, label: key });
-    result.id.push(row);
-    result.numerators.push(numerator);
-    result.denominators.push(denominator);
-    result.scatter_formatting.push(scatter[i]);
-    result.label_formatting.push(labelSettings[i]);
-    const label = formatPrimitiveValue(labels?.values[row]);
-    result.labels?.push(label);
-    result.anyLabels ||= label !== undefined && label !== "";
-    if (tooltips !== undefined) {
-      const rowTooltips: VisualTooltipDataItem[] = [];
-      for (let j = 0; j < tooltips.length; j++) {
-        rowTooltips.push({ displayName: tooltips[j].source.displayName, value: formatPrimitiveValue(tooltips[j].values[row]) ?? "" });
-      }
-      result.tooltips?.push(rowTooltips);
-    }
-    const highlight = highlights?.[row] ?? undefined;
-    result.highlights?.push(highlight);
-    result.anyHighlights ||= highlight !== undefined;
-    const position = inputSettingsClass.messagePositionByRowIndex.get(row);
-    const messages = position === undefined ? undefined : inputSettingsClass.validationStatus.messages[position];
-    if (messages !== undefined) {
-      for (let j = 0; j < messages.length; j++) {
-        removalMessages.push(`Conditional formatting for ${groupName} ${key} ignored due to: ${messages[j]}.`);
-      }
-    }
+    keyRows.push({ x: id.length, id: row, label: key });
+    id.push(row);
+    validNumerators.push(numerator);
+    validDenominators.push(denominator);
+    kept.push(i);
   }
-  result.warningMessage = removalMessages.join("\n");
-  return { status: "valid", data: result };
+  const annotations = readRowAnnotations({
+    categorical: inputView, values: valueRoles, categories,
+    cards: { scatter: settingsModel.scatter, labels: settingsModel.labels },
+    defaults: { scatter: defaultSettings.scatter, labels: defaultSettings.labels }
+  }, rows, kept);
+  const warnings = rowWarnings(categories.source.displayName, rows, keys, validation.messages,
+    { messages: inputSettingsClass.validationStatus.messages, messagePositionByRowIndex: inputSettingsClass.messagePositionByRowIndex });
+  return { status: "valid", data: {
+    ...annotations, keys: keyRows, id, numerators: validNumerators, denominators: validDenominators, categories,
+    warningMessage: warnings.join("\n"), validationStatus: validation
+  } };
 }

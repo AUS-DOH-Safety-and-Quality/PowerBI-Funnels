@@ -1,5 +1,6 @@
 import type { svgBaseType, Visual } from "../visual";
-import { lineNameMap, type LineName } from "../Functions/getAesthetic";
+import lineKeys, { type LineName } from "../Functions/lineKeys";
+import { lineLabel, lineSetting } from "powerbi-visuals-core/settings";
 import { drawLineLabels, type LineLabel } from "powerbi-visuals-core/rendering";
 
 // Lower interval lines place outside labels below the line (finding 18)
@@ -15,25 +16,15 @@ export default function drawLabels(selection: svgBaseType, visualObj: Visual) {
   const lineSettings = inputSettings.settings.lines;
   const lines = visualObj.viewModel.groupedLines;
   const formatValue = inputSettings.derivedSettings.formatValue;
+  const frame = visualObj.plotProperties;
   const labels: LineLabel[] = [];
   for (let i = 0; i < lines.length; i++) {
     const [name, points] = lines[i];
     const point = points[points.length - 1];
-    const key = lineNameMap[name];
-    if (point === undefined || point.line_value === undefined || !lineSettings[`plot_label_show_${key}`]) continue;
-    labels.push({
-      text: lineSettings[`plot_label_prefix_${key}`] + formatValue(point.line_value, "value"),
-      x: visualObj.plotProperties.xScale(point.x),
-      y: visualObj.plotProperties.yScale(point.line_value),
-      position: lineSettings[`plot_label_position_${key}`],
-      lower: lowerLines[name],
-      hpad: lineSettings[`plot_label_hpad_${key}`],
-      vpad: lineSettings[`plot_label_vpad_${key}`],
-      lineWidth: lineSettings[`width_${key}`],
-      size: lineSettings[`plot_label_size_${key}`],
-      font: lineSettings[`plot_label_font_${key}`],
-      colour: lineSettings[`plot_label_colour_${key}`]
-    });
+    const key = lineKeys[name];
+    if (point === undefined || point.line_value === undefined || !lineSetting<boolean>(lineSettings, "plot_label_show", key)) continue;
+    const value = point.line_value;
+    labels.push(lineLabel(lineSettings, key, { x: frame.xScale(point.x), y: frame.yScale(value), value }, lowerLines[name], formatValue));
   }
   drawLineLabels(group, labels);
 }

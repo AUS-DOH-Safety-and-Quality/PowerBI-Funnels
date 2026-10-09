@@ -18,7 +18,7 @@ import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
 import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
-import type { LineName } from "../Functions/getAesthetic";
+import type { LineName } from "../Functions/lineKeys";
 
 import type { ErrorKind } from "powerbi-visuals-core/rendering";
 
@@ -49,9 +49,7 @@ export type plotData = {
     text_value: string | undefined,
     aesthetics: settingsValueType["labels"],
     angle: number | undefined,
-    distance: number | undefined,
-    line_offset: number | undefined,
-    marker_offset: number | undefined
+    distance: number | undefined
   };
   two_sigma?: string;
   three_sigma?: string;
@@ -282,9 +280,7 @@ export default class viewModelClass {
           text_value: inputData.labels?.[i],
           aesthetics: inputData.label_formatting[i],
           angle: undefined,
-          distance: undefined,
-          line_offset: undefined,
-          marker_offset: undefined
+          distance: undefined
         },
         two_sigma: two_sigma_outlier,
         three_sigma: three_sigma_outlier

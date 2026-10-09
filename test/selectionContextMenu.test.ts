@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { testDom } from "powerbi-visuals-utils-testutils";
 import { Visual } from "../src/visual";
-import { dataView } from "./dataViewFixture";
+import { categoricalData, dataView } from "./dataViewFixture";
 import { keyedHost } from "powerbi-visuals-core/testing";
 import addContextMenu from "../src/D3 Plotting Functions/addContextMenu";
 
@@ -70,5 +70,23 @@ describe("Selection and context menu", () => {
     dot.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 5, clientY: 6 }));
     expect(show).toHaveBeenCalledTimes(3);
     expect(show).toHaveBeenLastCalledWith(point.identity, { x: 5, y: 6 });
+  });
+});
+
+describe("Group text highlighting", () => {
+  it("fades group text by its own opacities rather than the marker ones", async () => {
+    const element = testDom("500", "500");
+    const visual = new Visual({ element, host: keyedHost() });
+    const categorical = categoricalData();
+    const scatter = { scatter: { use_group_text: true, scatter_text_opacity_selected: 0.9, scatter_text_opacity_unselected: 0.4 } };
+    categorical.categories![0].objects = [scatter, scatter, scatter];
+    visual.update({ dataViews: [dataView(categorical)], viewport: { width: 500, height: 500 }, type: 2 });
+    const texts = element.querySelectorAll<SVGTextElement>(".dotsgroup text");
+    expect(texts).toHaveLength(3);
+    expect(texts[1].style.fillOpacity).toBe("1");
+    await visual.selectionManager.select(visual.viewModel.plotPoints[1].identity);
+    visual.updateHighlighting();
+    expect(texts[1].style.fillOpacity).toBe("0.9");
+    expect(texts[0].style.fillOpacity).toBe("0.4");
   });
 });

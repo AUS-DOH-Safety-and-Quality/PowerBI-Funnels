@@ -1,41 +1,25 @@
-export type ValidationT =
-  | { status: 0; messages: string[] }
-  | { status: 1; messages: string[]; error: string };
+import { validateRows, type RowRule, type RowValidation } from "powerbi-visuals-core/data";
 
-const rowMessages = ["", "Group missing", "Numerator missing", "Numerator is not a number", "Numerator negative",
-  "Denominator missing", "Denominator is not a number", "Denominator is not finite", "Denominator negative",
-  "Denominator is zero", "Denominator < numerator"];
-const errors = ["", "All Groups/IDs are missing or null!", "All numerators are missing or null!",
-  "All numerators are not numbers!", "All numerators are negative!", "All denominators missing or null!",
-  "All denominators are not numbers!", "All denominators are not finite!", "All denominators are negative!",
-  "All denominators are zero!", "All denominators are smaller than numerators!"];
+export type ValidationT = RowValidation;
 
 export default function validateInputData(keys: readonly (string | undefined)[], numerators: readonly (number | undefined)[],
   denominators: readonly (number | undefined)[], data_type: string): ValidationT {
-  const messages = new Array<string>(keys.length);
-  let anyValid = false;
-  let sameStage = keys.length > 0;
-  let firstStage = 0;
-  for (let i = 0; i < keys.length; i++) {
-    const numerator = numerators[i];
-    const denominator = denominators[i];
-    let stage = 0;
-    if (keys[i] === undefined) stage = 1;
-    else if (numerator === undefined) stage = 2;
-    else if (isNaN(numerator)) stage = 3;
-    else if (numerator < 0) stage = 4;
-    else if (denominator === undefined) stage = 5;
-    else if (isNaN(denominator)) stage = 6;
-    else if (!Number.isFinite(denominator)) stage = 7;
-    else if (denominator < 0) stage = 8;
-    else if (denominator === 0) stage = 9;
-    else if (data_type === "PR" && !(denominator >= numerator)) stage = 10;
-    messages[i] = rowMessages[stage];
-    if (stage === 0) anyValid = true;
-    if (i === 0) firstStage = stage;
-    else if (stage !== firstStage) sameStage = false;
+  const rules: RowRule[] = [
+    { fails: i => keys[i] === undefined, message: "Group missing", all: "All Groups/IDs are missing or null!" },
+    { fails: i => numerators[i] === undefined, message: "Numerator missing", all: "All numerators are missing or null!" },
+    { fails: i => isNaN(numerators[i] as number), message: "Numerator is not a number", all: "All numerators are not numbers!" },
+    { fails: i => (numerators[i] as number) < 0, message: "Numerator negative", all: "All numerators are negative!" },
+    { fails: i => denominators[i] === undefined, message: "Denominator missing", all: "All denominators missing or null!" },
+    { fails: i => isNaN(denominators[i] as number), message: "Denominator is not a number", all: "All denominators are not numbers!" },
+    { fails: i => !Number.isFinite(denominators[i]), message: "Denominator is not finite", all: "All denominators are not finite!" },
+    { fails: i => (denominators[i] as number) < 0, message: "Denominator negative", all: "All denominators are negative!" },
+    { fails: i => denominators[i] === 0, message: "Denominator is zero", all: "All denominators are zero!" }
+  ];
+  if (data_type === "PR") {
+    rules.push({
+      fails: i => !((denominators[i] as number) >= (numerators[i] as number)),
+      message: "Denominator < numerator", all: "All denominators are smaller than numerators!"
+    });
   }
-  if (anyValid) return { status: 0, messages };
-  // A single shared failure names it; mixed failures get the generic error.
-  return { status: 1, messages, error: sameStage ? errors[firstStage] : "No valid data found!" };
+  return validateRows(keys.length, rules);
 }

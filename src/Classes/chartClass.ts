@@ -1,7 +1,6 @@
 import type { dataObject } from "../Functions/extractInputData";
 import type { settingsClass } from "../Classes";
 import { max, sequence } from "powerbi-visuals-core/math";
-import { isNullOrUndefined } from "powerbi-visuals-core/data";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
@@ -10,7 +9,6 @@ import getTau2 from "../Funnel Calculations/getTau2";
 export type limitArgs = {
   p: number;
   q: number;
-  target: number;
   target_transformed: number;
   SE: number | undefined;
   tau2: number;
@@ -177,7 +175,6 @@ export default class chartClass {
         const functionArgs: limitArgs = {
           p: interval.prob,
           q: interval.quantile,
-          target: target,
           target_transformed: target_transformed,
           SE: plottingSE[idx],
           tau2: curr_tau2,

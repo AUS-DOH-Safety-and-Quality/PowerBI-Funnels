@@ -1,8 +1,3 @@
 export { default as addContextMenu } from "./addContextMenu"
-export { default as drawDots } from "./drawDots"
 export { default as drawLines } from "./drawLines"
-export { default as drawTooltipLine } from "./drawTooltipLine"
-export { default as drawAxes } from "./drawAxes"
-export { default as drawValueLabels } from "./drawValueLabels"
 export { default as drawLineLabels } from "./drawLineLabels"
-export { default as drawDownloadButton } from "./drawDownloadButton"

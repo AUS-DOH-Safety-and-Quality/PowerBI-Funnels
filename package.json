@@ -10,9 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "d3-axis": "3.0.0",
     "d3-selection": "3.0.0",
-    "d3-shape": "3.2.0",
     "powerbi-visuals-core": "github:AUS-DOH-Safety-and-Quality/PowerBI-Visuals-Core#d38aabd1106cb0f1e10ae04c15b8372ab9a17c12"
   },
   "devDependencies": {
@@ -22,6 +20,7 @@
     "@typescript-eslint/eslint-plugin": "8.65.0",
     "@typescript-eslint/parser": "8.65.0",
     "@vitest/browser-playwright": "4.1.10",
+    "d3-shape": "3.2.0",
     "eslint": "10.7.0",
     "eslint-plugin-powerbi-visuals": "1.1.1",
     "powerbi-visuals-api": "5.1.0",

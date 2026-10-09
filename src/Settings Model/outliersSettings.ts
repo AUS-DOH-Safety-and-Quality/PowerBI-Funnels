@@ -1,13 +1,10 @@
-import { dropdownOption, toggleOption, colourOption } from "powerbi-visuals-core/settings";
+import { toggleOption, colourOption, flagDirectionOptions } from "powerbi-visuals-core/settings";
 
 const outliersSettings = {
   description: "Outlier Settings",
   displayName: "Outlier Settings",
   settingsGroups: {
-    "General" : {
-      process_flag_type: dropdownOption("Type of Change to Flag", "both", ["both", "improvement", "deterioration"], "sentence"),
-      improvement_direction: dropdownOption("Improvement Direction", "increase", ["increase", "neutral", "decrease"], "sentence")
-    },
+    "General" : flagDirectionOptions(),
     "Three Sigma Outliers" : {
       three_sigma: toggleOption("Three Sigma Outliers", false),
       three_sigma_colour_improvement: colourOption("Imp. Three Sigma Colour", "improvement"),

@@ -1,5 +1,6 @@
-import { lineNameMap } from "../Functions/getAesthetic";
+import lineKeys from "../Functions/lineKeys";
 import type { svgBaseType, Visual } from "../visual";
+import { lineStyle } from "powerbi-visuals-core/settings";
 import { drawLines, type PlotLine } from "powerbi-visuals-core/rendering";
 
 export default function drawPlotLines(selection: svgBaseType, visualObj: Visual) {
@@ -12,8 +13,7 @@ export default function drawPlotLines(selection: svgBaseType, visualObj: Visual)
   const lines = new Array<PlotLine>(grouped.length);
   for (let i = 0; i < grouped.length; i++) {
     const [name, points] = grouped[i];
-    const key = lineNameMap[name];
-    const style = { colour: lineSettings[`colour_${key}`], width: lineSettings[`width_${key}`], type: lineSettings[`type_${key}`] };
+    const style = lineStyle(lineSettings, lineKeys[name]);
     lines[i] = { name, points, style: () => style };
   }
   drawLines(group, { frame: visualObj.plotProperties, lines, palette: visualObj.viewModel.colourPalette });
