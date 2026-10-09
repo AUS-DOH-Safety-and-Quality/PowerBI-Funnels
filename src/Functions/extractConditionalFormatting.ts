@@ -32,12 +32,12 @@ export default function
   const inputCategories: DataViewCategoryColumn = (categoricalView.categories as DataViewCategoryColumn[])[0];
   const settingNames = Object.keys(inputSettings[settingGroupName]);
 
-  // Force a deep copy to avoid JS's absurd pass-by-reference handling
   const validationRtn: SettingsValidationT
-    = JSON.parse(JSON.stringify({ status: 0, messages: rep([], inputCategories.values.length) }));
+    = { status: 0, messages: new Array<string[]>(inputCategories.values.length) };
 
 
   const rtn = inputCategories.values.map((_, idx) => {
+    validationRtn.messages[idx] = [];
     const inpObjects = (inputCategories.objects ? inputCategories.objects[idx] : null) as powerbi.DataViewObjects;
     return Object.fromEntries(
       settingNames.map(settingName => {

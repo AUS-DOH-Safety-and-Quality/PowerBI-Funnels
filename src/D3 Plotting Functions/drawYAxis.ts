@@ -5,6 +5,7 @@ import type { svgBaseType, Visual } from "../visual";
 export default function drawYAxis(selection: svgBaseType, visualObj: Visual, refresh?: boolean) {
   const yAxisProperties: axisProperties = visualObj.plotProperties.yAxis;
   const yAxis: d3.Axis<number> = d3.axisLeft(visualObj.plotProperties.yScale);
+  yAxis.tickSizeOuter(yAxisProperties.tick_marks ? 6 : 0);
   const yaxis_sig_figs: number =  visualObj.viewModel.inputSettings.settings.y_axis.ylimit_sig_figs;
   const sig_figs: number = yaxis_sig_figs ?? visualObj.viewModel.inputSettings.settings.funnel.sig_figs;
   const displayPlot: boolean = visualObj.plotProperties.displayPlot;
@@ -41,8 +42,28 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
       .style("font-family", yAxisProperties.tick_font)
       .style("fill", displayPlot ? yAxisProperties.tick_colour : "#FFFFFF");
 
+  yAxisGroup.selectAll(".tick line")
+      .style("stroke", yAxisProperties.tick_marks ? "currentColor" : "none");
+  const yTicks = yAxisProperties.grid_show ? yAxisGroup.selectAll<SVGGElement, number>(".tick").data() : [];
+  selection.select(".gridgroup")
+      .selectAll(".ygridline")
+      .data(yTicks)
+      .join("line")
+      .classed("ygridline", true)
+      .attr("x1", visualObj.plotProperties.xAxis.start_padding)
+      .attr("x2", visualObj.viewModel.svgWidth - visualObj.plotProperties.xAxis.end_padding)
+      .attr("y1", d => visualObj.plotProperties.yScale(d)!)
+      .attr("y2", d => visualObj.plotProperties.yScale(d)!)
+      .style("stroke", displayPlot ? yAxisProperties.grid_colour : "#FFFFFF")
+      .style("stroke-width", yAxisProperties.grid_width);
+
   const textX: number = -(visualObj.plotProperties.xAxis.start_padding - visualObj.viewModel.inputSettings.settings.y_axis.ylimit_label_size * 1.5);
-  const textY: number = visualObj.viewModel.svgHeight / 2;
+  const labelPosition: Record<string, { y: number; anchor: string }> = {
+      bottom: { y: visualObj.viewModel.svgHeight - yAxisProperties.start_padding, anchor: "start" },
+      center: { y: visualObj.viewModel.svgHeight / 2, anchor: "middle" },
+      top: { y: yAxisProperties.end_padding, anchor: "end" }
+  };
+  const textY: number = labelPosition[yAxisProperties.label_align].y;
   yAxisGroup.select(".yaxislabel")
             .selectAll("text")
             .data([visualObj.viewModel.inputSettings.settings.y_axis.ylimit_label])
@@ -50,9 +71,10 @@ export default function drawYAxis(selection: svgBaseType, visualObj: Visual, ref
             .attr("x", textX)
             .attr("y", textY)
             .attr("transform", `rotate(-90, ${textX}, ${textY})`)
-            .style("text-anchor", "middle")
+            .style("text-anchor", labelPosition[yAxisProperties.label_align].anchor)
             .text(d => d)
             .style("font-size", yAxisProperties.label_size)
+            .style("font-style", yAxisProperties.label_style)
             .style("font-family", yAxisProperties.label_font)
             .style("fill", yAxisProperties.label_colour);
 }

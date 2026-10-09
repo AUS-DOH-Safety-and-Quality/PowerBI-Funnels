@@ -16,6 +16,7 @@ export type axisProperties = {
   end_padding: number,
   colour: string,
   ticks: boolean,
+  tick_marks: boolean,
   tick_size: string,
   tick_font: string,
   tick_colour: string,
@@ -24,7 +25,12 @@ export type axisProperties = {
   label: string,
   label_size: string,
   label_font: string,
-  label_colour: string
+  label_colour: string,
+  label_style: string,
+  label_align: string,
+  grid_show: boolean,
+  grid_colour: string,
+  grid_width: number
 };
 
 export default class plotPropertiesClass {
@@ -86,6 +92,7 @@ export default class plotPropertiesClass {
       end_padding: inputSettings.canvas.right_padding,
       colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.x_axis.xlimit_colour,
       ticks: inputSettings.x_axis.xlimit_ticks && xTicksCount !== 0,
+      tick_marks: inputSettings.x_axis.xlimit_tick_marks,
       tick_size: `${xTickSize}px`,
       tick_font: inputSettings.x_axis.xlimit_tick_font,
       tick_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.x_axis.xlimit_tick_colour,
@@ -94,7 +101,12 @@ export default class plotPropertiesClass {
       label: inputSettings.x_axis.xlimit_label,
       label_size: `${inputSettings.x_axis.xlimit_label_size}px`,
       label_font: inputSettings.x_axis.xlimit_label_font,
-      label_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.x_axis.xlimit_label_colour
+      label_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.x_axis.xlimit_label_colour,
+      label_style: inputSettings.x_axis.xlimit_label_style,
+      label_align: inputSettings.x_axis.xlimit_label_align,
+      grid_show: inputSettings.x_axis.xlimit_grid_show,
+      grid_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.x_axis.xlimit_grid_colour,
+      grid_width: inputSettings.x_axis.xlimit_grid_width
     };
 
     const yLowerLimit: number = inputSettings.y_axis.ylimit_l;
@@ -114,6 +126,7 @@ export default class plotPropertiesClass {
       end_padding: inputSettings.canvas.upper_padding,
       colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.y_axis.ylimit_colour,
       ticks: inputSettings.y_axis.ylimit_ticks && yTicksCount !== 0,
+      tick_marks: inputSettings.y_axis.ylimit_tick_marks,
       tick_size: `${yTickSize}px`,
       tick_font: inputSettings.y_axis.ylimit_tick_font,
       tick_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.y_axis.ylimit_tick_colour,
@@ -122,7 +135,12 @@ export default class plotPropertiesClass {
       label: inputSettings.y_axis.ylimit_label,
       label_size: `${inputSettings.y_axis.ylimit_label_size}px`,
       label_font: inputSettings.y_axis.ylimit_label_font,
-      label_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.y_axis.ylimit_label_colour
+      label_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.y_axis.ylimit_label_colour,
+      label_style: inputSettings.y_axis.ylimit_label_style,
+      label_align: inputSettings.y_axis.ylimit_label_align,
+      grid_show: inputSettings.y_axis.ylimit_grid_show,
+      grid_colour: colorPalette.isHighContrast ? colorPalette.foregroundColour : inputSettings.y_axis.ylimit_grid_colour,
+      grid_width: inputSettings.y_axis.ylimit_grid_width
     };
     this.initialiseScale(options.viewport.width, options.viewport.height);
   }
