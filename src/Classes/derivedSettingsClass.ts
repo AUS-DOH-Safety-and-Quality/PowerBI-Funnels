@@ -21,9 +21,12 @@ export default class derivedSettingsClass {
   }
 
   private calculate(inputSettings: settingsValueType) {
-    const scaling = resolvePercentScaling(inputSettings.funnel.chart_type === "PR",
-                                          inputSettings.funnel.perc_labels, inputSettings.funnel.multiplier);
-    const formatValue = createValueFormatter(inputSettings.funnel.sig_figs, 0, scaling.percentLabels ? "%" : "");
-    return { multiplier: scaling.multiplier, percentLabels: scaling.percentLabels, formatValue };
+    const funnel = inputSettings.funnel;
+    const scaling = resolvePercentScaling(funnel.chart_type === "PR", funnel.perc_labels, funnel.multiplier);
+    const percentLabels: boolean = scaling.percentLabels && funnel.transformation === "none";
+    // Expected counts are not whole numbers
+    const formatValue = createValueFormatter(funnel.sig_figs, funnel.chart_type === "SR" ? funnel.sig_figs : 0,
+                                             percentLabels ? "%" : "");
+    return { multiplier: scaling.multiplier, percentLabels, formatValue };
   }
 }

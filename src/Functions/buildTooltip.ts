@@ -1,6 +1,6 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import type { settingsValueType } from "../settings";
+import settingsModel, { type settingsValueType } from "../settings";
 import type { limitData, derivedSettingsClass } from "../Classes";
 import type { dataObject } from "./extractInputData";
 import getTransformation from "../Funnel Calculations/getTransformation";
@@ -41,10 +41,15 @@ export default function buildTooltip(index: number,
   tooltip.push(...limitTooltips(inputSettings.lines, limits, formatValues, true));
 
   if (transform_text !== "none") {
-    tooltip.push({
-      displayName: "Plot Scaling",
-      value: transform_text
-    });
+    const transformations = settingsModel.funnel.settingsGroups.all.transformation.items;
+    for (let i = 0; i < transformations.length; i++) {
+      if (transformations[i].value === transform_text) {
+        tooltip.push({
+          displayName: "Plot Scaling",
+          value: transformations[i].displayName
+        });
+      }
+    }
   }
   const patterns: string[] = new Array<string>();
   if (outliers.three_sigma) {

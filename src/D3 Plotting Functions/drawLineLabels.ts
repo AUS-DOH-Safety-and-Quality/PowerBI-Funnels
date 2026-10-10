@@ -1,7 +1,7 @@
 import type { svgBaseType, Visual } from "../visual";
 import lineKeys, { type LineName } from "../Functions/lineKeys";
 import { lineLabel, lineSetting } from "powerbi-visuals-core/settings";
-import { drawLineLabels, type LineLabel } from "powerbi-visuals-core/rendering";
+import { drawLineLabels, inPlot, type LineLabel } from "powerbi-visuals-core/rendering";
 
 /** Lower interval lines place outside labels below the line */
 const lowerLines: Record<LineName, boolean> = {
@@ -15,7 +15,7 @@ const lowerLines: Record<LineName, boolean> = {
   alt_target: false
 };
 
-/** Labels each visible line's final defined endpoint; Core places and draws them */
+/** Labels each line's last point inside the axis limits; Core places and draws them */
 export default function drawLabels(selection: svgBaseType, visualObj: Visual) {
   const group = selection.select<SVGGElement>(".linesgroup").node();
   if (group === null) {
@@ -30,13 +30,17 @@ export default function drawLabels(selection: svgBaseType, visualObj: Visual) {
   for (let i = 0; i < lines.length; i++) {
     const name = lines[i][0];
     const points = lines[i][1];
-    const point = points[points.length - 1];
     const key = lineKeys[name];
-    if (point === undefined || point.line_value === undefined || !lineSetting<boolean>(lineSettings, "plot_label_show", key)) {
+    if (!lineSetting<boolean>(lineSettings, "plot_label_show", key)) {
       continue;
     }
-    const value = point.line_value;
-    labels.push(lineLabel(lineSettings, key, { x: frame.xScale(point.x), y: frame.yScale(value), value }, lowerLines[name], formatValue));
+    for (let j = points.length - 1; j >= 0; j--) {
+      const value = points[j].line_value;
+      if (value !== undefined && inPlot(frame, points[j].x, value)) {
+        labels.push(lineLabel(lineSettings, key, { x: frame.xScale(points[j].x), y: frame.yScale(value), value }, lowerLines[name], formatValue));
+        break;
+      }
+    }
   }
   drawLineLabels(group, labels);
 }

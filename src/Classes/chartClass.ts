@@ -1,6 +1,6 @@
 import type { dataObject } from "../Functions/extractInputData";
 import type { settingsClass } from "../Classes";
-import { max, sequence } from "powerbi-visuals-core/math";
+import { chisqQuantile, max } from "powerbi-visuals-core/math";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
@@ -13,6 +13,12 @@ export type limitArgs = {
   SE: number;
   tau2: number;
   denominators: number;
+}
+
+export type zArgs = {
+  zScores: number[];
+  SE: number[];
+  tau2: number;
 }
 
 export type limitData = {
@@ -39,7 +45,8 @@ type chartObjectConstructorT = {
   targetFunction: (x: dataObject) => number;
   targetFunctionTransformed: (x: dataObject) => number;
   yFunction: (x: dataObject) => number[];
-  zFunction: (x: dataObject, zScores: number[]) => number[];
+  zFunction: (x: dataObject, args: zArgs) => number[];
+  zFunctionOD: (x: dataObject, args: zArgs) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
   inputData: dataObject;
@@ -54,20 +61,27 @@ export default class chartClass {
   targetFunction: (x: dataObject) => number;
   targetFunctionTransformed: (x: dataObject) => number;
   yFunction: (x: dataObject) => number[];
-  zFunction: (x: dataObject, zScores: number[]) => number[];
+  zFunction: (x: dataObject, args: zArgs) => number[];
+  zFunctionOD: (x: dataObject, args: zArgs) => number[];
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
   odAdjust: boolean | undefined;
-  private variance: { tau2: number; zScores: number[]; seOD: number[] } | undefined;
+  private variance: { tau2: number; phi: number; zScores: number[]; seOD: number[] } | undefined;
 
   getPlottingDenominators(): number[] {
-    const maxDenominator: number = max(this.inputData.denominators);
     const plotDenomLower: number = 1;
-    const plotDenomUpper: number = maxDenominator + maxDenominator * 0.1;
-    const plotDenomStep: number = maxDenominator * 0.01;
-    // Grid points strictly below the upper bound; an empty range adds no grid points.
-    const plotDenomCount: number = Math.floor((plotDenomUpper - plotDenomLower) / plotDenomStep);
-    const candidates = sequence(plotDenomLower, plotDenomCount, plotDenomStep).concat(this.inputData.denominators);
+    // The default x-axis upper limit, or an explicit one beyond it
+    const plotDenomUpper: number = Math.max(max(this.inputData.denominators) * 1.1,
+                                            this.inputSettings.settings.x_axis.xlimit_u ?? -Infinity);
+    const plotDenomSteps: number = 110;
+    const candidates: number[] = this.inputData.denominators.slice();
+    if (plotDenomUpper > plotDenomLower) {
+      const plotDenomStep: number = (plotDenomUpper - plotDenomLower) / plotDenomSteps;
+      for (let i = 0; i < plotDenomSteps; i++) {
+        candidates.push(plotDenomLower + i * plotDenomStep);
+      }
+      candidates.push(plotDenomUpper);
+    }
     const unique: number[] = [];
     for (let i = 0; i < candidates.length; i++) {
       if (candidates.indexOf(candidates[i]) === i) {
@@ -95,18 +109,12 @@ export default class chartClass {
     if (this.variance === undefined || this.odAdjust === undefined) {
       throw new Error("Calculate limits before requesting z-scores.");
     }
-    const zScores = this.variance.zScores;
-    if (!this.odAdjust) {
-      return this.zFunction(this.inputData, zScores);
-    }
-    const seOD = this.variance.seOD;
-    const tau2 = this.variance.tau2;
-    const result = new Array<number>(zScores.length);
-    // Un-standardise with the SE, then re-standardise with the OD-adjusted variance
-    for (let i = 0; i < zScores.length; i++) {
-      result[i] = (zScores[i] * seOD[i]) / Math.sqrt(Math.pow(seOD[i], 2) + tau2);
-    }
-    return result;
+    const zFun = this.odAdjust ? this.zFunctionOD : this.zFunction;
+    return zFun(this.inputData, {
+      zScores: this.variance.zScores,
+      SE: this.variance.seOD,
+      tau2: this.odAdjust ? this.variance.tau2 : 0
+    });
   }
 
   getTau2(): number {
@@ -118,17 +126,24 @@ export default class chartClass {
     const phi: number = getPhi(zScoresWinsorized);
 
     const tau2 = getTau2(phi, seOD);
-    this.variance = { tau2, seOD, zScores };
+    this.variance = { tau2, phi, seOD, zScores };
     return tau2;
   }
 
-  getTau2Bool(): boolean {
-    const tauReturn: Record<string, boolean> = {
-      "yes" : true,
-      "no"  : false,
-      "auto": true
-    };
-    return tauReturn[this.inputSettings.settings.funnel.od_adjust];
+  /** "auto" adjusts only when N * phi exceeds chi-squared's 95th percentile on N - 1 df (Spiegelhalter, 2005) */
+  getODAdjust(): boolean {
+    if (this.variance === undefined) {
+      throw new Error("Estimate tau2 before choosing whether to adjust for it.");
+    }
+    const N: number = this.variance.zScores.length;
+    switch (this.inputSettings.settings.funnel.od_adjust) {
+      case "yes":
+        return this.variance.tau2 > 0;
+      case "auto":
+        return N * this.variance.phi > chisqQuantile(0.95, N - 1);
+      default:
+        return false;
+    }
   }
 
   getSingleLimit(par: { odAdjust: boolean, inputArgs: limitArgs }): number {
@@ -157,16 +172,9 @@ export default class chartClass {
   }
 
   getLimits(): limitData[] {
-    const calculateTau2: boolean = this.getTau2Bool();
     const tau2 = this.getTau2();
-    let curr_tau2: number;
-    if (calculateTau2) {
-      curr_tau2 = tau2;
-      this.odAdjust = tau2 > 0;
-    } else {
-      curr_tau2 = 0;
-      this.odAdjust = false;
-    }
+    this.odAdjust = this.getODAdjust();
+    const curr_tau2: number = this.odAdjust ? tau2 : 0;
 
     const target: number = this.getTarget({ transformed: false });
     const alt_target = this.inputSettings.settings.lines.alt_target;
@@ -241,6 +249,7 @@ export default class chartClass {
     this.targetFunctionTransformed = args.targetFunctionTransformed;
     this.yFunction = args.yFunction;
     this.zFunction = args.zFunction;
+    this.zFunctionOD = args.zFunctionOD;
     this.limitFunction = args.limitFunction;
     this.limitFunctionOD = args.limitFunctionOD;
     this.inputData = args.inputData;

@@ -150,11 +150,11 @@ describe("Chart", () => {
     }
   });
 
+  // Rate limits widen with the denominator below an expected count of 0.5, so they are dropped there
   it("preserves missing limits in low-count tooltips", () => {
-    update(buildDataView({ key: ["A", "B"], numerators: [0, 10], denominators: [1, 100] }));
+    update(buildDataView({ key: ["A", "B"], numerators: [0, 10], denominators: [1, 100] }, { funnel: { chart_type: "RC" } }));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    const limits = findBy(visual.viewModel.calculatedLimits, "denominators", 1)!;
-    expect(limits.ll99).toBeUndefined();
+    expect(findBy(visual.viewModel.calculatedLimits, "denominators", 1)?.ll99).toBeUndefined();
     const tooltip = visual.viewModel.plotPoints[0].tooltip;
     expect(findBy(tooltip, "displayName", "Lower 99% Limit")?.value).toBe("");
     for (let i = 0; i < tooltip.length; i++) {

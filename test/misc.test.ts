@@ -2,23 +2,27 @@ import type powerbi from "powerbi-visuals-api";
 import { describe, expect, it, vi } from "vitest";
 import { Visual } from "../src/visual";
 import viewModelClass from "../src/Classes/viewModelClass";
-import { categoricalData, dataView } from "./dataViewFixture";
+import { categoricalData, dataView, type FixtureCategorical } from "./dataViewFixture";
 import { cells, keyedHost } from "powerbi-visuals-core/testing";
 import type { PrimitiveValue } from "powerbi-visuals-core/powerbi";
 import findBy from "./helpers/findBy";
+import { must } from "./helpers/renderVisual";
 
-function miscView(numerators: PrimitiveValue[] = [80, 4, 20, 20, 24, 24, 30, 30]): powerbi.DataView {
+type MiscFixture = { view: powerbi.DataView; categorical: FixtureCategorical; objects: powerbi.DataViewObjects[] };
+
+function miscView(numerators: PrimitiveValue[] = [80, 4, 20, 20, 24, 24, 30, 30]): MiscFixture {
   const categorical = categoricalData(numerators, Array(8).fill(100), ["A", "A", "B", "B", "C", "C", "D", "D"]);
-  categorical.categories!.push({ source: { displayName: "Indicator", roles: { indicator: true } },
+  categorical.categories.push({ source: { displayName: "Indicator", roles: { indicator: true } },
     values: ["Higher", "Lower", "Higher", "Lower", "Higher", "Lower", "Higher", "Lower"] });
-  categorical.categories![0].objects = new Array(8);
+  const objects = new Array<powerbi.DataViewObjects>(8);
   for (let i = 0; i < 8; i++) {
-    categorical.categories![0].objects[i] = {
+    objects[i] = {
       outliers: { improvement_direction: i % 2 === 0 ? "increase" : "decrease" }
     };
   }
-  categorical.values!.push({ source: { displayName: "Extra", roles: { tooltips: true } }, values: ["A-H", "A-L", "B-H", "B-L", "C-H", "C-L", "D-H", "D-L"] });
-  return dataView(categorical);
+  categorical.categories[0].objects = objects;
+  categorical.values.push({ source: { displayName: "Extra", roles: { tooltips: true } }, values: ["A-H", "A-L", "B-H", "B-L", "C-H", "C-L", "D-H", "D-L"] });
+  return { view: dataView(categorical), categorical, objects };
 }
 
 function update(model: viewModelClass, view: powerbi.DataView, host = keyedHost()) {
@@ -32,16 +36,15 @@ describe("MISC calculations", () => {
     it(`uses independent ${chartType} funnels and favourable-direction scores`, () => {
       const host = keyedHost();
       const model = new viewModelClass(host);
-      const view = miscView();
-      const objects = view.categorical!.categories![0].objects!;
-      for (let i = 0; i < objects.length; i++) {
-        objects[i].funnel = { chart_type: chartType, od_adjust: "yes" };
+      const fixture = miscView();
+      for (let i = 0; i < fixture.objects.length; i++) {
+        fixture.objects[i].funnel = { chart_type: chartType, od_adjust: "yes" };
       }
-      expect(update(model, view, host).status).toBe(true);
+      expect(update(model, fixture.view, host).status).toBe(true);
       expect(model.miscPoints).toHaveLength(2);
       for (let i = 0; i < 2; i++) {
         const population = categoricalData(i === 0 ? [80, 20, 24, 30] : [4, 20, 24, 30], [100, 100, 100, 100], ["A", "B", "C", "D"]);
-        population.categories![0].objects = [{ funnel: { chart_type: chartType, od_adjust: "yes" },
+        population.categories[0].objects = [{ funnel: { chart_type: chartType, od_adjust: "yes" },
           outliers: { improvement_direction: i === 0 ? "increase" : "decrease", three_sigma: true } }];
         const funnel = new viewModelClass(host);
         expect(update(funnel, dataView(population), host).status).toBe(true);
@@ -58,7 +61,7 @@ describe("MISC calculations", () => {
   it("populates and persists a group dropdown without filtering the comparison population", () => {
     const host = keyedHost();
     const model = new viewModelClass(host);
-    const view = miscView();
+    const view = miscView().view;
     expect(update(model, view, host).status).toBe(true);
     const settings = model.inputSettings;
     expect(settings.miscGroups).toMatchObject([
@@ -67,8 +70,8 @@ describe("MISC calculations", () => {
       { displayName: "C" },
       { displayName: "D" }
     ]);
-    const card = findBy(settings.getFormattingModel().cards, "uid", "misc_card_uid")!;
-    expect(card.groups[0].slices![0]).toMatchObject({ control: { type: "Dropdown", properties: {
+    const card = must(findBy(settings.getFormattingModel().cards, "uid", "misc_card_uid"));
+    expect(card.groups[0].slices[0]).toMatchObject({ control: { type: "Dropdown", properties: {
       descriptor: { objectName: "misc", propertyName: "group" }, items: settings.miscGroups, value: settings.miscGroups[0]
     } } });
     const selected = settings.miscGroups[1].value;
@@ -82,13 +85,12 @@ describe("MISC calculations", () => {
   });
 
   it("keeps raw-row warnings, formatting and highlights aligned across interleaved indicators", () => {
-    const view = miscView([80, 4, null, 20, 24, 24, 30, 30]);
-    const categorical = view.categorical!;
-    categorical.values![0].highlights = cells([null, 4, null, null, null, null, null, null]);
-    categorical.categories![0].objects![1].scatter = { colour: { solid: { color: "#123456" } }, opacity_selected: 0.7 };
-    categorical.categories![0].objects![5].labels = { label_size: -1 };
+    const fixture = miscView([80, 4, null, 20, 24, 24, 30, 30]);
+    fixture.categorical.values[0].highlights = cells([null, 4, null, null, null, null, null, null]);
+    fixture.objects[1].scatter = { colour: { solid: { color: "#123456" } }, opacity_selected: 0.7 };
+    fixture.objects[5].labels = { label_size: -1 };
     const model = new viewModelClass(keyedHost());
-    const status = update(model, view);
+    const status = update(model, fixture.view);
     expect(status.status).toBe(true);
     if (!status.status) {
       throw new Error(status.error);
@@ -101,23 +103,23 @@ describe("MISC calculations", () => {
   });
 
   it("supports multiple indicator columns and a single indicator", () => {
-    const view = miscView();
-    view.categorical!.categories!.push({ source: { displayName: "Domain", roles: { indicator: true } }, values: Array(8).fill("Safety") });
+    const fixture = miscView();
+    fixture.categorical.categories.push({ source: { displayName: "Domain", roles: { indicator: true } }, values: Array(8).fill("Safety") });
     const model = new viewModelClass(keyedHost());
-    expect(update(model, view).status).toBe(true);
+    expect(update(model, fixture.view).status).toBe(true);
     expect(model.miscPoints[0].indicator).toBe("Higher / Safety");
     const single = categoricalData();
-    single.categories!.push({ source: { displayName: "Indicator", roles: { indicator: true } }, values: ["Only", "Only", "Only"] });
+    single.categories.push({ source: { displayName: "Indicator", roles: { indicator: true } }, values: ["Only", "Only", "Only"] });
     expect(update(model, dataView(single)).status).toBe(true);
     expect(model.miscPoints).toHaveLength(1);
   });
 
   it("retains per-indicator chart types and distinct typed group choices", () => {
-    const view = miscView();
-    const categorical = view.categorical!;
-    categorical.categories![0].values = [1, 1, "1", "1", "C", "C", "D", "D"];
+    const fixture = miscView();
+    const view = fixture.view;
+    fixture.categorical.categories[0].values = [1, 1, "1", "1", "C", "C", "D", "D"];
     for (let i = 0; i < 8; i++) {
-      categorical.categories![0].objects![i].funnel = { chart_type: i % 2 === 0 ? "PR" : "RC" };
+      fixture.objects[i].funnel = { chart_type: i % 2 === 0 ? "PR" : "RC" };
     }
     const model = new viewModelClass(keyedHost());
     expect(update(model, view).status).toBe(true);
@@ -135,20 +137,21 @@ describe("MISC calculations", () => {
 
   it("rejects inconsistent directions and stale selections, then recovers", () => {
     const model = new viewModelClass(keyedHost());
-    const view = miscView();
-    view.categorical!.categories![0].objects![2].outliers = { improvement_direction: "decrease" };
-    expect(update(model, view)).toMatchObject({ status: false, type: "settings" });
+    const fixture = miscView();
+    fixture.objects[2].outliers = { improvement_direction: "decrease" };
+    // The messages name the setting, so they skip the all-observations settings preamble
+    expect(update(model, fixture.view)).toMatchObject({ status: false, type: undefined });
     expect(model.miscPoints).toEqual([]);
-    const valid = miscView();
+    const valid = miscView().view;
     valid.metadata.objects = { misc: { group: "missing" } };
-    expect(update(model, valid)).toMatchObject({ status: false, type: "settings" });
+    expect(update(model, valid)).toMatchObject({ status: false, type: undefined });
     valid.metadata.objects = {};
     expect(update(model, valid).status).toBe(true);
     expect(model.miscPoints).toHaveLength(2);
   });
 
   it("omits indicators with no valid selected group", () => {
-    const view = miscView([80, null, 20, 20, 24, 24, 30, 30]);
+    const view = miscView([80, null, 20, 20, 24, 24, 30, 30]).view;
     const model = new viewModelClass(keyedHost());
     expect(update(model, view).status).toBe(true);
     expect(model.miscPoints).toHaveLength(1);
@@ -165,8 +168,9 @@ describe("MISC rendering", () => {
     host.colorPalette.isHighContrast = true;
     const visual = new Visual({ element, host });
     const menu = vi.spyOn(visual.selectionManager, "showContextMenu");
-    const view = miscView();
-    view.categorical!.values![0].highlights = cells([null, 4, null, null, null, null, null, null]);
+    const fixture = miscView();
+    const view = fixture.view;
+    fixture.categorical.values[0].highlights = cells([null, 4, null, null, null, null, null, null]);
     try {
       visual.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: 2 });
       const bars = element.querySelectorAll(".misc-bar");
@@ -193,14 +197,14 @@ describe("MISC rendering", () => {
     const selected = vi.spyOn(visual.selectionManager, "select");
     const failed = vi.spyOn(host.eventService, "renderingFailed");
     try {
-      visual.update({ dataViews: [miscView()], viewport: { width: 700, height: 400 }, type: 2 });
+      visual.update({ dataViews: [miscView().view], viewport: { width: 700, height: 400 }, type: 2 });
       expect(failed).not.toHaveBeenCalled();
       const bars = element.querySelectorAll<SVGRectElement>(".misc-bar");
       expect(bars).toHaveLength(2);
       expect(element.querySelectorAll(".misc-limit-99")).toHaveLength(2);
-      expect(element.textContent).toContain("99.8% Control Limits");
+      expect(element.textContent).toContain("99% Control Limits");
       expect(element.textContent).toContain("Favourable");
-      const zero = Number(element.querySelector(".misc-zero-line")!.getAttribute("x1"));
+      const zero = Number(must(element.querySelector(".misc-zero-line")).getAttribute("x1"));
       expect(Number(bars[0].getAttribute("x"))).toBe(zero);
       expect(Number(bars[0].getAttribute("width"))).toBeGreaterThan(0);
       expect(bars[0].getAttribute("fill")).toBe("#00B0F0");
@@ -210,7 +214,7 @@ describe("MISC rendering", () => {
       await Promise.resolve();
       expect(selected).toHaveBeenCalledWith(visual.viewModel.miscPoints[0].identity, false);
       const points = visual.viewModel.miscPoints;
-      visual.update({ dataViews: [miscView()], viewport: { width: 800, height: 500 }, type: 4 });
+      visual.update({ dataViews: [miscView().view], viewport: { width: 800, height: 500 }, type: 4 });
       expect(visual.viewModel.miscPoints).toBe(points);
       visual.update({ dataViews: [dataView()], viewport: { width: 700, height: 400 }, type: 2 });
       expect(element.querySelectorAll(".misc-bar")).toHaveLength(0);

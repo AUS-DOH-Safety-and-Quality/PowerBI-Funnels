@@ -1,4 +1,5 @@
 import { clamp, scaleLinear } from "powerbi-visuals-core/math";
+import { axisLabelPlacement } from "powerbi-visuals-core/rendering";
 import type { svgBaseType, Visual } from "../visual";
 import type { miscPoint } from "../Classes/viewModelClass";
 import addContextMenu from "./addContextMenu";
@@ -39,12 +40,14 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
     { value: -1.959963984540054, level: "95" }, { value: 1.959963984540054, level: "95" },
     { value: 0, level: "target" }
   ] as const;
+  const drawn = { "99": false, "95": false, target: false };
   for (let i = 0; i < limits.length; i++) {
     const value = limits[i].value;
     const level = limits[i].level;
     if (!lines[`show_${level}`] || value < misc.lower || value > misc.upper) {
       continue;
     }
+    drawn[level] = true;
     root.append("line").attr("class", level === "target" ? "misc-zero-line" : `misc-limit-${level}`)
       .attr("x1", scale(value)).attr("x2", scale(value)).attr("y1", top).attr("y2", bottom)
       .attr("stroke", colour(lines[`colour_${level}`])).attr("stroke-width", lines[`width_${level}`])
@@ -62,9 +65,11 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
         .text(Number(tick.toFixed(2)));
     }
   }
-  root.append("text").attr("x", (left + right) / 2).attr("y", model.svgHeight - canvas.lower_padding)
-    .attr("text-anchor", "middle").style("font-family", xAxis.xlimit_label_font)
-    .style("font-size", `${xAxis.xlimit_label_size}px`).attr("fill", colour(xAxis.xlimit_label_colour)).text(xAxis.xlimit_label);
+  const title = axisLabelPlacement(xAxis.xlimit_label_align, left, right);
+  root.append("text").attr("x", title.position).attr("y", model.svgHeight - canvas.lower_padding)
+    .attr("text-anchor", title.anchor).style("font-family", xAxis.xlimit_label_font)
+    .style("font-size", `${xAxis.xlimit_label_size}px`).style("font-style", xAxis.xlimit_label_style)
+    .attr("fill", colour(xAxis.xlimit_label_colour)).text(xAxis.xlimit_label);
   const directions = [
     { text: misc.unfavourable_label, x: (left + zero) / 2, colour: settings.outliers.three_sigma_colour_deterioration },
     { text: misc.favourable_label, x: (zero + right) / 2, colour: settings.outliers.three_sigma_colour_improvement }
@@ -75,16 +80,17 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
       .attr("text-anchor", "middle").style("font-family", xAxis.xlimit_tick_font).style("font-size", "12px")
       .style("font-weight", "bold").attr("fill", colour(direction.colour)).text(direction.text);
   }
-  const legends = [{ level: "95", text: "95% Control Limits" }, { level: "99", text: "99.8% Control Limits" }] as const;
+  const legends = [{ level: "95", text: "95% Control Limits" }, { level: "99", text: "99% Control Limits" }] as const;
   for (let i = 0; i < legends.length; i++) {
     const level = legends[i].level;
     const text = legends[i].text;
-    if (!lines[`show_${level}`]) {
+    if (!drawn[level]) {
       continue;
     }
     const x = left + (right - left) * i / 2;
     root.append("line").attr("x1", x).attr("x2", x + 20).attr("y1", top - 35).attr("y2", top - 35)
-      .attr("stroke", colour(lines[`colour_${level}`])).attr("stroke-dasharray", lines[`type_${level}`]);
+      .attr("stroke", colour(lines[`colour_${level}`])).attr("stroke-width", lines[`width_${level}`])
+      .attr("stroke-dasharray", lines[`type_${level}`]).attr("opacity", lines[`opacity_${level}`]);
     root.append("text").attr("x", x + 24).attr("y", top - 35).attr("dominant-baseline", "middle")
       .style("font-family", xAxis.xlimit_tick_font).style("font-size", "10px")
       .attr("fill", colour(xAxis.xlimit_tick_colour)).text(text);

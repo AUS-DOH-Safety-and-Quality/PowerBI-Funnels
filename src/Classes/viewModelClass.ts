@@ -174,10 +174,10 @@ export default class viewModelClass {
     }
     const targetRows = rowsByGroup.get(misc.group);
     if (targetRows === undefined) {
-      return this.invalidate("Select a MISC group present in the data.", "settings");
+      return this.invalidate("Select a MISC group present in the data.");
     }
     if (!(misc.lower < 0 && misc.upper > 0)) {
-      return this.invalidate("MISC sigma bounds must span zero.", "settings");
+      return this.invalidate("MISC sigma bounds must span zero.");
     }
     const selectedRows = new Set(targetRows);
     const warnings: string[] = [];
@@ -190,7 +190,7 @@ export default class viewModelClass {
       const direction = directions[0].improvement_direction;
       for (let j = 0; j < directions.length; j++) {
         if (direction === "neutral" || directions[j].improvement_direction !== direction) {
-          return this.invalidate(`Each MISC indicator must have one improvement direction: increase or decrease. Invalid indicator: ${indicator}.`, "settings");
+          return this.invalidate(`Each MISC indicator must have one improvement direction: increase or decrease. Invalid indicator: ${indicator}.`);
         }
       }
       settings.settings.outliers = { ...settings.settings.outliers, three_sigma: true, two_sigma: false };
@@ -350,22 +350,25 @@ export default class viewModelClass {
     this.groupedLines = groupBy(formattedLines, "group");
   }
 
+  /** Flags follow the truncated limits; the alt. target is entered in display units, so is not multiplied */
   scaleAndTruncateLimits(inputSettings = this.inputSettings): void {
-    // Scale limits using provided multiplier
     const multiplier: number = inputSettings.derivedSettings.multiplier;
     const transform: (x: number) => number = getTransformation(inputSettings.settings.funnel.transformation);
-
     const lower: number | undefined = inputSettings.settings.funnel.ll_truncate;
     const upper: number | undefined = inputSettings.settings.funnel.ul_truncate;
-    const names = ["target", "ll99", "ll95", "ll68", "ul68", "ul95", "ul99"] as const;
+    const names = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"] as const;
     for (let i = 0; i < this.calculatedLimits.length; i++) {
       const limit = this.calculatedLimits[i];
+      limit.target = transform(limit.target * multiplier);
       for (let j = 0; j < names.length; j++) {
         const name = names[j];
         const value = limit[name];
         if (value !== undefined) {
           limit[name] = clamp(transform(value * multiplier), lower, upper);
         }
+      }
+      if (limit.alt_target !== undefined) {
+        limit.alt_target = transform(limit.alt_target);
       }
     }
   }

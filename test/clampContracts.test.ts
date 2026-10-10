@@ -16,7 +16,7 @@ describe("zero bounds are active", () => {
     expect(failed).not.toHaveBeenCalled();
     const limits = builder.instance.viewModel.calculatedLimits;
     expect(limits.length).toBeGreaterThan(0);
-    const names = ["target", "ul68", "ul95", "ul99"] as const;
+    const names = ["ul68", "ul95", "ul99"] as const;
     for (let i = 0; i < limits.length; i++) {
       for (let j = 0; j < names.length; j++) {
         const value = limits[i][names[j]];
@@ -24,6 +24,8 @@ describe("zero bounds are active", () => {
           expect(value, `${names[j]} at ${limits[i].denominators}`).toBeLessThanOrEqual(0);
         }
       }
+      // Truncation applies to the limits only, as in SPC
+      expect(limits[i].target).toBeGreaterThan(0);
     }
     builder.destroy();
   });

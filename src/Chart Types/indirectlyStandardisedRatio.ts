@@ -1,5 +1,6 @@
 import { chartClass, type limitArgs, type settingsClass } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
+import adjustZScores from "../Funnel Calculations/adjustZScores";
 import { clamp, chisqCDF, chisqQuantile, normalQuantile } from "powerbi-visuals-core/math";
 
 const smrSE = function(): number[] {
@@ -55,9 +56,8 @@ const smrLimitOD = function(args: limitArgs) {
   const SE: number = args.SE;
   const tau2: number = args.tau2;
   const limit_transformed: number = target + q * Math.sqrt(Math.pow(SE, 2) + tau2);
-  const limit: number = Math.pow(limit_transformed, 2);
-
-  return clamp(limit, 0, undefined);
+  // Below zero the square folds back above it instead of reaching 0
+  return Math.pow(clamp(limit_transformed, 0, undefined), 2);
 }
 
 const smrLimit = function(args: limitArgs) {
@@ -81,6 +81,7 @@ export default class smrFunnelClass extends chartClass {
       targetFunctionTransformed: smrTarget,
       yFunction: smrY,
       zFunction: smrZ,
+      zFunctionOD: adjustZScores,
       limitFunction: smrLimit,
       limitFunctionOD: smrLimitOD,
       inputData: inputData,

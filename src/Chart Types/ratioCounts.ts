@@ -1,4 +1,4 @@
-import { chartClass, type limitArgs, type settingsClass } from "../Classes"
+import { chartClass, type limitArgs, type settingsClass, type zArgs } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import { sum, clamp } from "powerbi-visuals-core/math";
 
@@ -42,9 +42,17 @@ const rcY = function(inputData: dataObject): number[] {
   return result;
 }
 
-/** Un-adjusted limits are the adjusted limits with tau2 = 0, so the z-scores are unchanged */
-const rcZ = function(_inputData: dataObject, zScores: number[]) {
-  return zScores;
+/** Scored like the plotted limits, so z-scores agree with the flags; the +0.5 counts only estimate tau2 */
+const rcZ = function(inputData: dataObject, args: zArgs): number[] {
+  const numerators: readonly number[] = inputData.numerators;
+  const denominators: readonly number[] = inputData.denominators;
+  const target: number = rcTargetTransformed(inputData);
+  const SE: number[] = rcSE(inputData, denominators);
+  const result: number[] = new Array<number>(numerators.length);
+  for (let i: number = 0; i < numerators.length; i++) {
+    result[i] = (Math.log(numerators[i] / denominators[i]) - target) / Math.sqrt(Math.pow(SE[i], 2) + args.tau2);
+  }
+  return result;
 }
 
 const rcLimit = function(args: limitArgs): number {
@@ -68,6 +76,7 @@ export default class rcFunnelClass extends chartClass {
       targetFunctionTransformed: rcTargetTransformed,
       yFunction: rcY,
       zFunction: rcZ,
+      zFunctionOD: rcZ,
       limitFunction: rcLimit,
       limitFunctionOD: rcLimit,
       inputData: inputData,

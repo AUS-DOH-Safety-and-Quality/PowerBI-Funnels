@@ -1,5 +1,6 @@
-import { chartClass, type limitArgs, type settingsClass } from "../Classes"
+import { chartClass, type limitArgs, type settingsClass, type zArgs } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
+import adjustZScores from "../Funnel Calculations/adjustZScores";
 import { sum, clamp } from "powerbi-visuals-core/math";
 
 const prSE = function(inputData: dataObject, plottingDenominators?: readonly number[]): number[] {
@@ -34,8 +35,8 @@ const prY = function(inputData: dataObject): number[] {
 }
 
 /** Un-adjusted limits are the adjusted limits with tau2 = 0, so the z-scores are unchanged */
-const prZ = function(_inputData: dataObject, zScores: number[]) {
-  return zScores;
+const prZ = function(_inputData: dataObject, args: zArgs) {
+  return args.zScores;
 }
 
 const prLimit = function(args: limitArgs) {
@@ -44,9 +45,8 @@ const prLimit = function(args: limitArgs) {
   const SE: number = args.SE;
   const tau2: number = args.tau2;
   const limit_transformed: number = target + q * Math.sqrt(Math.pow(SE, 2) + tau2);
-  const limit: number = Math.pow(Math.sin(limit_transformed), 2);
-
-  return clamp(limit, 0, 1);
+  // Outside [0, pi/2] the squared sine folds back instead of reaching 0 or 1
+  return Math.pow(Math.sin(clamp(limit_transformed, 0, Math.PI / 2)), 2);
 }
 
 export default class prFunnelClass extends chartClass {
@@ -58,6 +58,7 @@ export default class prFunnelClass extends chartClass {
       targetFunctionTransformed: prTargetTransformed,
       yFunction: prY,
       zFunction: prZ,
+      zFunctionOD: adjustZScores,
       limitFunction: prLimit,
       limitFunctionOD: prLimit,
       inputData: inputData,
