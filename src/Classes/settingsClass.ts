@@ -1,6 +1,6 @@
 import { readSettingsGroups, buildFormattingModel, type FormattingItem, type FormattingModel, type SettingsValidation, type ValidatedDataView } from "powerbi-visuals-core/powerbi";
 import settingsModel, { type settingsValueType } from "../settings";
-import { createDefaultValues } from "powerbi-visuals-core/settings";
+import { createDefaultValues, orderedBoundsError } from "powerbi-visuals-core/settings";
 import derivedSettingsClass from "./derivedSettingsClass";
 import miscFormattingSchema from "../Functions/miscFormattingSchema";
 
@@ -26,6 +26,12 @@ export default class settingsClass {
     this.settings = result.values[0];
     this.validationStatus = result.validation;
     this.messagePositionByRowIndex = result.messagePositionByRowIndex;
+    for (let i = 0; i < this.groupSettings.length; i++) {
+      const boundsError = orderedBoundsError(this.groupSettings[i], this.groupSettings[i].funnel);
+      if (boundsError !== undefined) {
+        this.validationStatus = { status: 1, messages: this.validationStatus.messages, error: boundsError };
+      }
+    }
     const selectedGroup = view.dataView.metadata.objects?.misc?.group;
     this.settings.misc.group = typeof selectedGroup === "string" ? selectedGroup : "";
     this.derivedSettings.update(this.settings);

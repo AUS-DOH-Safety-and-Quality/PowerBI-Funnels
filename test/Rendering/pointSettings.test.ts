@@ -255,8 +255,9 @@ describe("outlier colours", () => {
     { direction: "decrease", type: "improvement", high: undefined, low: "improvement" },
     { direction: "decrease", type: "deterioration", high: "deterioration", low: undefined },
     { direction: "neutral", type: "both", high: "neutral_high", low: "neutral_low" },
-    { direction: "neutral", type: "improvement", high: undefined, low: undefined },
-    { direction: "neutral", type: "deterioration", high: undefined, low: undefined }
+    // A neutral direction has no improvement or deterioration to filter by, so flags both sides
+    { direction: "neutral", type: "improvement", high: "neutral_high", low: "neutral_low" },
+    { direction: "neutral", type: "deterioration", high: "neutral_high", low: "neutral_low" }
   ] as const)("flags $type changes for an improvement direction of $direction", ({ direction, type, high, low }) => {
     const rendered = renderVisual({
       outliers: colouredOutliers({ improvement_direction: direction, process_flag_type: type, two_sigma: true, three_sigma: true })

@@ -10,6 +10,7 @@ import {
 } from "powerbi-visuals-core/powerbi";
 import { chartClass, type limitData } from "../Classes"
 import extractInputData, { type dataObject } from "../Functions/extractInputData";
+import axisRanges from "../Functions/axisRanges";
 import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
 import { groupBy, checkFlagDirection, type FlagDirection } from "powerbi-visuals-core/data";
@@ -19,7 +20,7 @@ import two_sigma from "../Outlier Flagging/two_sigma"
 import three_sigma from "../Outlier Flagging/three_sigma"
 import type { LineName } from "../Functions/lineKeys";
 
-import type { ErrorKind } from "powerbi-visuals-core/rendering";
+import { axisRangeError, type ErrorKind } from "powerbi-visuals-core/rendering";
 
 export type viewModelValidationT =
   | { status: true; data: dataObject; warning?: string }
@@ -134,6 +135,13 @@ export default class viewModelClass {
     }
     if (this.inputData === undefined) {
       return this.invalidate("No validated data present");
+    }
+    // The MISC chart has no axes
+    if (!this.inputSettings.showMisc) {
+      const rangeError = axisRangeError(axisRanges(this, this.inputData));
+      if (rangeError !== undefined) {
+        return this.invalidate(rangeError, "settings");
+      }
     }
     return { status: true, data: this.inputData, warning: this.inputData.warningMessage || undefined };
   }

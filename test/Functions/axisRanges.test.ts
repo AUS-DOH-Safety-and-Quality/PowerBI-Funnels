@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { SettingsOverrides } from "../helpers/buildDataView";
+import { createVisualHost } from "powerbi-visuals-utils-testutils";
+import viewModelClass from "../../src/Classes/viewModelClass";
+import buildDataView, { type SettingsOverrides } from "../helpers/buildDataView";
 import { must, renderVisual } from "../helpers/renderVisual";
 
 // Proportions of 12%, 22%, 15% and 20%
@@ -82,5 +84,23 @@ describe("axis ranges", () => {
     expect(pathPoints(rendered.element, "target")[0][0]).toBeCloseTo(frame.xScale(grid[first].denominators), 2);
     expect(rendered.element.querySelector(".ul95-linegroup path")).toBeNull();
     expect(rendered.element.querySelector(".ul99-linegroup path")).toBeNull();
+  });
+});
+
+describe("axis and truncation bounds", () => {
+  function update(overrides: SettingsOverrides) {
+    const host = createVisualHost({});
+    return new viewModelClass(host).update({ dataViews: [buildDataView(data, overrides)], viewport: { width: 500, height: 500 }, type: 2 }, host);
+  }
+
+  it.each([
+    { overrides: { funnel: { ll_truncate: 5, ul_truncate: 5 } }, error: "ll_truncate (5) must be below ul_truncate (5)" },
+    { overrides: { funnel: { ll_truncate: 6, ul_truncate: 5 } }, error: "ll_truncate (6) must be below ul_truncate (5)" },
+    { overrides: { x_axis: { xlimit_l: 6, xlimit_u: 5 } }, error: "xlimit_l (6) must be below xlimit_u (5)" },
+    { overrides: { y_axis: { ylimit_l: 6, ylimit_u: 5 } }, error: "ylimit_l (6) must be below ylimit_u (5)" },
+    { overrides: { x_axis: { xlimit_u: -1 } }, error: "The x-axis lower limit (0) is above the upper limit (-1)" },
+    { overrides: { y_axis: { ylimit_u: -1 } }, error: "The y-axis lower limit (0) is above the upper limit (-1)" }
+  ] satisfies { overrides: SettingsOverrides; error: string }[])("rejects $overrides as a settings error", ({ overrides, error }) => {
+    expect(update(overrides)).toEqual({ status: false, error, type: "settings" });
   });
 });

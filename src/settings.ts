@@ -15,8 +15,8 @@ const settingsModel = {
   outliers: defineCard(outliersSettings),
   scatter: defineCard(scatterSettings),
   lines: defineCard(linesSettings),
-  x_axis: createAxisCard("x", { tickRotation: 0 }),
-  y_axis: createAxisCard("y", { tickRotation: 0 }),
+  x_axis: createAxisCard("x", { tickRotation: 0, limitUnits: "a denominator" }),
+  y_axis: createAxisCard("y", { tickRotation: 0, limitUnits: "a plotted value" }),
   download_options: createDownloadCard(),
   labels: createLabelsCard()
 };
