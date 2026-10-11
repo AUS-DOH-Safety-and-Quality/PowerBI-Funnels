@@ -1,29 +1,8 @@
 {
+    "extends": "powerbi-visuals-core/config/tsconfig.visual.json",
     "compilerOptions": {
-        "allowJs": false,
-        "allowUnreachableCode": false,
-        "allowUnusedLabels": false,
-        "alwaysStrict": true,
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitReturns": true,
-        "strictBindCallApply": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true,
-        "importsNotUsedAsValues": "remove",
-        "removeComments": true,
-        "ignoreDeprecations": "5.0",
-        "target": "es2015",
-        "module": "es2015",
-        "sourceMap": false,
         "rootDir": "./",
-        "outDir": "./.tmp/build/",
-        "moduleResolution": "bundler",
-        "declaration": true,
-        "lib": [
-            "es2019",
-            "dom"
-        ]
+        "outDir": "./.tmp/build/"
     },
     "files": [
         "./src/visual.ts"

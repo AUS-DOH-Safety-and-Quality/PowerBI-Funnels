@@ -1,155 +1,116 @@
 "use strict";
 
 import type powerbi from "powerbi-visuals-api";
-type ISelectionId = powerbi.visuals.ISelectionId;
-import * as d3 from "./D3 Plotting Functions/D3 Modules";
-import { drawXAxis, drawYAxis, drawTooltipLine, drawLines,
-          drawDots, addContextMenu,
-          initialiseSVG, drawErrors, drawValueLabels, drawLineLabels } from "./D3 Plotting Functions"
-import { viewModelClass, type viewModelValidationT, type plotData, type lineData, plotPropertiesClass } from "./Classes"
-import getAesthetic from "./Functions/getAesthetic";
-import identitySelected from "./Functions/identitySelected";
+import {
+  PlotVisual, drawPlotAxes, drawPlotTooltips, drawPlotDots, drawPlotDownload, drawPlotValueLabels, drawPlotLines, drawPlotLineLabels,
+  highlightOpacity, initialiseSvg, valueTickFormat, type AxisBounds, type SvgSelection
+} from "powerbi-visuals-core/rendering";
+import addContextMenu from "./D3 Plotting Functions/addContextMenu";
+import drawMisc from "./D3 Plotting Functions/drawMisc";
+import { viewModelClass, type plotData } from "./Classes";
+import type { miscPoint } from "./Classes/viewModelClass";
+import axisRanges from "./Functions/axisRanges";
+import downloadRows from "./Functions/downloadRows";
+import lineKeys, { type LineName } from "./Functions/lineKeys";
+import type { settingsValueType } from "./settings";
+import { identitySelected, selectionState } from "powerbi-visuals-core/powerbi";
+import { lineStyle } from "powerbi-visuals-core/settings";
 
-export type svgBaseType = d3.Selection<SVGSVGElement, unknown, null, undefined>;
+export type svgBaseType = SvgSelection;
 
-export class Visual implements powerbi.extensibility.IVisual {
-  host: powerbi.extensibility.visual.IVisualHost;
-  svg: svgBaseType;
-  viewModel: viewModelClass;
-  plotProperties: plotPropertiesClass;
-  selectionManager: powerbi.extensibility.ISelectionManager;
+/** Lower interval lines place outside labels below the line */
+const lowerLines: Record<LineName, boolean> = {
+  ll99: true,
+  ll95: true,
+  ll68: true,
+  ul68: false,
+  ul95: false,
+  ul99: false,
+  target: false,
+  alt_target: false
+};
 
-  constructor(options: powerbi.extensibility.visual.VisualConstructorOptions) {
-    this.svg = d3.select(options.element).append("svg");
-    this.host = options.host;
-    this.viewModel = new viewModelClass();
-    this.plotProperties = new plotPropertiesClass();
+export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueType> {
+  protected readonly lineKeys = lineKeys;
 
-    this.selectionManager = this.host.createSelectionManager();
-    this.selectionManager.registerOnSelectCallback(() => this.updateHighlighting());
-    this.svg.call(initialiseSVG);
+  constructor(options: powerbi.extensibility.visual.VisualConstructorOptions | undefined) {
+    super(options, host => new viewModelClass(host));
   }
 
-  public update(options: powerbi.extensibility.visual.VisualUpdateOptions) {
-    try {
-      this.host.eventService.renderingStarted(options);
-      // Remove printed error if refreshing after a previous error run
-      this.svg.select(".errormessage").remove();
+  protected get settings(): settingsValueType {
+    return this.viewModel.inputSettings.settings;
+  }
 
-      // This step handles the updating of both the input data and settings
-      // If there are any errors or failures, the update exits early sets the
-      // update status to false
-      const update_status: viewModelValidationT = this.viewModel.update(options, this.host);
-      if (!update_status.status) {
-        this.plotProperties.displayPlot = false;
-        this.resizeCanvas(options.viewport.width, options.viewport.height);
-        if (this.viewModel?.inputSettings?.settings?.canvas?.show_errors ?? true) {
-          this.svg.call(drawErrors, options, update_status?.error, update_status?.type);
-        } else {
-          this.svg.call(initialiseSVG, true);
-        }
+  protected axisRanges(): { x: AxisBounds; y: AxisBounds } {
+    return axisRanges(this.viewModel);
+  }
 
-        this.host.eventService.renderingFailed(options);
-        return;
-      }
-
-      this.plotProperties.update(options, this.viewModel);
-
-      if (update_status.warning) {
-        this.host.displayWarningIcon("Invalid inputs or settings ignored.\n",
-                                      update_status.warning);
-      }
-
-      this.resizeCanvas(options.viewport.width, options.viewport.height);
-      this.drawVisual();
-      this.adjustPaddingForOverflow();
-
-      this.updateHighlighting();
-      this.host.eventService.renderingFinished(options);
-    } catch (caught_error) {
-      this.plotProperties.displayPlot = false;
-      this.resizeCanvas(options.viewport.width, options.viewport.height);
-      this.svg.call(drawErrors, options, caught_error.message, "internal");
-      console.error(caught_error)
-      this.host.eventService.renderingFailed(options);
+  protected drawAlternate(): boolean {
+    if (this.viewModel.inputSettings.showMisc) {
+      this.svg.call(drawMisc, this);
+      return true;
     }
-  }
-
-  resizeCanvas(width: number, height: number): void {
-    this.svg.attr("width", width).attr("height", height);
+    const svg = this.svg.node();
+    if (svg !== null && !this.svg.select(".misc-root").empty()) {
+      initialiseSvg(svg, true);
+    }
+    return false;
   }
 
   updateHighlighting(): void {
-    const anyHighlights: boolean = this.viewModel.inputData ? this.viewModel.inputData.anyHighlights : false;
-    const allSelectionIDs: ISelectionId[] = this.selectionManager.getSelectionIds() as ISelectionId[];
-
-    const dotsSelection = this.svg.selectAll(".dotsgroup").selectChildren();
-    const linesSelection = this.svg.selectAll(".linesgroup").selectChildren();
-
-    // Set the default opacity for all lines and dots
-    linesSelection.style("stroke-opacity", (d: [string, lineData[]]) => {
-      return getAesthetic(d[0], "lines", "opacity", this.viewModel.inputSettings.settings)
-    });
-    dotsSelection.style("fill-opacity", (d: plotData) => d.aesthetics.opacity);
-    dotsSelection.style("stroke-opacity", (d: plotData) => d.aesthetics.opacity);
-
-    if (anyHighlights || (allSelectionIDs.length > 0)) {
-      linesSelection.style("stroke-opacity", (d: [string, lineData[]]) => {
-        return getAesthetic(d[0], "lines", "opacity_unselected", this.viewModel.inputSettings.settings)
-      });
-      dotsSelection.nodes().forEach(currentDotNode => {
-        const dot: plotData = d3.select(currentDotNode).datum() as plotData;
-        const currentPointSelected: boolean = identitySelected(dot.identity, this.selectionManager);
-        const currentPointHighlighted: boolean = dot.highlighted;
-        const newDotOpacity: number = (currentPointSelected || currentPointHighlighted) ? dot.aesthetics.opacity_selected : dot.aesthetics.opacity_unselected;
-        d3.select(currentDotNode).style("fill-opacity", newDotOpacity);
-        d3.select(currentDotNode).style("stroke-opacity", newDotOpacity);
-      })
+    const viewModel = this.viewModel;
+    if (viewModel.inputSettings.showMisc) {
+      const state = selectionState(this.selectionManager, viewModel.miscAnyHighlights);
+      this.svg.selectAll<SVGRectElement, miscPoint>(".misc-bar").attr("opacity", point =>
+        highlightOpacity(point.aesthetics, state.active, identitySelected(point.identity, state.selected) || point.highlighted));
+      return;
     }
+    const state = selectionState(this.selectionManager, viewModel.inputData ? viewModel.inputData.anyHighlights : false);
+    const settings = this.settings;
+    // Group text fades by its own opacities; markers by the dot ones
+    this.highlightPlotPoints(state, point => settings.scatter.use_group_text
+      ? {
+        opacity: point.aesthetics.scatter_text_opacity,
+        opacity_selected: point.aesthetics.scatter_text_opacity_selected,
+        opacity_unselected: point.aesthetics.scatter_text_opacity_unselected
+      }
+      : point.aesthetics);
   }
 
   drawVisual(): void {
-    this.svg.call(drawXAxis, this)
-            .call(drawYAxis, this)
-            .call(drawTooltipLine, this)
-            .call(drawLines, this)
-            .call(drawLineLabels, this)
-            .call(drawDots, this)
-            .call(addContextMenu, this)
-            .call(drawValueLabels, this);
-  }
-
-  adjustPaddingForOverflow(): void {
-    // Headless mode does not render to screen so do not attempt to adjust for overflow
-    if (this.viewModel.headless) {
+    const svg = this.svg.node();
+    if (svg === null) {
       return;
     }
-    const svgWidth: number = this.viewModel.svgWidth;
-    const svgHeight: number = this.viewModel.svgHeight;
-    const svgBBox: DOMRect = this.svg.node().getBBox();
-    const overflowLeft: number = Math.abs(Math.min(0, svgBBox.x));
-    const overflowRight: number = Math.max(0, svgBBox.width + svgBBox.x - svgWidth);
-    const overflowTop: number = Math.abs(Math.min(0, svgBBox.y));
-    const overflowBottom: number = Math.max(0, svgBBox.height + svgBBox.y - svgHeight);
-    if (overflowLeft > 0) {
-      this.plotProperties.xAxis.start_padding += overflowLeft + this.plotProperties.xAxis.start_padding;
-    }
-    if (overflowRight > 0) {
-      this.plotProperties.xAxis.end_padding += overflowRight + this.plotProperties.xAxis.end_padding;
-    }
-    if (overflowTop > 0) {
-      this.plotProperties.yAxis.end_padding += overflowTop + this.plotProperties.yAxis.end_padding;
-    }
-    if (overflowBottom > 0) {
-      this.plotProperties.yAxis.start_padding += overflowBottom + this.plotProperties.yAxis.start_padding;
-    }
-    if (overflowLeft > 0 || overflowRight > 0 || overflowTop > 0 || overflowBottom > 0) {
-      this.plotProperties.initialiseScale(svgWidth, svgHeight);
-      this.drawVisual();
-    }
-  }
-
-  public getFormattingModel(): powerbi.visuals.FormattingModel {
-    return this.viewModel.inputSettings.getFormattingModel();
+    const viewModel = this.viewModel;
+    const settings = this.settings;
+    const context = this.plotContext();
+    drawPlotAxes(svg, context, {
+      x: undefined,
+      y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, viewModel.inputSettings.derivedSettings.percentLabels)
+    });
+    drawPlotTooltips(svg, context, true);
+    drawPlotLines(svg, context, viewModel.groupedLines, name => lineStyle(settings.lines, lineKeys[name]));
+    drawPlotLineLabels(svg, context, {
+      lines: viewModel.groupedLines,
+      settings: settings.lines,
+      keys: lineKeys,
+      lower: name => lowerLines[name],
+      format: viewModel.inputSettings.derivedSettings.formatValue,
+      periodEnds: [viewModel.calculatedLimits.length - 1]
+    });
+    drawPlotDots(svg, context, {
+      show: true,
+      text: settings.scatter.use_group_text
+        ? point => ({
+          text: point.group_text, size: point.aesthetics.scatter_text_size,
+          font: point.aesthetics.scatter_text_font, colour: point.aesthetics.scatter_text_colour
+        })
+        : undefined,
+      onClick: undefined
+    });
+    this.svg.call(addContextMenu, this);
+    drawPlotDownload(svg, context, () => downloadRows(viewModel));
+    drawPlotValueLabels(svg, context, viewModel.inputData?.anyLabels ?? false);
   }
 }

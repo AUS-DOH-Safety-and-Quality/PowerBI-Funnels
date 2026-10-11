@@ -18,5 +18,12 @@ doc/*
 # OS generated files
 .DS_Store
 
+# Quarto docs output
+/docs/_site/
+
 # Coverage reports
 coverage
+
+# Vitest browser artifacts
+/.vitest-attachments/
+/test/**/__screenshots__/

@@ -1,31 +1,32 @@
 import { type settingsValueType } from "../settings"
+import { createValueFormatter, resolvePercentScaling, type ValueFormatter } from "powerbi-visuals-core/data";
 
 export default class derivedSettingsClass {
   multiplier: number
   percentLabels: boolean
+  formatValue: ValueFormatter
+
+  constructor(inputSettings: settingsValueType) {
+    const values = this.calculate(inputSettings);
+    this.multiplier = values.multiplier;
+    this.percentLabels = values.percentLabels;
+    this.formatValue = values.formatValue;
+  }
 
   update(inputSettings: settingsValueType) {
-    const chartType: string = inputSettings.funnel.chart_type;
-    const pChartType: boolean = ["PR"].includes(chartType);
-    const percentSettingString: string = inputSettings.funnel.perc_labels;
-    let multiplier: number = inputSettings.funnel.multiplier;
-    let percentLabels: boolean;
+    const values = this.calculate(inputSettings);
+    this.multiplier = values.multiplier;
+    this.percentLabels = values.percentLabels;
+    this.formatValue = values.formatValue;
+  }
 
-    if (percentSettingString === "Yes") {
-      multiplier = 100
-    }
-
-    if (pChartType) {
-      multiplier = multiplier === 1 ? 100 : multiplier
-    }
-
-    if (percentSettingString === "Automatic") {
-      percentLabels = pChartType && multiplier === 100;
-    } else {
-      percentLabels = percentSettingString === "Yes";
-    }
-
-    this.multiplier = multiplier
-    this.percentLabels = percentLabels
+  private calculate(inputSettings: settingsValueType) {
+    const funnel = inputSettings.funnel;
+    const scaling = resolvePercentScaling(funnel.chart_type === "PR", funnel.perc_labels, funnel.multiplier);
+    const percentLabels: boolean = scaling.percentLabels && funnel.transformation === "none";
+    // Expected counts are not whole numbers
+    const formatValue = createValueFormatter(funnel.sig_figs, funnel.chart_type === "SR" ? funnel.sig_figs : 0,
+                                             percentLabels ? "%" : "");
+    return { multiplier: scaling.multiplier, percentLabels, formatValue };
   }
 }

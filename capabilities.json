@@ -3,22 +3,35 @@
   "supportsKeyboardFocus": true,
   "supportsMultiVisualSelection": true,
   "sorting": {
-    "implicit": { "clauses": [{ "role": "key", "direction": 1 }] }
+    "implicit": { "clauses": [{ "role": "indicator", "direction": 1 }, { "role": "key", "direction": 1 }] }
   },
   "tooltips": {
     "supportedTypes": { "default": true, "canvas": true },
     "roles": [ "tooltips" ],
     "supportEnhancedTooltips": true
   },
-  "privileges": [],
+  "privileges": [
+    { "name": "ExportContent", "essential": false }
+  ],
   "dataRoles": [
     { "displayName": "Numerator",    "name": "numerators",   "kind": "Measure" },
     { "displayName": "Denominator",  "name": "denominators", "kind": "Measure" },
     { "displayName": "Groups",       "name": "key",          "kind": "Grouping" },
+    { "displayName": "Indicator (MISC)", "name": "indicator", "kind": "Grouping" },
     { "displayName": "Tooltips",     "name": "tooltips",     "kind": "Measure" },
     { "displayName": "Value Labels", "name": "labels",       "kind": "Measure" }
   ],
   "objects": {
+    "misc": {
+      "properties": {
+        "group": { "type": { "enumeration": [] } },
+        "lower": { "type": { "numeric": true } },
+        "upper": { "type": { "numeric": true } },
+        "bar_height": { "type": { "numeric": true } },
+        "unfavourable_label": { "type": { "text": true } },
+        "favourable_label": { "type": { "text": true } }
+      }
+    },
     "funnel" : {
       "properties": {
         "chart_type": {
@@ -259,10 +272,28 @@
         "ttip_label_99": {
           "type": { "text": true }
         },
+        "ttip_label_99_prefix_lower": {
+          "type": { "text": true }
+        },
+        "ttip_label_99_prefix_upper": {
+          "type": { "text": true }
+        },
         "ttip_label_95": {
           "type": { "text": true }
         },
+        "ttip_label_95_prefix_lower": {
+          "type": { "text": true }
+        },
+        "ttip_label_95_prefix_upper": {
+          "type": { "text": true }
+        },
         "ttip_label_68": {
+          "type": { "text": true }
+        },
+        "ttip_label_68_prefix_lower": {
+          "type": { "text": true }
+        },
+        "ttip_label_68_prefix_upper": {
           "type": { "text": true }
         },
         "ttip_label_target": {
@@ -428,6 +459,9 @@
     },
     "x_axis": {
       "properties": {
+        "xlimit_show": {
+          "type" : { "bool" : true }
+        },
         "xlimit_colour":{
           "type": { "fill": { "solid": { "color": true } } }
         },
@@ -489,6 +523,9 @@
     },
     "y_axis": {
       "properties": {
+        "ylimit_show": {
+          "type" : { "bool" : true }
+        },
         "ylimit_colour":{
           "type": { "fill": { "solid": { "color": true } } }
         },
@@ -548,6 +585,14 @@
         },
         "ylimit_u": {
           "type": { "numeric": true }
+        }
+      }
+    },
+    "download_options" : {
+      "displayName" : "Download Options",
+      "properties": {
+        "show_button": {
+          "type" : { "bool" : true }
         }
       }
     },
@@ -616,7 +661,7 @@
     }],
     "categorical": {
       "categories": {
-        "for": { "in": "key" },
+        "select": [{ "for": { "in": "key" } }, { "for": { "in": "indicator" } }],
         "dataReductionAlgorithm": { "top": {} }
       },
       "values": {

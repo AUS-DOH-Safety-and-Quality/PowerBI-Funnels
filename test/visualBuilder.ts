@@ -14,6 +14,14 @@ export class ChartBuilder extends VisualBuilderBase<VisualClass> {
     return new VisualClass(options);
   }
 
+  public get instance(): VisualClass {
+    return this.visual;
+  }
+
+  public override update(dataView: powerbi.DataView[] | powerbi.DataView): void {
+    this.visual.update({ dataViews: Array.isArray(dataView) ? dataView : [dataView], viewport: this.viewport, type: 2 });
+  }
+
   public get mainElement(): SVGElement | null {
     return this.element.querySelector("svg.chart");
   }

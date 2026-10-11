@@ -30,13 +30,15 @@ Once you have installed the visual and added it to your report, you can add the 
 
 ![image](https://user-images.githubusercontent.com/27717896/128835552-78039c79-9123-4cbb-b8d5-a392c608216d.png)
 
-The visual will default to displaying a funnel plot for proportions and automatically detecting whether or not to adjust for overdispersion:
+The visual will default to displaying a funnel plot for proportions, without an adjustment for overdispersion:
 
 ![image](https://user-images.githubusercontent.com/27717896/128835456-235e2d1f-695f-4c57-8235-f947dd480e05.png)
 
 You can change these options through the 'Data Settings' menu:
 
 ![image](https://user-images.githubusercontent.com/27717896/128835876-7f81b55e-3f85-47c7-824e-5e3f3ee9c8dd.png)
+
+With 'OD Adjustment' set to 'yes', the limits are adjusted whenever the estimated between-unit variance is positive; 'auto' adjusts only when Spiegelhalter's chi-squared test finds overdispersion at the 5% level.
 
 Aesthetic options for the lines, scatter dots, and chart axes are also available.
 

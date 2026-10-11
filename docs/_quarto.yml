@@ -1,0 +1,55 @@
+project:
+  type: website
+
+website:
+  title: "Funnel Charts for PowerBI"
+  site-url: https://aus-doh-safety-and-quality.github.io/PowerBI-Funnels/
+  repo-url: https://github.com/AUS-DOH-Safety-and-Quality/PowerBI-Funnels
+  search: true
+  sidebar:
+    style: docked
+    contents:
+      - href: index.md
+        text: "Home"
+      - href: Installation.md
+        text: "Installation"
+      - section: "Chart Types"
+        href: ChartTypes.md
+        contents:
+          - href: ChartTypes/proportion.md
+            text: "Proportions"
+          - href: ChartTypes/standardisedRatios.md
+            text: "Indirectly-Standardised Ratios (HSMR)"
+          - href: ChartTypes/ratioCounts.md
+            text: "Ratios of Counts"
+      - href: OverdispersionAdjustment.md
+        text: "Adjusting for Overdispersion"
+      - section: "Settings Reference"
+        href: SettingsReference.md
+        contents:
+          - href: SettingsReference/dataSettings.md
+            text: "Data Settings"
+          - href: SettingsReference/outlierHighlighting.md
+            text: "Outlier Highlighting"
+          - href: SettingsReference/canvasSettings.md
+            text: "Canvas Settings"
+          - href: SettingsReference/scatterSettings.md
+            text: "Scatter Settings"
+          - href: SettingsReference/lineSettings.md
+            text: "Line Settings"
+          - href: SettingsReference/xAxisSettings.md
+            text: "X-Axis Settings"
+          - href: SettingsReference/yAxisSettings.md
+            text: "Y-Axis Settings"
+          - href: SettingsReference/miscSettings.md
+            text: "MISC Settings"
+          - href: SettingsReference/downloadOptions.md
+            text: "Download Options"
+          - href: SettingsReference/labelsSettings.md
+            text: "Labels Settings"
+
+format:
+  html:
+    theme: flatly
+    toc: true
+    tbl-colwidths: false

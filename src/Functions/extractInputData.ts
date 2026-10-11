@@ -1,105 +1,89 @@
 import type powerbi from "powerbi-visuals-api";
-type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import extractValues from "./extractValues";
 import validateInputData from "./validateInputData";
-import extractDataColumn from "./extractDataColumn";
-import extractConditionalFormatting from "./extractConditionalFormatting";
-import rep from "./rep";
-import isNullOrUndefined from "./isNullOrUndefined";
-import { settingsClass } from "../Classes"
-import type { settingsValueType } from "../settings";
-import { type ValidationT } from "./validateInputData";
+import type { settingsClass } from "../Classes";
+import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
+import {
+  formatPrimitiveValue, readRowAnnotations, rowWarnings, type RowAnnotations, type ValidatedDataView
+} from "powerbi-visuals-core/powerbi";
+import type { ValidationT } from "./validateInputData";
 
-export type dataObject = {
-  keys: { x: number, id: number, label: string }[];
+export type dataObject = RowAnnotations<settingsValueType["scatter"], settingsValueType["labels"]> & {
+  keys: { x: number; id: number; label: string }[];
   id: number[];
   numerators: number[];
   denominators: number[];
-  highlights: powerbi.PrimitiveValue[];
-  anyHighlights: boolean;
   categories: powerbi.DataViewCategoryColumn;
-  scatter_formatting: settingsValueType["scatter"][];
-  label_formatting: settingsValueType["labels"][];
-  tooltips: VisualTooltipDataItem[][];
-  labels: string[];
-  anyLabels: boolean;
   warningMessage: string;
-  validationStatus: ValidationT;
-}
+  validationStatus: Extract<ValidationT, { status: 0 }>;
+};
 
-export default function extractInputData(inputView: powerbi.DataViewCategorical, inputSettingsClass: settingsClass): dataObject {
-  const inputSettings: settingsValueType = inputSettingsClass.settings;
-  const numerators: number[] = extractDataColumn<number[]>(inputView, "numerators");
-  const denominators: number[] = extractDataColumn<number[]>(inputView, "denominators");
-  const keys: string[] = extractDataColumn<string[]>(inputView, "key");
-  const labels: string[] = extractDataColumn<string[]>(inputView, "labels");
-  let scatter_cond = extractConditionalFormatting<settingsValueType["scatter"]>(inputView, "scatter", inputSettings)?.values;
-  scatter_cond = scatter_cond === null ? rep(inputSettings.scatter, numerators.length) : scatter_cond;
-  let labels_cond = extractConditionalFormatting<settingsValueType["labels"]>(inputView, "labels", inputSettings)?.values;
-  labels_cond = labels_cond === null ? rep(inputSettings.labels, numerators.length) : labels_cond;
-  const tooltips = extractDataColumn<VisualTooltipDataItem[][]>(inputView, "tooltips");
-  const highlights: powerbi.PrimitiveValue[] = inputView.values[0].highlights;
+export type InputDataResult = { status: "valid"; data: dataObject } | { status: "invalid"; error: string };
 
-  const inputValidStatus: ValidationT = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
-
-  if (inputValidStatus.status !== 0) {
-    return {
-      keys: null,
-      id: null,
-      numerators: null,
-      denominators: null,
-      highlights: null,
-      anyHighlights: null,
-      categories: null,
-      scatter_formatting: null,
-      label_formatting: null,
-      tooltips: null,
-      labels: null,
-      anyLabels: false,
-      warningMessage: inputValidStatus.error,
-      validationStatus: inputValidStatus
+export default function extractInputData(view: ValidatedDataView<"numerators" | "denominators">, inputSettingsClass: settingsClass,
+  rows?: readonly number[]): InputDataResult {
+  const inputSettings = inputSettingsClass.settings;
+  const keyColumn = view.categories.key[0];
+  const numeratorColumn = view.values.numerators[0];
+  const denominatorColumn = view.values.denominators[0];
+  const categories = view.category;
+  const count = keyColumn.values.length;
+  if (count !== numeratorColumn.values.length || count !== denominatorColumn.values.length) {
+    return { status: "invalid", error: "Groups, numerators and denominators must have matching row counts." };
+  }
+  if (rows === undefined) {
+    const allRows = new Array<number>(count);
+    for (let i = 0; i < count; i++) {
+      allRows[i] = i;
     }
+    rows = allRows;
+  }
+  const keys = new Array<string | undefined>(rows.length);
+  const numerators = new Array<number | undefined>(rows.length);
+  const denominators = new Array<number | undefined>(rows.length);
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    keys[i] = formatPrimitiveValue(keyColumn.values[row]);
+    const numerator = numeratorColumn.values[row];
+    const denominator = denominatorColumn.values[row];
+    numerators[i] = numerator == null ? undefined : Number(numerator);
+    denominators[i] = denominator == null ? undefined : Number(denominator);
+  }
+  const validation = validateInputData(keys, numerators, denominators, inputSettings.funnel.chart_type);
+  if (validation.status !== 0) {
+    return { status: "invalid", error: validation.error };
   }
 
-  const valid_ids: number[] = new Array<number>();
-  const valid_keys: { x: number, id: number, label: string }[] = new Array<{ x: number, id: number, label: string }>();
-  const removalMessages: string[] = new Array<string>();
-  const groupVarName: string = inputView.categories[0].source.displayName;
-  const settingsMessages = inputSettingsClass.validationStatus.messages;
-  let valid_x: number = 0;
-  for (let i: number = 0; i < numerators.length; i++) {
-    if (inputValidStatus.messages[i] === "") {
-      valid_ids.push(i);
-      valid_keys.push({ x: valid_x, id: i, label: keys[i] })
-      valid_x += 1;
-
-      if (settingsMessages[i].length > 0) {
-        settingsMessages[i].forEach(setting_removal_message => {
-          removalMessages.push(
-            `Conditional formatting for ${groupVarName} ${keys[i]} ignored due to: ${setting_removal_message}.`
-          )}
-        );
-      }
-    } else {
-      removalMessages.push(`${groupVarName} ${keys[i]} removed due to: ${inputValidStatus.messages[i]}.`)
+  const keyRows: dataObject["keys"] = [];
+  const id: number[] = [];
+  const validNumerators: number[] = [];
+  const validDenominators: number[] = [];
+  const kept: number[] = [];
+  for (let i = 0; i < keys.length; i++) {
+    if (validation.messages[i] !== "") {
+      continue;
     }
+    const row = rows[i];
+    const key = keys[i];
+    const numerator = numerators[i];
+    const denominator = denominators[i];
+    if (key === undefined || numerator === undefined || denominator === undefined) {
+      throw new Error("Validated row contains a missing required value.");
+    }
+    keyRows.push({ x: id.length, id: row, label: key });
+    id.push(row);
+    validNumerators.push(numerator);
+    validDenominators.push(denominator);
+    kept.push(i);
   }
-
-  const valid_labels: string[] = extractValues(labels, valid_ids);
-  return {
-    keys: valid_keys,
-    id: valid_ids,
-    numerators: extractValues(numerators, valid_ids),
-    denominators: extractValues(denominators, valid_ids),
-    tooltips: extractValues(tooltips, valid_ids),
-    labels: valid_labels,
-    anyLabels: valid_labels.filter(d => !isNullOrUndefined(d) && d !== "").length > 0,
-    highlights: extractValues(highlights, valid_ids),
-    anyHighlights: highlights != null,
-    categories: inputView.categories[0],
-    scatter_formatting: extractValues(scatter_cond, valid_ids),
-    label_formatting: extractValues(labels_cond, valid_ids),
-    warningMessage: removalMessages.length >0 ? removalMessages.join("\n") : "",
-    validationStatus: inputValidStatus
-  }
+  const annotations = readRowAnnotations({
+    categorical: view.categorical, values: view.values, categories,
+    cards: { scatter: settingsModel.scatter, labels: settingsModel.labels },
+    defaults: { scatter: defaultSettings.scatter, labels: defaultSettings.labels }
+  }, rows, kept);
+  const warnings = rowWarnings(categories.source.displayName, rows, keys, validation.messages,
+    { messages: inputSettingsClass.validationStatus.messages, messagePositionByRowIndex: inputSettingsClass.messagePositionByRowIndex });
+  return { status: "valid", data: {
+    ...annotations, keys: keyRows, id, numerators: validNumerators, denominators: validDenominators, categories,
+    warningMessage: warnings.join("\n"), validationStatus: validation
+  } };
 }

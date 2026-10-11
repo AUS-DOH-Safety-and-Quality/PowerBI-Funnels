@@ -1,48 +1,28 @@
-export type ValidationT = { status: number, messages: string[], error?: string };
+import { validateRows, type RowRule, type RowValidation } from "powerbi-visuals-core/data";
+import type { settingsValueType } from "../settings";
 
-const allInvalidErrors: Record<string, string> = {
-  "Group missing": "All Groups/IDs are missing or null!",
-  "Numerator missing": "All numerators are missing or null!",
-  "Numerator is not a number": "All numerators are not numbers!",
-  "Numerator negative": "All numerators are negative!",
-  "Denominator missing": "All denominators missing or null!",
-  "Denominator is not a number": "All denominators are not numbers!",
-  "Denominator negative": "All denominators are negative!",
-  "Denominator zero": "All denominators are zero!",
-  "Denominator < numerator": "All denominators are smaller than numerators!"
-};
+export type ValidationT = RowValidation;
 
-function validateRow(key: string | undefined, numerator: number | undefined,
-                      denominator: number | undefined, data_type: string): string {
-  if (key == null) return "Group missing";
-  if (numerator == null) return "Numerator missing";
-  if (!Number.isFinite(numerator)) return "Numerator is not a number";
-  if (numerator < 0) return "Numerator negative";
-  if (denominator == null) return "Denominator missing";
-  if (!Number.isFinite(denominator)) return "Denominator is not a number";
-  if (denominator < 0) return "Denominator negative";
-  if (denominator === 0) return "Denominator zero";
-  if (data_type === "PR" && denominator < numerator) return "Denominator < numerator";
-  return "";
-}
-
-export default function validateInputData(keys: string[], numerators: number[], denominators: number[], data_type: string): ValidationT {
-  const n: number = keys.length;
-  const messages: string[] = new Array<string>(n);
-  let anyValid = false;
-  let sameError = n > 0;
-  for (let i = 0; i < n; i++) {
-    const message = validateRow(keys[i], numerators[i], denominators[i], data_type);
-    messages[i] = message;
-    anyValid = anyValid || message === "";
-    sameError = sameError && message === messages[0];
+export default function validateInputData(keys: readonly (string | undefined)[], numerators: readonly (number | undefined)[],
+  denominators: readonly (number | undefined)[], data_type: settingsValueType["funnel"]["chart_type"]): ValidationT {
+  // Rules run in order, so a missing value is reported before its number checks; NaN keeps those false
+  const at = (values: readonly (number | undefined)[], i: number): number => values[i] ?? NaN;
+  const rules: RowRule[] = [
+    { fails: i => keys[i] === undefined, message: "Group missing", all: "All Groups/IDs are missing or null!" },
+    { fails: i => numerators[i] === undefined, message: "Numerator missing", all: "All numerators are missing or null!" },
+    { fails: i => Number.isNaN(at(numerators, i)), message: "Numerator is not a number", all: "All numerators are not numbers!" },
+    { fails: i => at(numerators, i) < 0, message: "Numerator negative", all: "All numerators are negative!" },
+    { fails: i => denominators[i] === undefined, message: "Denominator missing", all: "All denominators missing or null!" },
+    { fails: i => Number.isNaN(at(denominators, i)), message: "Denominator is not a number", all: "All denominators are not numbers!" },
+    { fails: i => !Number.isFinite(denominators[i]), message: "Denominator is not finite", all: "All denominators are not finite!" },
+    { fails: i => at(denominators, i) < 0, message: "Denominator negative", all: "All denominators are negative!" },
+    { fails: i => denominators[i] === 0, message: "Denominator is zero", all: "All denominators are zero!" }
+  ];
+  if (data_type === "PR") {
+    rules.push({
+      fails: i => !(at(denominators, i) >= at(numerators, i)),
+      message: "Denominator < numerator", all: "All denominators are smaller than numerators!"
+    });
   }
-  if (anyValid) {
-    return { status: 0, messages };
-  }
-  return {
-    status: 1,
-    messages,
-    error: sameError ? allInvalidErrors[messages[0]] : "No valid data found!"
-  };
+  return validateRows(keys.length, rules);
 }
