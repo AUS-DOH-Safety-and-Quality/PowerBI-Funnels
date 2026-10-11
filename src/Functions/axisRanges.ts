@@ -1,10 +1,13 @@
 import { max } from "powerbi-visuals-core/math";
 import type { AxisBounds } from "powerbi-visuals-core/rendering";
 import type viewModelClass from "../Classes/viewModelClass";
-import type { dataObject } from "./extractInputData";
 
 /** Explicit axis limits win; otherwise x spans the denominators with headroom and y the plotted values */
-export default function axisRanges(viewModel: viewModelClass, inputData: dataObject): { x: AxisBounds; y: AxisBounds } {
+export default function axisRanges(viewModel: viewModelClass): { x: AxisBounds; y: AxisBounds } {
+  const inputData = viewModel.inputData;
+  if (inputData === undefined) {
+    throw new Error("Axis ranges require validated data.");
+  }
   const settings = viewModel.inputSettings.settings;
   let yUpperLimit = settings.y_axis.ylimit_u;
   if (yUpperLimit === undefined) {

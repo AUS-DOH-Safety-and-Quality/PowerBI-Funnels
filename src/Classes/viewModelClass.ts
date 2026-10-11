@@ -138,7 +138,7 @@ export default class viewModelClass {
     }
     // The MISC chart has no axes
     if (!this.inputSettings.showMisc) {
-      const rangeError = axisRangeError(axisRanges(this, this.inputData));
+      const rangeError = axisRangeError(axisRanges(this));
       if (rangeError !== undefined) {
         return this.invalidate(rangeError, "settings");
       }

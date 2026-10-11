@@ -1,112 +1,60 @@
 "use strict";
 
 import type powerbi from "powerbi-visuals-api";
-import { select, type Selection } from "powerbi-visuals-core/rendering";
-import { drawLines, addContextMenu, drawLineLabels } from "./D3 Plotting Functions"
-import { viewModelClass, type viewModelValidationT, type plotData } from "./Classes"
+import {
+  PlotVisual, drawPlotAxes, drawPlotTooltips, drawPlotDots, drawPlotDownload, drawPlotValueLabels, drawPlotLines, drawPlotLineLabels,
+  highlightOpacity, initialiseSvg, valueTickFormat, type AxisBounds, type SvgSelection
+} from "powerbi-visuals-core/rendering";
+import addContextMenu from "./D3 Plotting Functions/addContextMenu";
+import drawMisc from "./D3 Plotting Functions/drawMisc";
+import { viewModelClass, type plotData } from "./Classes";
+import type { miscPoint } from "./Classes/viewModelClass";
 import axisRanges from "./Functions/axisRanges";
 import downloadRows from "./Functions/downloadRows";
 import lineKeys, { type LineName } from "./Functions/lineKeys";
+import type { settingsValueType } from "./settings";
 import { identitySelected, selectionState } from "powerbi-visuals-core/powerbi";
-import { lineOpacity } from "powerbi-visuals-core/settings";
-import {
-  createPlotFrame, fitPlotToOverflow, highlightOpacity, highlightPlot, initialiseSvg, drawErrorMessage,
-  drawPlotAxes, drawPlotTooltips, drawPlotDots, drawPlotDownload, drawPlotValueLabels, valueTickFormat,
-  type ErrorKind, type PlotContext, type PlotFrame
-} from "powerbi-visuals-core/rendering";
-import drawMisc from "./D3 Plotting Functions/drawMisc";
-import type { miscPoint } from "./Classes/viewModelClass";
+import { lineStyle } from "powerbi-visuals-core/settings";
 
-export type svgBaseType = Selection<SVGSVGElement, unknown, null, undefined>;
+export type svgBaseType = SvgSelection;
 
-export class Visual implements powerbi.extensibility.IVisual {
-  host: powerbi.extensibility.visual.IVisualHost;
-  svg: svgBaseType;
-  viewModel: viewModelClass;
-  private currentPlotProperties: PlotFrame | undefined;
+/** Lower interval lines place outside labels below the line */
+const lowerLines: Record<LineName, boolean> = {
+  ll99: true,
+  ll95: true,
+  ll68: true,
+  ul68: false,
+  ul95: false,
+  ul99: false,
+  target: false,
+  alt_target: false
+};
 
-  get plotProperties(): PlotFrame {
-    if (this.currentPlotProperties === undefined) {
-      throw new Error("Plot properties require validated data.");
-    }
-    return this.currentPlotProperties;
-  }
-  selectionManager: powerbi.extensibility.ISelectionManager;
+export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueType> {
+  protected readonly lineKeys = lineKeys;
 
   constructor(options: powerbi.extensibility.visual.VisualConstructorOptions | undefined) {
-    if (options === undefined) {
-      throw new Error("Visual constructor options are required.");
-    }
-    this.svg = select(options.element).append("svg");
-    this.host = options.host;
-    this.viewModel = new viewModelClass(this.host);
+    super(options, host => new viewModelClass(host));
+  }
 
-    this.selectionManager = this.host.createSelectionManager();
-    this.selectionManager.registerOnSelectCallback(() => this.updateHighlighting());
+  protected get settings(): settingsValueType {
+    return this.viewModel.inputSettings.settings;
+  }
+
+  protected axisRanges(): { x: AxisBounds; y: AxisBounds } {
+    return axisRanges(this.viewModel);
+  }
+
+  protected drawAlternate(): boolean {
+    if (this.viewModel.inputSettings.showMisc) {
+      this.svg.call(drawMisc, this);
+      return true;
+    }
     const svg = this.svg.node();
-    if (svg !== null) {
-      initialiseSvg(svg);
+    if (svg !== null && !this.svg.select(".misc-root").empty()) {
+      initialiseSvg(svg, true);
     }
-  }
-
-  public update(options: powerbi.extensibility.visual.VisualUpdateOptions) {
-    try {
-      this.host.eventService.renderingStarted(options);
-      // Remove printed error if refreshing after a previous error run
-      this.svg.select(".errormessage").remove();
-
-      const update_status: viewModelValidationT = this.viewModel.update(options, this.host);
-      if (!update_status.status) {
-        this.currentPlotProperties = undefined;
-        this.resizeCanvas(options.viewport.width, options.viewport.height);
-        this.drawErrors(options, update_status.error, update_status.type,
-                        this.viewModel.inputSettings.settings.canvas.show_errors);
-
-        this.host.eventService.renderingFailed(options);
-        return;
-      }
-
-      if (update_status.warning) {
-        this.host.displayWarningIcon("Invalid inputs or settings ignored.\n",
-                                      update_status.warning);
-      }
-
-      this.resizeCanvas(options.viewport.width, options.viewport.height);
-      if (this.viewModel.inputSettings.showMisc) {
-        this.currentPlotProperties = undefined;
-        this.svg.call(drawMisc, this);
-        this.updateHighlighting();
-        this.host.eventService.renderingFinished(options);
-        return;
-      }
-      const svg = this.svg.node();
-      if (svg !== null && !this.svg.select(".misc-root").empty()) {
-        initialiseSvg(svg, true);
-      }
-      const viewModel = this.viewModel;
-      this.currentPlotProperties = createPlotFrame({
-        width: options.viewport.width,
-        height: options.viewport.height,
-        displayPlot: viewModel.plotPoints.length > 0,
-        ...axisRanges(viewModel, update_status.data),
-        settings: viewModel.inputSettings.settings,
-        palette: viewModel.colourPalette
-      });
-      this.drawVisual();
-      this.adjustPaddingForOverflow();
-
-      this.updateHighlighting();
-      this.host.eventService.renderingFinished(options);
-    } catch (caught_error) {
-      this.currentPlotProperties = undefined;
-      this.drawErrors(options, caught_error instanceof Error ? caught_error.message : String(caught_error), "internal", true);
-      console.error(caught_error)
-      this.host.eventService.renderingFailed(options);
-    }
-  }
-
-  resizeCanvas(width: number, height: number): void {
-    this.svg.attr("width", width).attr("height", height);
+    return false;
   }
 
   updateHighlighting(): void {
@@ -117,51 +65,16 @@ export class Visual implements powerbi.extensibility.IVisual {
         highlightOpacity(point.aesthetics, state.active, identitySelected(point.identity, state.selected) || point.highlighted));
       return;
     }
-    const svg = this.svg.node();
-    if (svg === null) {
-      return;
-    }
     const state = selectionState(this.selectionManager, viewModel.inputData ? viewModel.inputData.anyHighlights : false);
-    const settings = viewModel.inputSettings.settings;
-    highlightPlot<plotData>(svg, {
-      active: state.active,
-      selected: state.selected,
-      lineOpacity: line => lineOpacity(settings.lines, lineKeys[line.name as LineName], state.active),
-      // Group text fades by its own opacities; markers by the dot ones
-      dotOpacities: point => settings.scatter.use_group_text
-        ? {
-          opacity: point.aesthetics.scatter_text_opacity,
-          opacity_selected: point.aesthetics.scatter_text_opacity_selected,
-          opacity_unselected: point.aesthetics.scatter_text_opacity_unselected
-        }
-        : point.aesthetics
-    });
-  }
-
-  drawErrors(options: powerbi.extensibility.visual.VisualUpdateOptions, message: string, kind: ErrorKind | undefined, show: boolean): void {
-    const svg = this.svg.node();
-    if (svg === null) {
-      return;
-    }
-    drawErrorMessage(svg, {
-      width: options.viewport.width, height: options.viewport.height,
-      message, kind, show, colour: this.viewModel.colourPalette.foregroundColour
-    });
-  }
-
-  plotContext(): PlotContext<plotData> {
-    const viewModel = this.viewModel;
-    return {
-      frame: this.plotProperties,
-      points: viewModel.plotPoints,
-      palette: viewModel.colourPalette,
-      settings: viewModel.inputSettings.settings,
-      host: this.host,
-      selectionManager: this.selectionManager,
-      onSelectionChange: () => this.updateHighlighting(),
-      headless: viewModel.headless,
-      frontend: viewModel.frontend
-    };
+    const settings = this.settings;
+    // Group text fades by its own opacities; markers by the dot ones
+    this.highlightPlotPoints(state, point => settings.scatter.use_group_text
+      ? {
+        opacity: point.aesthetics.scatter_text_opacity,
+        opacity_selected: point.aesthetics.scatter_text_opacity_selected,
+        opacity_unselected: point.aesthetics.scatter_text_opacity_unselected
+      }
+      : point.aesthetics);
   }
 
   drawVisual(): void {
@@ -170,15 +83,22 @@ export class Visual implements powerbi.extensibility.IVisual {
       return;
     }
     const viewModel = this.viewModel;
-    const settings = viewModel.inputSettings.settings;
+    const settings = this.settings;
     const context = this.plotContext();
     drawPlotAxes(svg, context, {
       x: undefined,
       y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, viewModel.inputSettings.derivedSettings.percentLabels)
     });
     drawPlotTooltips(svg, context, true);
-    this.svg.call(drawLines, this)
-            .call(drawLineLabels, this);
+    drawPlotLines(svg, context, viewModel.groupedLines, name => lineStyle(settings.lines, lineKeys[name]));
+    drawPlotLineLabels(svg, context, {
+      lines: viewModel.groupedLines,
+      settings: settings.lines,
+      keys: lineKeys,
+      lower: name => lowerLines[name],
+      format: viewModel.inputSettings.derivedSettings.formatValue,
+      periodEnds: [viewModel.calculatedLimits.length - 1]
+    });
     drawPlotDots(svg, context, {
       show: true,
       text: settings.scatter.use_group_text
@@ -192,27 +112,5 @@ export class Visual implements powerbi.extensibility.IVisual {
     this.svg.call(addContextMenu, this);
     drawPlotDownload(svg, context, () => downloadRows(viewModel));
     drawPlotValueLabels(svg, context, viewModel.inputData?.anyLabels ?? false);
-  }
-
-  adjustPaddingForOverflow(): void {
-    // Headless mode does not render to screen so do not attempt to adjust for overflow
-    if (this.viewModel.headless) {
-      return;
-    }
-    const svg = this.svg.node();
-    if (svg === null) {
-      return;
-    }
-    const fitted = fitPlotToOverflow(svg, this.plotProperties);
-    if (fitted === undefined) {
-      return;
-    }
-    this.currentPlotProperties = fitted;
-    this.drawVisual();
-  }
-
-  public getFormattingModel(): powerbi.visuals.FormattingModel {
-    // API 5.1 omits the visual's unset numeric values and legacy option shapes.
-    return this.viewModel.inputSettings.getFormattingModel() as powerbi.visuals.FormattingModel;
   }
 }
