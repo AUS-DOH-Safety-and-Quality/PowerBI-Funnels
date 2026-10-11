@@ -25,9 +25,11 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
     .style("font-family", yAxis.ylimit_tick_font).style("font-size", `${yAxis.ylimit_tick_size}px`)
     .attr("fill", colour(yAxis.ylimit_tick_colour)).text(point => point.indicator);
   let labelWidth = 0;
-  const nodes = labels.nodes();
-  for (let i = 0; i < nodes.length; i++) {
-    labelWidth = Math.max(labelWidth, nodes[i].getBBox().width);
+  if (!model.headless) {
+    const nodes = labels.nodes();
+    for (let i = 0; i < nodes.length; i++) {
+      labelWidth = Math.max(labelWidth, nodes[i].getBBox().width);
+    }
   }
   const left = canvas.left_padding + labelWidth + 10;
   const right = Math.max(left, model.svgWidth - canvas.right_padding);
