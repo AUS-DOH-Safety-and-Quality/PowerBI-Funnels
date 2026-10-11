@@ -13,12 +13,11 @@ import extractInputData, { type dataObject } from "../Functions/extractInputData
 import axisRanges from "../Functions/axisRanges";
 import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
-import { groupBy, checkFlagDirection, type FlagDirection } from "powerbi-visuals-core/data";
+import { groupBy, checkFlagDirection, applyFlagColours, type FlagDirection } from "powerbi-visuals-core/data";
+import { limitStatus } from "powerbi-visuals-core/spc";
+import { limitLineNames, type StandardLineName } from "powerbi-visuals-core/settings";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
-import two_sigma from "../Outlier Flagging/two_sigma"
-import three_sigma from "../Outlier Flagging/three_sigma"
-import type { LineName } from "../Functions/lineKeys";
 
 import { axisRangeError, type ErrorKind } from "powerbi-visuals-core/rendering";
 
@@ -29,7 +28,7 @@ export type viewModelValidationT =
 export type lineData = {
   x: number;
   line_value: number | undefined;
-  group: LineName;
+  group: StandardLineName;
 }
 
 export type plotData = {
@@ -63,7 +62,7 @@ export default class viewModelClass {
   chartBase: chartClass | undefined;
   calculatedLimits: limitData[];
   plotPoints: plotData[];
-  groupedLines: [LineName, lineData[]][];
+  groupedLines: [StandardLineName, lineData[]][];
   firstRun: boolean;
   colourPalette: ColourPalette;
   svgWidth = 0;
@@ -79,7 +78,7 @@ export default class viewModelClass {
     this.chartBase = undefined;
     this.calculatedLimits = [];
     this.plotPoints = new Array<plotData>();
-    this.groupedLines = new Array<[LineName, lineData[]]>();
+    this.groupedLines = new Array<[StandardLineName, lineData[]]>();
     this.firstRun = true;
     this.colourPalette = readColourPalette(host);
     this.headless = false;
@@ -117,16 +116,12 @@ export default class viewModelClass {
       if (this.inputSettings.showMisc) {
         return this.initialiseMisc(view, host, indicatorGroups, indicators);
       }
-      const chartType = this.inputSettings.settings.funnel.chart_type;
-      if (chartType !== "PR" && chartType !== "SR" && chartType !== "RC") {
-        return this.invalidate("Invalid chart type", "settings");
-      }
-      const result = extractInputData(view, this.inputSettings);
+      const result = extractInputData(view, this.inputSettings, indicatorGroups.rows[0]);
       if (result.status === "invalid") {
         return this.invalidate(result.error);
       }
       this.inputData = result.data;
-      this.chartBase = new chartObjects[chartType](result.data, this.inputSettings);
+      this.chartBase = new chartObjects[this.inputSettings.settings.funnel.chart_type](result.data, this.inputSettings);
       this.calculatedLimits = this.chartBase.getLimits();
       this.scaleAndTruncateLimits();
       this.initialisePlotData(host, result.data, this.chartBase);
@@ -161,11 +156,6 @@ export default class viewModelClass {
   private initialiseMisc(view: ValidatedDataView<"numerators" | "denominators">, host: IVisualHost,
     indicators: CategoryGroups, indicatorColumns: powerbi.DataViewCategoryColumn[]): viewModelValidationT {
     const keyColumn = view.categories.key[0];
-    for (let i = 0; i < indicatorColumns.length; i++) {
-      if (indicatorColumns[i].values.length !== keyColumn.values.length) {
-        return this.invalidate("Indicators and groups must have matching row counts.");
-      }
-    }
     const groups = groupCategoryRows([keyColumn], keyColumn.values.length);
     const items = this.inputSettings.miscGroups;
     const rowsByGroup = new Map<string, number[]>();
@@ -254,8 +244,7 @@ export default class viewModelClass {
 
   initialisePlotData(host: IVisualHost, inputData: dataObject, chart: chartClass, inputSettings = this.inputSettings): void {
     this.plotPoints = new Array<plotData>();
-    const transform_text: string = inputSettings.settings.funnel.transformation;
-    const transform: (x: number) => number = getTransformation(transform_text);
+    const transform: (x: number) => number = getTransformation(inputSettings.settings.funnel.transformation);
     const multiplier: number = inputSettings.derivedSettings.multiplier;
     const flag_two_sigma: boolean = inputSettings.settings.outliers.two_sigma;
     const flag_three_sigma: boolean = inputSettings.settings.outliers.three_sigma;
@@ -282,20 +271,13 @@ export default class viewModelClass {
         process_flag_type: inputSettings.settings.outliers.process_flag_type,
         improvement_direction: inputSettings.settings.outliers.improvement_direction
       }
-      const two_sigma_outlier = checkFlagDirection(flag_two_sigma ? two_sigma(value, limits) : "none", flagSettings);
-      const three_sigma_outlier = checkFlagDirection(flag_three_sigma ? three_sigma(value, limits) : "none", flagSettings);
+      const two_sigma_outlier = checkFlagDirection(flag_two_sigma ? limitStatus(value, limits.ll95, limits.ul95) : "none", flagSettings);
+      const three_sigma_outlier = checkFlagDirection(flag_three_sigma ? limitStatus(value, limits.ll99, limits.ul99) : "none", flagSettings);
       const category = inputData.keys[i].label;
-      if (two_sigma_outlier !== "none") {
-        aesthetics.colour = inputSettings.settings.outliers[`two_sigma_colour_${two_sigma_outlier}`];
-        aesthetics.colour_outline = inputSettings.settings.outliers[`two_sigma_colour_${two_sigma_outlier}`];
-        aesthetics.scatter_text_colour = aesthetics.colour;
-      }
-
-      if (three_sigma_outlier !== "none") {
-        aesthetics.colour = inputSettings.settings.outliers[`three_sigma_colour_${three_sigma_outlier}`];
-        aesthetics.colour_outline = inputSettings.settings.outliers[`three_sigma_colour_${three_sigma_outlier}`];
-        aesthetics.scatter_text_colour = aesthetics.colour;
-      }
+      // A three-sigma flag outranks a two-sigma one
+      applyFlagColours(aesthetics, inputSettings.settings.outliers, [
+        [two_sigma_outlier, "two_sigma_colour"], [three_sigma_outlier, "three_sigma_colour"]
+      ] as const);
 
       this.plotPoints.push({
         x: denominator,
@@ -330,7 +312,7 @@ export default class viewModelClass {
   }
 
   initialiseGroupedLines(): void {
-    const labels: LineName[] = [];
+    const labels: StandardLineName[] = [];
     if (this.inputSettings.settings.lines.show_target) {
       labels.push("target");
     }
@@ -364,12 +346,11 @@ export default class viewModelClass {
     const transform: (x: number) => number = getTransformation(inputSettings.settings.funnel.transformation);
     const lower: number | undefined = inputSettings.settings.funnel.ll_truncate;
     const upper: number | undefined = inputSettings.settings.funnel.ul_truncate;
-    const names = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"] as const;
     for (let i = 0; i < this.calculatedLimits.length; i++) {
       const limit = this.calculatedLimits[i];
       limit.target = transform(limit.target * multiplier);
-      for (let j = 0; j < names.length; j++) {
-        const name = names[j];
+      for (let j = 0; j < limitLineNames.length; j++) {
+        const name = limitLineNames[j];
         const value = limit[name];
         if (value !== undefined) {
           limit[name] = clamp(transform(value * multiplier), lower, upper);

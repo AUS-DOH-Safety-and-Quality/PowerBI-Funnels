@@ -5,33 +5,19 @@ import {
   PlotVisual, drawPlotAxes, drawPlotTooltips, drawPlotDots, drawPlotDownload, drawPlotValueLabels, drawPlotLines, drawPlotLineLabels,
   highlightOpacity, initialiseSvg, valueTickFormat, type AxisBounds, type SvgSelection
 } from "powerbi-visuals-core/rendering";
-import addContextMenu from "./D3 Plotting Functions/addContextMenu";
 import drawMisc from "./D3 Plotting Functions/drawMisc";
 import { viewModelClass, type plotData } from "./Classes";
 import type { miscPoint } from "./Classes/viewModelClass";
 import axisRanges from "./Functions/axisRanges";
 import downloadRows from "./Functions/downloadRows";
-import lineKeys, { type LineName } from "./Functions/lineKeys";
 import type { settingsValueType } from "./settings";
 import { identitySelected, selectionState } from "powerbi-visuals-core/powerbi";
-import { lineStyle } from "powerbi-visuals-core/settings";
+import { lineStyle, lowerLimitLines, standardLineKeys } from "powerbi-visuals-core/settings";
 
 export type svgBaseType = SvgSelection;
 
-/** Lower interval lines place outside labels below the line */
-const lowerLines: Record<LineName, boolean> = {
-  ll99: true,
-  ll95: true,
-  ll68: true,
-  ul68: false,
-  ul95: false,
-  ul99: false,
-  target: false,
-  alt_target: false
-};
-
 export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueType> {
-  protected readonly lineKeys = lineKeys;
+  protected readonly lineKeys = standardLineKeys;
 
   constructor(options: powerbi.extensibility.visual.VisualConstructorOptions | undefined) {
     super(options, host => new viewModelClass(host));
@@ -90,12 +76,12 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
       y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, viewModel.inputSettings.derivedSettings.percentLabels)
     });
     drawPlotTooltips(svg, context, true);
-    drawPlotLines(svg, context, viewModel.groupedLines, name => lineStyle(settings.lines, lineKeys[name]));
+    drawPlotLines(svg, context, viewModel.groupedLines, name => lineStyle(settings.lines, standardLineKeys[name]));
     drawPlotLineLabels(svg, context, {
       lines: viewModel.groupedLines,
       settings: settings.lines,
-      keys: lineKeys,
-      lower: name => lowerLines[name],
+      keys: standardLineKeys,
+      lower: name => lowerLimitLines.has(name),
       format: viewModel.inputSettings.derivedSettings.formatValue,
       periodEnds: [viewModel.calculatedLimits.length - 1]
     });
@@ -109,7 +95,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
         : undefined,
       onClick: undefined
     });
-    this.svg.call(addContextMenu, this);
+    this.addContextMenu(svg);
     drawPlotDownload(svg, context, () => downloadRows(viewModel));
     drawPlotValueLabels(svg, context, viewModel.inputData?.anyLabels ?? false);
   }

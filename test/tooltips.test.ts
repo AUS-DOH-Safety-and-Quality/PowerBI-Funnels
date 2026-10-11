@@ -309,7 +309,7 @@ describe("tooltip host wiring", () => {
     const point = rendered.visual.viewModel.plotPoints[1];
     expect(show).toHaveBeenCalledTimes(1);
     expect(show).toHaveBeenCalledWith(expect.objectContaining({ dataItems: point.tooltip, identities: [point.identity], isTouchEvent: false }));
-    expect(point.identity.getKey()).toBe("key[2];");
+    expect(point.identity.getKey()).toBe("Group[2];");
     expect(names(point.tooltip)[1]).toBe("Mortality");
     expect(point.tooltip[0].value).toBe("C");
     dot.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
@@ -328,6 +328,6 @@ describe("tooltip host wiring", () => {
       clientX: rect.left + frame.xScale(point.x), clientY: rect.top + frame.yScale(point.value), bubbles: true
     }));
     expect(show).toHaveBeenCalledWith(expect.objectContaining({ dataItems: point.tooltip, identities: [point.identity] }));
-    expect(point.identity.getKey()).toBe("key[3];");
+    expect(point.identity.getKey()).toBe("Group[3];");
   });
 });

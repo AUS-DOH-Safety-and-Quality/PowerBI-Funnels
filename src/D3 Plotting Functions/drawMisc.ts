@@ -2,7 +2,6 @@ import { clamp, scaleLinear } from "powerbi-visuals-core/math";
 import { axisLabelPlacement } from "powerbi-visuals-core/rendering";
 import type { svgBaseType, Visual } from "../visual";
 import type { miscPoint } from "../Classes/viewModelClass";
-import addContextMenu from "./addContextMenu";
 
 export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   svg.selectChildren().remove();
@@ -114,5 +113,5 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
       isTouchEvent: false
     }))
     .on("mouseout", () => visual.host.tooltipService.hide({ immediately: true, isTouchEvent: false }));
-  svg.call(addContextMenu, visual, visual.host.hostCapabilities.allowInteractions === true);
+  visual.addContextMenu(svg.node(), visual.host.hostCapabilities.allowInteractions === true);
 }

@@ -1,10 +1,11 @@
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import settingsModel, { type settingsValueType } from "../settings";
-import type { limitData, derivedSettingsClass } from "../Classes";
+import type { limitData } from "../Classes";
 import type { dataObject } from "./extractInputData";
 import getTransformation from "../Funnel Calculations/getTransformation";
 import { valueTooltips, limitTooltips, appendPatternTooltips } from "powerbi-visuals-core/powerbi";
+import type { DerivedScaling } from "powerbi-visuals-core/data";
 
 const valueLabel: Record<string, string> = {
   "PR" : "Proportion",
@@ -17,10 +18,10 @@ export default function buildTooltip(index: number,
                                       outliers: { two_sigma: boolean, three_sigma: boolean },
                                       inputData: dataObject,
                                       inputSettings: settingsValueType,
-                                      derivedSettings: derivedSettingsClass): VisualTooltipDataItem[] {
+                                      derivedSettings: DerivedScaling): VisualTooltipDataItem[] {
   const data_type: string = inputSettings.funnel.chart_type;
   const multiplier: number = derivedSettings.multiplier;
-  const transform_text: string = inputSettings.funnel.transformation;
+  const transform_text = inputSettings.funnel.transformation;
   const transform: (x: number) => number = getTransformation(transform_text);
 
   const group: string = inputData.keys[index].label;

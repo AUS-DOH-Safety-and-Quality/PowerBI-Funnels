@@ -5,19 +5,15 @@ import type { limitArgs, limitData } from "../src/Classes";
 import type settingsClass from "../src/Classes/settingsClass";
 import validateInputData from "../src/Functions/validateInputData";
 import extractInputData from "../src/Functions/extractInputData";
-import buildDataView from "./helpers/buildDataView";
-import { categoricalData, validated } from "./dataViewFixture";
+import buildDataView, { sample, validatedView } from "./helpers/buildDataView";
 
 declare const viewModel: viewModelClass;
 declare const host: powerbi.extensibility.visual.IVisualHost;
 declare const settings: settingsClass;
 declare const args: limitArgs;
 
-// Fixture cells may be blank, but never objects
-categoricalData([1, null, undefined]);
+// Fixture cells may be blank
 buildDataView({ key: ["A", null], numerators: [1, undefined] });
-// @ts-expect-error Cells are Power BI primitives.
-categoricalData([{}]);
 
 // Validation takes the funnel's chart type, not any string
 validateInputData(["A"], [1], [2], "PR");
@@ -31,9 +27,9 @@ viewModel.update({ dataViews: [], viewport: { width: 1, height: 1 }, type: 2, he
 const chart: settingsValueType["funnel"]["chart_type"] = "XY";
 
 // Extraction only accepts a view Core has validated for both required roles
-extractInputData(validated(), settings);
-// @ts-expect-error Raw categorical data must pass validateDataView first.
-extractInputData(categoricalData(), settings);
+extractInputData(validatedView(sample), settings, [0, 1, 2]);
+// @ts-expect-error Raw data views must pass validateDataView first.
+extractInputData(buildDataView(sample), settings, [0, 1, 2]);
 
 /** Each plotted point carries the limits at its denominator; every limit call has a standard error */
 const limits: limitData = viewModel.plotPoints[0].limits;
