@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import rcFunnelClass from "../../src/Chart Types/ratioCounts";
 import settingsClass from "../../src/Classes/settingsClass";
 import type { dataObject } from "../../src/Functions/extractInputData";
-import findBy from "../helpers/findBy";
+import { findBy } from "powerbi-visuals-core/testing";
 
 function createChart(numerators: number[]): rcFunnelClass {
   const inputData: dataObject = {

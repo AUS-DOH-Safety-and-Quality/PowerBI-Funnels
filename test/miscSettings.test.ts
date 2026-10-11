@@ -4,11 +4,10 @@ import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import { checkFlagDirection, type FlagDirection } from "powerbi-visuals-core/data";
 import { normalQuantile } from "powerbi-visuals-core/math";
 import type { FormattingModel } from "powerbi-visuals-core/powerbi";
-import { keyedHost } from "powerbi-visuals-core/testing";
+import { keyedHost, findBy, must } from "powerbi-visuals-core/testing";
 import { defaultSettings } from "../src/settings";
 import buildDataView, { type SettingsOverrides } from "./helpers/buildDataView";
-import findBy from "./helpers/findBy";
-import { must, renderVisual, type Rendered } from "./helpers/renderVisual";
+import { renderVisual, type Rendered } from "./helpers/renderVisual";
 
 type Card = FormattingModel["cards"][number];
 type Layout = { top: number; bottom: number; left: number; right: number; rowHeight: number; scale: (value: number) => number };

@@ -3,20 +3,9 @@ import derivedSettingsClass from "../src/Classes/derivedSettingsClass";
 import { expect, it } from "vitest";
 import settingsModel, { defaultSettings } from "../src/settings";
 import { createDefaultValues } from "powerbi-visuals-core/settings";
-import { buildFormattingModel, readSettingsRows } from "powerbi-visuals-core/powerbi";
+import { formattingContractsSuite } from "powerbi-visuals-core/testing";
 
-it("resolves the formatting contracts through the installed Core package", () => {
-  const defaults = createDefaultValues(settingsModel);
-  expect(defaultSettings).toEqual(defaults);
-  const rows = readSettingsRows(settingsModel.canvas, "canvas", defaults.canvas, {
-    objects: [{ canvas: { lower_padding: 0, show_errors: false } }]
-  }, [0]);
-  expect(rows.values[0]).toMatchObject({ lower_padding: 0, show_errors: false });
-  const pane = buildFormattingModel(settingsModel, { ...defaults, canvas: rows.values[0] });
-  expect(pane.cards[0].uid).toBe("canvas_card_uid");
-  expect(pane.cards).toHaveLength(Object.keys(defaultSettings).length);
-});
-
+formattingContractsSuite(settingsModel, defaultSettings);
 
 it("uses Core data helpers while retaining Funnel display precision", () => {
   expect(pickRows([10, 20], [1, 5, 0, 1])).toEqual([20, undefined, 10, 20]);

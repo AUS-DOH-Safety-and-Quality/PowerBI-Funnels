@@ -3,10 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import { Visual } from "../src/visual";
 import viewModelClass from "../src/Classes/viewModelClass";
 import { categoricalData, dataView, type FixtureCategorical } from "./dataViewFixture";
-import { cells, keyedHost } from "powerbi-visuals-core/testing";
+import { cells, keyedHost, findBy, must } from "powerbi-visuals-core/testing";
 import type { PrimitiveValue } from "powerbi-visuals-core/powerbi";
-import findBy from "./helpers/findBy";
-import { must } from "./helpers/renderVisual";
 
 type MiscFixture = { view: powerbi.DataView; categorical: FixtureCategorical; objects: powerbi.DataViewObjects[] };
 

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createVisualHost } from "powerbi-visuals-utils-testutils";
-import { cells, keyedHost } from "powerbi-visuals-core/testing";
+import { cells, keyedHost, must } from "powerbi-visuals-core/testing";
 import type { settingsValueType } from "../../src/settings";
 import type { SettingsOverrides } from "../helpers/buildDataView";
-import { must, renderVisual } from "../helpers/renderVisual";
+import { renderVisual } from "../helpers/renderVisual";
 
 type Outliers = settingsValueType["outliers"];
 type Tier = "two_sigma" | "three_sigma";

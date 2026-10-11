@@ -1,10 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import type powerbi from "powerbi-visuals-api";
-import { keyedHost } from "powerbi-visuals-core/testing";
+import { keyedHost, findBy, must } from "powerbi-visuals-core/testing";
 import type { settingsValueType } from "../src/settings";
 import type { SettingsOverrides } from "./helpers/buildDataView";
-import findBy from "./helpers/findBy";
-import { calculate, must, renderVisual, type Inputs } from "./helpers/renderVisual";
+import { calculate, renderVisual, type Inputs } from "./helpers/renderVisual";
 
 type Lines = settingsValueType["lines"];
 type Tooltip = powerbi.extensibility.VisualTooltipDataItem[];

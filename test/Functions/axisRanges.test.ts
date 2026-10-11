@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import viewModelClass from "../../src/Classes/viewModelClass";
 import buildDataView, { type SettingsOverrides } from "../helpers/buildDataView";
-import { must, renderVisual } from "../helpers/renderVisual";
+import { renderVisual } from "../helpers/renderVisual";
+import { must } from "powerbi-visuals-core/testing";
 
 // Proportions of 12%, 22%, 15% and 20%
 const data = { key: ["A", "B", "C", "D"], numerators: [12, 33, 45, 8], denominators: [100, 150, 300, 40] };

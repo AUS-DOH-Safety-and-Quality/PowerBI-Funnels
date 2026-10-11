@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import type { settingsValueType } from "../../src/settings";
 import type { SettingsOverrides } from "../helpers/buildDataView";
-import { must, renderVisual } from "../helpers/renderVisual";
+import { renderVisual } from "../helpers/renderVisual";
+import { must } from "powerbi-visuals-core/testing";
 
 type Axis = "x" | "y";
 

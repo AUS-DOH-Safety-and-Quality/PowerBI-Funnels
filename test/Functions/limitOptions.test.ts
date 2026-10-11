@@ -4,8 +4,8 @@ import type viewModelClass from "../../src/Classes/viewModelClass";
 import type { limitData } from "../../src/Classes";
 import references from "../fixtures/funnelPlotR";
 import type { FunnelPlotRCase } from "../fixtures/funnelPlotRCase";
-import findBy from "../helpers/findBy";
-import { calculate, must, renderVisual } from "../helpers/renderVisual";
+import { findBy, must } from "powerbi-visuals-core/testing";
+import { calculate, renderVisual } from "../helpers/renderVisual";
 
 type Funnel = Partial<settingsValueType["funnel"]>;
 

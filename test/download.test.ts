@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import type { SettingsOverrides } from "./helpers/buildDataView";
-import findBy from "./helpers/findBy";
-import { must, renderVisual, type Inputs, type Rendered } from "./helpers/renderVisual";
+import { findBy, must } from "powerbi-visuals-core/testing";
+import { renderVisual, type Inputs, type Rendered } from "./helpers/renderVisual";
 
 type Download = { rendered: Rendered; lines: string[]; rows: Record<string, string>[] };
 

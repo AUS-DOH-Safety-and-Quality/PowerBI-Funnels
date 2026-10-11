@@ -3,8 +3,7 @@ import { testDom, createVisualHost } from "powerbi-visuals-utils-testutils";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Visual } from "../src/visual";
 import buildDataView from "./helpers/buildDataView";
-import findBy from "./helpers/findBy";
-import { cells } from "powerbi-visuals-core/testing";
+import { findBy, cells } from "powerbi-visuals-core/testing";
 
 const sample = { key: ["A", "B", "C"], numerators: [10, 20, 30], denominators: [100, 120, 140] };
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { FlagDirection } from "powerbi-visuals-core/data";
 import references from "../fixtures/funnelPlotR";
-import { calculate, must } from "../helpers/renderVisual";
+import { calculate } from "../helpers/renderVisual";
+import { must } from "powerbi-visuals-core/testing";
 
 const limits = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"] as const;
 const directions: Record<"lower" | "upper" | "none", FlagDirection> = {

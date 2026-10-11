@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import type { SettingsOverrides } from "../helpers/buildDataView";
-import { must, renderVisual } from "../helpers/renderVisual";
+import { renderVisual } from "../helpers/renderVisual";
+import { must } from "powerbi-visuals-core/testing";
 
 const data = {
   key: ["A", "B", "C", "D", "E", "F", "G", "H"],
