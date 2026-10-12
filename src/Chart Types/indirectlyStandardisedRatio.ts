@@ -1,4 +1,4 @@
-import { chartClass, type limitArgs, type settingsClass } from "../Classes"
+import { chartClass, type limitArgs, type groupSettings } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import adjustZScores from "../Funnel Calculations/adjustZScores";
 import { clamp, chisqCDF, chisqQuantile, normalQuantile } from "powerbi-visuals-core/math";
@@ -73,7 +73,7 @@ const smrLimit = function(args: limitArgs) {
 }
 
 export default class smrFunnelClass extends chartClass {
-  constructor(inputData: dataObject, inputSettings: settingsClass) {
+  constructor(inputData: dataObject, inputSettings: groupSettings) {
     super({
       seFunction: smrSE,
       seFunctionOD: smrSEOD,

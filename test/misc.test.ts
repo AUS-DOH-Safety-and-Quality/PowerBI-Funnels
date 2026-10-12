@@ -92,7 +92,7 @@ describe("MISC calculations", () => {
     expect(model.miscPoints[0].numerator).toBe(20);
     expect(model.miscPoints[1].numerator).toBe(20);
     expect(model.miscPoints[0].score).toBeLessThan(0);
-    expect(model.inputSettings.settings.misc.group).toBe(selected);
+    expect(model.inputSettings.settings[0].misc.group).toBe(selected);
   });
 
   it("keeps raw-row warnings, formatting and highlights aligned across interleaved indicators", () => {
@@ -135,8 +135,8 @@ describe("MISC calculations", () => {
     expect(update(model, view).status).toBe(true);
     const items = model.miscGroups;
     expect(items).toHaveLength(4);
-    expect(model.inputSettings.groupSettings[0].funnel.chart_type).toBe("PR");
-    expect(model.inputSettings.groupSettings[1].funnel.chart_type).toBe("RC");
+    expect(model.inputSettings.settings[0].funnel.chart_type).toBe("PR");
+    expect(model.inputSettings.settings[1].funnel.chart_type).toBe("RC");
     view.metadata.objects = { misc: { group: items[1].value } };
     expect(update(model, view).status).toBe(true);
     expect(model.miscPoints[0].numerator).toBe(20);

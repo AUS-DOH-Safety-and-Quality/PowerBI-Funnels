@@ -4,12 +4,11 @@ import type powerbi from "powerbi-visuals-api";
 import {
   PlotVisual, drawPlotAxes, drawPlotTooltips, drawPlotDots, drawPlotDownload, drawPlotValueLabels, drawPlotLines, drawPlotLineLabels,
   highlightOpacity, initialiseSvg, valueTickFormat, createTableContainer, showTable, drawSummaryTable, highlightTable,
-  type AxisBounds, type ColumnKind, type SvgSelection, type TableSelection
+  type ColumnKind, type SvgSelection, type TableSelection
 } from "powerbi-visuals-core/rendering";
 import drawMisc from "./D3 Plotting Functions/drawMisc";
 import { viewModelClass, type plotData } from "./Classes";
 import type { miscPoint } from "./Classes/viewModelClass";
-import axisRanges from "./Functions/axisRanges";
 import downloadRows from "./Functions/downloadRows";
 import type { settingsValueType } from "./settings";
 import { identitySelected, selectionState } from "powerbi-visuals-core/powerbi";
@@ -39,11 +38,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
   }
 
   protected get settings(): settingsValueType {
-    return this.viewModel.inputSettings.settings;
-  }
-
-  protected axisRanges(): { x: AxisBounds; y: AxisBounds } {
-    return axisRanges(this.viewModel);
+    return this.viewModel.inputSettings.settings[0];
   }
 
   protected drawAlternate(): boolean {
@@ -65,7 +60,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
       rows: viewModel.plotPoints,
       kinds: columnKinds,
       settings: this.settings.summary_table,
-      formatValue: viewModel.inputSettings.derivedSettings.formatValue,
+      formatValue: viewModel.inputSettings.derivedSettings[0].formatValue,
       width: viewModel.svgWidth,
       host: this.host,
       selectionManager: this.selectionManager,
@@ -109,7 +104,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
     const context = this.plotContext();
     drawPlotAxes(svg, context, {
       x: undefined,
-      y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, viewModel.inputSettings.derivedSettings.percentLabels)
+      y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, viewModel.inputSettings.derivedSettings[0].percentLabels)
     });
     drawPlotTooltips(svg, context, true);
     drawPlotLines(svg, context, viewModel.groupedLines, name => lineStyle(settings.lines, standardLineKeys[name]));
@@ -118,7 +113,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
       settings: settings.lines,
       keys: standardLineKeys,
       lower: name => lowerLimitLines.has(name),
-      format: viewModel.inputSettings.derivedSettings.formatValue,
+      format: viewModel.inputSettings.derivedSettings[0].formatValue,
       periodEnds: [viewModel.calculatedLimits.length - 1]
     });
     drawPlotDots(svg, context, {

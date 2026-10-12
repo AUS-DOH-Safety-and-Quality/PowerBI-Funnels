@@ -103,7 +103,7 @@ it("preserves a blank tooltip label through settings reading and rendering", () 
   const failed = vi.spyOn(host.eventService, "renderingFailed");
   const viewModel = renderVisual({ funnel: { ttip_label_numerator: "" } }, sample, { host }).visual.viewModel;
   expect(failed).not.toHaveBeenCalled();
-  expect(viewModel.inputSettings.settings.funnel.ttip_label_numerator).toBe("");
+  expect(viewModel.inputSettings.settings[0].funnel.ttip_label_numerator).toBe("");
   expect(viewModel.plotPoints[0].tooltip).toContainEqual({ displayName: "", value: "4" });
   expect(viewModel.inputSettings.validationStatus).toEqual({ status: 0, messages: [[], [], []] });
 });

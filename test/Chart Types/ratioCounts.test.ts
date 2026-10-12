@@ -21,7 +21,7 @@ function createChart(numerators: number[]): rcFunnelClass {
     warningMessage: "",
     validationStatus: { status: 0, messages: [] }
   };
-  return new rcFunnelClass(inputData, new settingsClass());
+  return new rcFunnelClass(inputData, new settingsClass().group(0));
 }
 
 describe("ratio-count plotting standard errors", () => {

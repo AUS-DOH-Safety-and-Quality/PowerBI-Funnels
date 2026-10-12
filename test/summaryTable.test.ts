@@ -46,7 +46,7 @@ describe("summary table", () => {
     ]);
     expect(rendered.element.querySelectorAll("tbody tr")).toHaveLength(3);
     const point = rendered.visual.viewModel.plotPoints[0];
-    const format = rendered.visual.viewModel.inputSettings.derivedSettings.formatValue;
+    const format = rendered.visual.viewModel.inputSettings.derivedSettings[0].formatValue;
     expect(rowTexts(rendered, 0)).toEqual([
       "A", "40.00%", "4", "10", format(point.limits.ul99, "value"), format(point.limits.ul95, "value"),
       format(point.limits.target, "value"), format(point.limits.ll95, "value"), format(point.limits.ll99, "value")

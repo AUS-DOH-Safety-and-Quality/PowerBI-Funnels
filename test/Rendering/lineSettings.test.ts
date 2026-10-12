@@ -173,8 +173,8 @@ describe("line value labels", () => {
     const visual = rendered.visual;
     const drawn = labels(rendered.element);
     expect(drawn).toHaveLength(names.length);
-    const width = lineSetting<number>(visual.viewModel.inputSettings.settings.lines, "width", key);
-    const format = visual.viewModel.inputSettings.derivedSettings.formatValue;
+    const width = lineSetting<number>(visual.viewModel.inputSettings.settings[0].lines, "width", key);
+    const format = visual.viewModel.inputSettings.derivedSettings[0].formatValue;
     for (let i = 0; i < names.length; i++) {
       const end = lastPoint(visual, names[i]);
       const label = drawn[i];

@@ -19,7 +19,7 @@ export type dataObject = RowAnnotations<settingsValueType["scatter"], settingsVa
 };
 
 export default function extractInputData(view: ValidatedDataView<"numerators" | "denominators">, inputSettingsClass: settingsClass,
-  rows: readonly number[]): InputDataResult<dataObject> {
+  rows: readonly number[], group = 0): InputDataResult<dataObject> {
   const keyColumn = view.categories.key[0];
   const numeratorColumn = view.values.numerators[0];
   const denominatorColumn = view.values.denominators[0];
@@ -30,7 +30,7 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
   }
   const numerators = readNumbers(numeratorColumn, rows);
   const denominators = readNumbers(denominatorColumn, rows);
-  const validation = validateInputData(keys, numerators, denominators, inputSettingsClass.settings.funnel.chart_type);
+  const validation = validateInputData(keys, numerators, denominators, inputSettingsClass.settings[group].funnel.chart_type);
   if (validation.status !== 0) {
     return { status: "invalid", error: validation.error };
   }

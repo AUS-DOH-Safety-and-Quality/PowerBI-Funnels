@@ -1,4 +1,4 @@
-import { chartClass, type limitArgs, type settingsClass, type zArgs } from "../Classes"
+import { chartClass, type limitArgs, type groupSettings, type zArgs } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import { sum, clamp } from "powerbi-visuals-core/math";
 
@@ -68,7 +68,7 @@ const rcLimit = function(args: limitArgs): number {
 
 export default class rcFunnelClass extends chartClass {
 
-  constructor(inputData: dataObject, inputSettings: settingsClass) {
+  constructor(inputData: dataObject, inputSettings: groupSettings) {
     super({
       seFunction: rcSE,
       seFunctionOD: rcSE,

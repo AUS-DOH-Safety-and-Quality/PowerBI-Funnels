@@ -1,5 +1,5 @@
 import type { dataObject } from "../Functions/extractInputData";
-import type { settingsClass } from "../Classes";
+import type { groupSettings } from "../Classes";
 import { chisqQuantile, max } from "powerbi-visuals-core/math";
 import { limitLineNames, type LimitLineName } from "powerbi-visuals-core/settings";
 import getZScores from "../Funnel Calculations/getZScores";
@@ -51,12 +51,12 @@ type chartObjectConstructorT = {
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
   inputData: dataObject;
-  inputSettings: settingsClass;
+  inputSettings: groupSettings;
 }
 
 export default class chartClass {
   inputData: dataObject;
-  inputSettings: settingsClass;
+  inputSettings: groupSettings;
   seFunction: (x: dataObject, plottingDenominators?: number[]) => number[];
   seFunctionOD: (x: dataObject, plottingDenominators?: number[]) => number[];
   targetFunction: (x: dataObject) => number;

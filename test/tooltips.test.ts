@@ -228,7 +228,7 @@ describe("plot scaling tooltip", () => {
 
   it.each(transformations)("drops the percentage suffix from transformed proportions: $transformation", ({ transformation, transform }) => {
     const model = calculate({ funnel: { transformation } }, inputs);
-    expect(model.inputSettings.derivedSettings.percentLabels).toBe(false);
+    expect(model.inputSettings.derivedSettings[0].percentLabels).toBe(false);
     const items = model.plotPoints[0].tooltip;
     expect(items[1].value).toBe(transform(50).toFixed(2));
     for (let i = 0; i < limitNames.length; i++) {

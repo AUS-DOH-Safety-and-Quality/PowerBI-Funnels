@@ -17,10 +17,10 @@ describe("setting definitions", () => {
   it("creates independent settings for each visual", () => {
     const first = new settingsClass();
     const second = new settingsClass();
-    first.settings.canvas.lower_padding = 40;
-    first.settings.labels.label_position = "bottom";
-    expect(second.settings.canvas.lower_padding).toBe(10);
-    expect(second.settings.labels.label_position).toBe("top");
+    first.settings[0].canvas.lower_padding = 40;
+    first.settings[0].labels.label_position = "bottom";
+    expect(second.settings[0].canvas.lower_padding).toBe(10);
+    expect(second.settings[0].labels.label_position).toBe("top");
     expect(defaultSettings.canvas.lower_padding).toBe(10);
     expect(settingsModel.canvas.lower_padding.default).toBe(10);
   });

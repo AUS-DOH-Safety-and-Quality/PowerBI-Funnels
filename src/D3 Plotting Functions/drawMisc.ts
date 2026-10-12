@@ -6,7 +6,7 @@ import type { miscPoint } from "../Classes/viewModelClass";
 export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   svg.selectChildren().remove();
   const model = visual.viewModel;
-  const settings = model.inputSettings.settings;
+  const settings = model.inputSettings.settings[0];
   const canvas = settings.canvas;
   const misc = settings.misc;
   const xAxis = settings.x_axis;

@@ -1,6 +1,8 @@
 import type powerbi from "powerbi-visuals-api";
 import { describe, expect, it } from "vitest";
+import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import settingsClass from "../../src/Classes/settingsClass";
+import viewModelClass from "../../src/Classes/viewModelClass";
 import { readSettingsRows } from "powerbi-visuals-core/powerbi";
 import { must } from "powerbi-visuals-core/testing";
 import settingsModel, { defaultSettings } from "../../src/settings";
@@ -45,12 +47,11 @@ describe("Settings contracts", () => {
     expect(settings.validationStatus.status).toBe(1);
     settings.update(category([]), [[0, 1, 2]]);
     expect(settings.validationStatus).toEqual({ status: 0, messages: [[], [], []] });
-    expect(settings.settings.funnel.chart_type).toBe("PR");
+    expect(settings.settings[0].funnel.chart_type).toBe("PR");
   });
 
   it("builds only real cards and preserves explicit unset numeric values", () => {
-    const settings = new settingsClass();
-    const model = settings.getFormattingModel();
+    const model = new viewModelClass(createVisualHost({})).getFormattingModel();
     expect(model.cards).toHaveLength(Object.keys(defaultSettings).length - 1);
     let found = false;
     for (let i = 0; i < model.cards.length; i++) {
