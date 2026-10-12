@@ -92,7 +92,9 @@ describe("MISC calculations", () => {
     expect(model.miscPoints[0].numerator).toBe(20);
     expect(model.miscPoints[1].numerator).toBe(20);
     expect(model.miscPoints[0].score).toBeLessThan(0);
-    expect(model.inputSettings.settings[0].misc.group).toBe(selected);
+    expect(model.miscGroup).toBe(selected);
+    expect(must(findBy(model.getFormattingModel().cards, "uid", "misc_card_uid")).groups[0].slices[0].control.properties.value)
+      .toEqual(model.miscGroups[1]);
   });
 
   it("keeps raw-row warnings, formatting and highlights aligned across interleaved indicators", () => {

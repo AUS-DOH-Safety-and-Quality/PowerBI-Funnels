@@ -8,60 +8,60 @@ import getPhi from "../Funnel Calculations/getPhi";
 import getTau2 from "../Funnel Calculations/getTau2";
 
 export type limitArgs = {
-  p: number;
-  q: number;
-  target_transformed: number;
-  SE: number;
-  tau2: number;
-  denominators: number;
+  readonly p: number;
+  readonly q: number;
+  readonly target_transformed: number;
+  readonly SE: number;
+  readonly tau2: number;
+  readonly denominators: number;
 }
 
 export type zArgs = {
-  zScores: number[];
-  SE: number[];
-  tau2: number;
+  readonly zScores: readonly number[];
+  readonly SE: readonly number[];
+  readonly tau2: number;
 }
 
 export type limitData = LimitLineValues<number | undefined> & {
-  denominators: number;
+  readonly denominators: number;
   target: number;
   alt_target: number | undefined;
 }
 
 type intervalData = {
-  prob: number;
-  quantile: number;
-  label: LimitLineName;
+  readonly prob: number;
+  readonly quantile: number;
+  readonly label: LimitLineName;
 }
 
 type chartObjectConstructorT = {
-  seFunction: (x: dataObject, plottingDenominators?: number[]) => number[];
-  seFunctionOD: (x: dataObject, plottingDenominators?: number[]) => number[];
-  targetFunction: (x: dataObject) => number;
-  targetFunctionTransformed: (x: dataObject) => number;
-  yFunction: (x: dataObject) => number[];
-  zFunction: (x: dataObject, args: zArgs) => number[];
-  zFunctionOD: (x: dataObject, args: zArgs) => number[];
-  limitFunction: (x: limitArgs) => number;
-  limitFunctionOD: (x: limitArgs) => number;
-  inputData: dataObject;
-  inputSettings: groupSettings;
+  readonly seFunction: (x: dataObject, plottingDenominators?: readonly number[]) => number[];
+  readonly seFunctionOD: (x: dataObject, plottingDenominators?: readonly number[]) => number[];
+  readonly targetFunction: (x: dataObject) => number;
+  readonly targetFunctionTransformed: (x: dataObject) => number;
+  readonly yFunction: (x: dataObject) => number[];
+  readonly zFunction: (x: dataObject, args: zArgs) => readonly number[];
+  readonly zFunctionOD: (x: dataObject, args: zArgs) => readonly number[];
+  readonly limitFunction: (x: limitArgs) => number;
+  readonly limitFunctionOD: (x: limitArgs) => number;
+  readonly inputData: dataObject;
+  readonly inputSettings: groupSettings;
 }
 
 export default class chartClass {
-  inputData: dataObject;
-  inputSettings: groupSettings;
-  seFunction: (x: dataObject, plottingDenominators?: number[]) => number[];
-  seFunctionOD: (x: dataObject, plottingDenominators?: number[]) => number[];
-  targetFunction: (x: dataObject) => number;
-  targetFunctionTransformed: (x: dataObject) => number;
-  yFunction: (x: dataObject) => number[];
-  zFunction: (x: dataObject, args: zArgs) => number[];
-  zFunctionOD: (x: dataObject, args: zArgs) => number[];
-  limitFunction: (x: limitArgs) => number;
-  limitFunctionOD: (x: limitArgs) => number;
+  readonly inputData: dataObject;
+  readonly inputSettings: groupSettings;
+  readonly seFunction: (x: dataObject, plottingDenominators?: readonly number[]) => number[];
+  readonly seFunctionOD: (x: dataObject, plottingDenominators?: readonly number[]) => number[];
+  readonly targetFunction: (x: dataObject) => number;
+  readonly targetFunctionTransformed: (x: dataObject) => number;
+  readonly yFunction: (x: dataObject) => number[];
+  readonly zFunction: (x: dataObject, args: zArgs) => readonly number[];
+  readonly zFunctionOD: (x: dataObject, args: zArgs) => readonly number[];
+  readonly limitFunction: (x: limitArgs) => number;
+  readonly limitFunctionOD: (x: limitArgs) => number;
   odAdjust: boolean | undefined;
-  private variance: { tau2: number; phi: number; zScores: number[]; seOD: number[] } | undefined;
+  private variance: { readonly tau2: number; readonly phi: number; readonly zScores: readonly number[]; readonly seOD: readonly number[] } | undefined;
 
   getPlottingDenominators(): number[] {
     const plotDenomLower: number = 1;
@@ -86,12 +86,12 @@ export default class chartClass {
     return unique.sort((a, b) => a - b);
   }
 
-  getTarget(par: { transformed: boolean }): number {
+  getTarget(par: { readonly transformed: boolean }): number {
     const targetFun = par.transformed ? this.targetFunctionTransformed : this.targetFunction;
     return targetFun(this.inputData)
   }
 
-  getSE(par: { odAdjust: boolean, plottingDenominators?: number[] }): number[] {
+  getSE(par: { readonly odAdjust: boolean, readonly plottingDenominators?: readonly number[] }): number[] {
     const seFun = par.odAdjust ? this.seFunctionOD : this.seFunction;
     return seFun(this.inputData, par.plottingDenominators);
   }
@@ -100,7 +100,7 @@ export default class chartClass {
     return this.yFunction(this.inputData)
   }
 
-  getZ(): number[] {
+  getZ(): readonly number[] {
     if (this.variance === undefined || this.odAdjust === undefined) {
       throw new Error("Calculate limits before requesting z-scores.");
     }
@@ -141,7 +141,7 @@ export default class chartClass {
     }
   }
 
-  getSingleLimit(par: { odAdjust: boolean, inputArgs: limitArgs }): number {
+  getSingleLimit(par: { readonly odAdjust: boolean, readonly inputArgs: limitArgs }): number {
     const limitFun = par.odAdjust ? this.limitFunctionOD : this.limitFunction;
     return limitFun(par.inputArgs);
   }

@@ -14,7 +14,7 @@ import { lowerLimitLines, standardLineKeys } from "powerbi-visuals-core/settings
 
 export type svgBaseType = SvgSelection;
 
-const columnKinds: Record<string, ColumnKind> = {
+const columnKinds: Readonly<Record<string, ColumnKind>> = {
   value: "number", target: "number", alt_target: "number",
   ll99: "number", ll95: "number", ll68: "number", ul68: "number", ul95: "number", ul99: "number",
   numerator: "integer", denominator: "integer",
@@ -22,7 +22,7 @@ const columnKinds: Record<string, ColumnKind> = {
 };
 
 export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueType, lineData> {
-  tableDiv: TableSelection;
+  readonly tableDiv: TableSelection;
   protected readonly lineKeys = standardLineKeys;
 
   constructor(options: powerbi.extensibility.visual.VisualConstructorOptions | undefined) {

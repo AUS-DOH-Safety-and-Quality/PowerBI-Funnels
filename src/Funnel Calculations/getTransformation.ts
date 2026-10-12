@@ -1,6 +1,6 @@
 import type { settingsValueType } from "../settings";
 
-const transformations: Record<settingsValueType["funnel"]["transformation"], (x: number) => number> = {
+const transformations: Readonly<Record<settingsValueType["funnel"]["transformation"], (x: number) => number>> = {
   none: function(x: number): number { return x; },
   ln: function(x: number): number { return Math.log(x + 1); },
   log10: function(x: number): number { return Math.log10(x + 1); },

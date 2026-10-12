@@ -1,14 +1,14 @@
 import validateInputData from "./validateInputData";
 import type { settingsClass } from "../Classes";
-import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
+import type { settingsValueType } from "../settings";
 import { extractRows, formatPrimitiveValue, readNumbers, type InputRows, type ValidatedDataView } from "powerbi-visuals-core/powerbi";
 import { keptValues, type InputDataResult } from "powerbi-visuals-core/data";
 
 export type dataObject = InputRows<settingsValueType["scatter"], settingsValueType["labels"]> & {
-  keys: { x: number; id: number; label: string }[];
-  id: number[];
-  numerators: number[];
-  denominators: number[];
+  readonly keys: { x: number; id: number; label: string }[];
+  readonly id: number[];
+  readonly numerators: number[];
+  readonly denominators: number[];
 };
 
 export default function extractInputData(view: ValidatedDataView<"numerators" | "denominators">, inputSettingsClass: settingsClass,
@@ -23,8 +23,7 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
   const extracted = extractRows(view, rows, {
     keys,
     validation: validateInputData(keys, numerators, denominators, inputSettingsClass.settings[group].funnel.chart_type),
-    cards: { scatter: settingsModel.scatter, labels: settingsModel.labels },
-    defaults: { scatter: defaultSettings.scatter, labels: defaultSettings.labels },
+    rowSettings: inputSettingsClass.rowSettings[group],
     settings: { messages: inputSettingsClass.validationStatus.messages, messagePositionByRowIndex: inputSettingsClass.messagePositionByRowIndex }
   });
   if (extracted.status === "invalid") {

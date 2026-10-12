@@ -4,7 +4,7 @@ import settingsClass from "../../src/Classes/settingsClass";
 import type { dataObject } from "../../src/Functions/extractInputData";
 import { findBy } from "powerbi-visuals-core/testing";
 
-function createChart(numerators: number[]): rcFunnelClass {
+function createChart(numerators: number[], od_adjust: "auto" | "yes" | "no" = "auto"): rcFunnelClass {
   const inputData: dataObject = {
     numerators,
     denominators: [10, 90],
@@ -21,7 +21,9 @@ function createChart(numerators: number[]): rcFunnelClass {
     warningMessage: "",
     validationStatus: { status: 0, messages: [] }
   };
-  return new rcFunnelClass(inputData, new settingsClass().group(0));
+  const settings = new settingsClass();
+  settings.update({ objects: [{ funnel: { od_adjust } }] }, [[0]]);
+  return new rcFunnelClass(inputData, settings.group(0));
 }
 
 describe("ratio-count plotting standard errors", () => {
@@ -66,8 +68,7 @@ describe("ratio-count plotting standard errors", () => {
   });
 
   it("uses the target-based SE in the plotted limits", () => {
-    const chart = createChart([4, 16]);
-    chart.inputSettings.settings.funnel.od_adjust = "no";
+    const chart = createChart([4, 16], "no");
     const limits = chart.getLimits();
     const limit = findBy(limits, "denominators", 90);
     expect(limit).toBeDefined();

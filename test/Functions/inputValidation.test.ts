@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ValidatedDataView } from "powerbi-visuals-core/powerbi";
 import extractInputData from "../../src/Functions/extractInputData";
 
 import validateInputData from "../../src/Functions/validateInputData";
@@ -10,9 +11,16 @@ import { cells, must, validatedView as validate } from "powerbi-visuals-core/tes
 const roles = ["numerators", "denominators"] as const;
 const all = [0, 1, 2];
 
+/** Extraction against a store that has read the view's rows */
+function extract(view: ValidatedDataView<"numerators" | "denominators">) {
+  const store = new settingsClass();
+  store.update(view.category, [all]);
+  return extractInputData(view, store, all);
+}
+
 describe("Input contracts", () => {
   it("distinguishes absent columns, empty columns and missing cells", () => {
-    const result = extractInputData(validatedView({ ...sample, numerators: [0, null, 2] }), new settingsClass(), all);
+    const result = extract(validatedView({ ...sample, numerators: [0, null, 2] }));
     if (result.status !== "valid") {
       throw new Error(result.error);
     }
@@ -29,7 +37,7 @@ describe("Input contracts", () => {
       columns: [{ role: "tooltips", values: [0, "removed", false], displayName: "Tooltip" }]
     });
     must(view.categorical?.values)[0].highlights = cells([0, 16, null]);
-    const result = extractInputData(validate(view, roles), new settingsClass(), all);
+    const result = extract(validate(view, roles));
     expect(result.status).toBe("valid");
     if (result.status !== "valid") {
       throw new Error(result.error);
@@ -52,7 +60,7 @@ describe("Input contracts", () => {
     const view = buildDataView({ ...sample, numerators: [4, null, 25] });
     const numerators = must(view.categorical?.values)[0];
     numerators.highlights = cells([null, 16, null]);
-    const result = extractInputData(validate(view, roles), new settingsClass(), all);
+    const result = extract(validate(view, roles));
     if (result.status !== "valid") {
       throw new Error(result.error);
     }
@@ -61,7 +69,7 @@ describe("Input contracts", () => {
   });
 
   it("returns complete numeric arrays and blank rows for absent optional columns", () => {
-    const result = extractInputData(validatedView(sample), new settingsClass(), all);
+    const result = extract(validatedView(sample));
     if (result.status !== "valid") {
       throw new Error(result.error);
     }
@@ -69,11 +77,12 @@ describe("Input contracts", () => {
     expect(result.data.tooltips).toEqual([[], [], []]);
     expect(result.data.highlights).toEqual([undefined, undefined, undefined]);
     expect(result.data.anyHighlights).toBe(false);
-    expect(result.data.scatter_formatting[0]).not.toBe(result.data.scatter_formatting[1]);
+    // Rows without their own objects share the store's default settings
+    expect(result.data.scatter_formatting[0]).toBe(result.data.scatter_formatting[1]);
   });
 
   it("returns an error without a data record when every row is invalid", () => {
-    expect(extractInputData(validatedView({ ...sample, numerators: [null, null, null] }), new settingsClass(), all)).toEqual({
+    expect(extract(validatedView({ ...sample, numerators: [null, null, null] }))).toEqual({
       status: "invalid", error: "All numerators are missing or null!"
     });
   });
@@ -101,7 +110,7 @@ describe("Input contracts", () => {
     expect(validateInputData(["A"], [1], [Infinity], "PR")).toEqual({
       status: 1, messages: ["Denominator is not finite"], error: "All denominators are not finite!"
     });
-    const result = extractInputData(validatedView({ ...sample, denominators: [10, 0, 100] }), new settingsClass(), all);
+    const result = extract(validatedView({ ...sample, denominators: [10, 0, 100] }));
     if (result.status !== "valid") {
       throw new Error(result.error);
     }
