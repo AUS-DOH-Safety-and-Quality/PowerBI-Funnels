@@ -2,17 +2,15 @@
 
 import type powerbi from "powerbi-visuals-api";
 import {
-  PlotVisual, drawPlotAxes, drawPlotTooltips, drawPlotDots, drawPlotDownload, drawPlotValueLabels, drawPlotLines, drawPlotLineLabels,
-  highlightOpacity, initialiseSvg, valueTickFormat, createTableContainer, showTable, drawSummaryTable, highlightTable,
-  type ColumnKind, type SvgSelection, type TableSelection
+  PlotVisual, highlightOpacity, initialiseSvg, valueTickFormat, createTableContainer, showTable, drawSummaryTable, highlightTable,
+  type ColumnKind, type PlotOptions, type SvgSelection, type TableSelection
 } from "powerbi-visuals-core/rendering";
 import drawMisc from "./D3 Plotting Functions/drawMisc";
 import { viewModelClass, type plotData } from "./Classes";
-import type { miscPoint } from "./Classes/viewModelClass";
-import downloadRows from "./Functions/downloadRows";
+import type { lineData, miscPoint } from "./Classes/viewModelClass";
 import type { settingsValueType } from "./settings";
 import { identitySelected, selectionState } from "powerbi-visuals-core/powerbi";
-import { lineStyle, lowerLimitLines, standardLineKeys } from "powerbi-visuals-core/settings";
+import { lowerLimitLines, standardLineKeys } from "powerbi-visuals-core/settings";
 
 export type svgBaseType = SvgSelection;
 
@@ -23,7 +21,7 @@ const columnKinds: Record<string, ColumnKind> = {
   two_sigma: "flag", three_sigma: "flag"
 };
 
-export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueType> {
+export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueType, lineData> {
   tableDiv: TableSelection;
   protected readonly lineKeys = standardLineKeys;
 
@@ -94,40 +92,26 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
       : point.aesthetics);
   }
 
-  drawVisual(): void {
-    const svg = this.svg.node();
-    if (svg === null) {
-      return;
-    }
-    const viewModel = this.viewModel;
+  protected plotOptions(): PlotOptions<plotData, lineData> {
     const settings = this.settings;
-    const context = this.plotContext();
-    drawPlotAxes(svg, context, {
-      x: undefined,
-      y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, viewModel.inputSettings.derivedSettings[0].percentLabels)
-    });
-    drawPlotTooltips(svg, context, true);
-    drawPlotLines(svg, context, viewModel.groupedLines, name => lineStyle(settings.lines, standardLineKeys[name]));
-    drawPlotLineLabels(svg, context, {
-      lines: viewModel.groupedLines,
-      settings: settings.lines,
-      keys: standardLineKeys,
-      lower: name => lowerLimitLines.has(name),
-      format: viewModel.inputSettings.derivedSettings[0].formatValue,
-      periodEnds: [viewModel.calculatedLimits.length - 1]
-    });
-    drawPlotDots(svg, context, {
-      show: true,
-      text: settings.scatter.use_group_text
-        ? point => ({
-          text: point.group_text, size: point.aesthetics.scatter_text_size,
-          font: point.aesthetics.scatter_text_font, colour: point.aesthetics.scatter_text_colour
-        })
-        : undefined,
-      onClick: undefined
-    });
-    this.addContextMenu(svg);
-    drawPlotDownload(svg, context, () => downloadRows(viewModel));
-    drawPlotValueLabels(svg, context, viewModel.inputData?.anyLabels ?? false);
+    return {
+      tickFormats: {
+        x: undefined,
+        y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, this.viewModel.inputSettings.derivedSettings[0].percentLabels)
+      },
+      verticalCrosshair: true,
+      lineSettings: () => settings.lines,
+      lowerLines: lowerLimitLines,
+      dots: {
+        show: true,
+        text: settings.scatter.use_group_text
+          ? point => ({
+            text: point.group_text, size: point.aesthetics.scatter_text_size,
+            font: point.aesthetics.scatter_text_font, colour: point.aesthetics.scatter_text_colour
+          })
+          : undefined,
+        onClick: undefined
+      }
+    };
   }
 }

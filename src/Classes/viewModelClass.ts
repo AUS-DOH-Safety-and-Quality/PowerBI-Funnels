@@ -17,7 +17,7 @@ import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
 import { groupBy, checkFlagDirection, applyFlagColours, type DerivedScaling, type FlagDirection } from "powerbi-visuals-core/data";
 import { limitStatus } from "powerbi-visuals-core/spc";
-import { limitLineNames, type StandardLineName } from "powerbi-visuals-core/settings";
+import { limitColumns, limitLineNames, type StandardLineName } from "powerbi-visuals-core/settings";
 import type { TableColumn } from "powerbi-visuals-core/rendering";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
@@ -30,19 +30,12 @@ export type lineData = {
   group: StandardLineName;
 }
 
-export type summaryTableRow = {
+/** The point's limits with its own values and flags */
+export type summaryTableRow = Omit<limitData, "denominators"> & {
   group: string;
   numerator: number;
   denominator: number;
   value: number;
-  target: number;
-  alt_target: number | undefined;
-  ll99: number | undefined;
-  ll95: number | undefined;
-  ll68: number | undefined;
-  ul68: number | undefined;
-  ul95: number | undefined;
-  ul99: number | undefined;
   two_sigma: FlagDirection;
   three_sigma: FlagDirection;
 };
@@ -75,7 +68,6 @@ export type miscPoint = plotData & { indicator: string; score: number };
 
 /** The group, value, counts and shown lines, then the flagged patterns */
 function tableColumns(settings: settingsValueType): TableColumn[] {
-  const lines = settings.lines;
   const columns: TableColumn[] = [{ name: "group", label: settings.funnel.ttip_label_group }, { name: "value", label: "Value" }];
   if (settings.funnel.ttip_show_numerator) {
     columns.push({ name: "numerator", label: "Numerator" });
@@ -83,25 +75,7 @@ function tableColumns(settings: settingsValueType): TableColumn[] {
   if (settings.funnel.ttip_show_denominator) {
     columns.push({ name: "denominator", label: "Denominator" });
   }
-  const levels = ["99", "95", "68"] as const;
-  for (let l = 0; l < levels.length; l++) {
-    const level = levels[l];
-    if (lines[`show_${level}`]) {
-      columns.push({ name: `ul${level}`, label: `${lines[`ttip_label_${level}_prefix_upper`]}${lines[`ttip_label_${level}`]}` });
-    }
-  }
-  if (lines.show_target) {
-    columns.push({ name: "target", label: lines.ttip_label_target });
-  }
-  if (lines.show_alt_target) {
-    columns.push({ name: "alt_target", label: lines.ttip_label_alt_target });
-  }
-  for (let l = levels.length - 1; l >= 0; l--) {
-    const level = levels[l];
-    if (lines[`show_${level}`]) {
-      columns.push({ name: `ll${level}`, label: `${lines[`ttip_label_${level}_prefix_lower`]}${lines[`ttip_label_${level}`]}` });
-    }
-  }
+  columns.push(...limitColumns(settings.lines, true));
   if (settings.outliers.three_sigma) {
     columns.push({ name: "three_sigma", label: "Three Sigma" });
   }
@@ -127,6 +101,15 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
 
   constructor(host: IVisualHost) {
     super(host, new settingsClass(), ["numerators", "denominators"]);
+  }
+
+  /** The limits form one labelled period */
+  get periodEnds(): number[] {
+    return [this.calculatedLimits.length - 1];
+  }
+
+  get anyLabels(): boolean {
+    return this.inputData?.anyLabels ?? false;
   }
 
   /** The MISC pane with its group choices, or the funnel pane without the MISC card */

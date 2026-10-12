@@ -1,7 +1,7 @@
 import type { dataObject } from "../Functions/extractInputData";
 import type { groupSettings } from "../Classes";
 import { chisqQuantile, max } from "powerbi-visuals-core/math";
-import { limitLineNames, type LimitLineName } from "powerbi-visuals-core/settings";
+import { limitLineNames, type LimitLineName, type LimitLineValues } from "powerbi-visuals-core/settings";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
@@ -22,14 +22,8 @@ export type zArgs = {
   tau2: number;
 }
 
-export type limitData = {
+export type limitData = LimitLineValues<number | undefined> & {
   denominators: number;
-  ll99: number | undefined;
-  ll95: number | undefined;
-  ll68: number | undefined;
-  ul68: number | undefined;
-  ul95: number | undefined;
-  ul99: number | undefined;
   target: number;
   alt_target: number | undefined;
 }
