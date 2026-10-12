@@ -94,15 +94,15 @@ describe("Input contracts", () => {
     });
     expect(validateInputData(["A", "B"], [-1, -2], [2, 2], "PR")).toMatchObject({ error: "All numerators are negative!" });
     expect(validateInputData(["A", "B"], [2, 1], [1, 2], "PR")).toEqual({
-      status: 0, messages: ["Denominator < numerator", ""]
+      status: 0, messages: ["Denominator < numerator", ""], kept: [1]
     });
-    expect(validateInputData(["A", "B"], [2, 1], [1, 2], "RC")).toEqual({ status: 0, messages: ["", ""] });
+    expect(validateInputData(["A", "B"], [2, 1], [1, 2], "RC")).toEqual({ status: 0, messages: ["", ""], kept: [0, 1] });
   });
 
   // Zero and non-finite denominators are excluded with a warning, not charted.
   it("excludes zero and non-finite denominators with a row warning", () => {
     expect(validateInputData(["A", "B", "C", "D"], [1, 1, 1, 1], [0, Infinity, -Infinity, 5], "RC")).toEqual({
-      status: 0, messages: ["Denominator is zero", "Denominator is not finite", "Denominator is not finite", ""]
+      status: 0, messages: ["Denominator is zero", "Denominator is not finite", "Denominator is not finite", ""], kept: [3]
     });
     expect(validateInputData(["A", "B"], [0, 1], [0, 0], "PR")).toEqual({
       status: 1, messages: ["Denominator is zero", "Denominator is zero"], error: "All denominators are zero!"

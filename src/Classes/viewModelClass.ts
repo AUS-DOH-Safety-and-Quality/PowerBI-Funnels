@@ -15,7 +15,7 @@ import extractInputData, { type dataObject } from "../Functions/extractInputData
 import axisRanges from "../Functions/axisRanges";
 import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
-import { groupBy, checkFlagDirection, applyFlagColours, type DerivedScaling, type FlagDirection } from "powerbi-visuals-core/data";
+import { checkFlagDirection, applyFlagColours, type DerivedScaling, type FlagDirection, type FlagSettings } from "powerbi-visuals-core/data";
 import { limitStatus } from "powerbi-visuals-core/spc";
 import { limitColumns, limitLineNames, type StandardLineName } from "powerbi-visuals-core/settings";
 import type { TableColumn } from "powerbi-visuals-core/rendering";
@@ -261,6 +261,10 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
     const flag_two_sigma: boolean = flags.two_sigma;
     const flag_three_sigma: boolean = flags.three_sigma;
     const zScores = chart.getZ();
+    const flagSettings: FlagSettings = {
+      process_flag_type: inputSettings.settings.outliers.process_flag_type,
+      improvement_direction: inputSettings.settings.outliers.improvement_direction
+    };
     const limitsByDenominator = new Map<number, limitData>();
     for (let i = 0; i < this.calculatedLimits.length; i++) {
       limitsByDenominator.set(this.calculatedLimits[i].denominators, this.calculatedLimits[i]);
@@ -279,10 +283,6 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       const aesthetics = { ...inputData.scatter_formatting[i] };
       if (this.colourPalette.isHighContrast) {
         aesthetics.colour = this.colourPalette.foregroundColour;
-      }
-      const flagSettings = {
-        process_flag_type: inputSettings.settings.outliers.process_flag_type,
-        improvement_direction: inputSettings.settings.outliers.improvement_direction
       }
       const two_sigma_outlier = checkFlagDirection(flag_two_sigma ? limitStatus(value, limits.ll95, limits.ul95) : "none", flagSettings);
       const three_sigma_outlier = checkFlagDirection(flag_three_sigma ? limitStatus(value, limits.ll99, limits.ul99) : "none", flagSettings);
@@ -346,15 +346,18 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       labels.push("ll68", "ul68");
     }
 
-    const formattedLines: lineData[] = new Array<lineData>();
+    const lines = new Array<[StandardLineName, lineData[]]>(labels.length);
+    for (let j = 0; j < labels.length; j++) {
+      lines[j] = [labels[j], []];
+    }
     for (let i = 0; i < this.calculatedLimits.length; i++) {
       const limits = this.calculatedLimits[i];
       for (let j = 0; j < labels.length; j++) {
         const label = labels[j];
-        formattedLines.push({ x: limits.denominators, line_value: limits[label], group: label });
+        lines[j][1].push({ x: limits.denominators, line_value: limits[label], group: label });
       }
     }
-    this.groupedLines = groupBy(formattedLines, "group");
+    this.groupedLines = lines;
   }
 
   /** Flags follow the truncated limits; the alt. target is entered in display units, so is not multiplied */

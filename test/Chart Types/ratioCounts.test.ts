@@ -19,7 +19,7 @@ function createChart(numerators: number[], od_adjust: "auto" | "yes" | "no" = "a
     labels: [],
     anyLabels: false,
     warningMessage: "",
-    validationStatus: { status: 0, messages: [] }
+    validationStatus: { status: 0, messages: [], kept: [] }
   };
   const settings = new settingsClass();
   settings.update({ objects: [{ funnel: { od_adjust } }] }, [[0]]);

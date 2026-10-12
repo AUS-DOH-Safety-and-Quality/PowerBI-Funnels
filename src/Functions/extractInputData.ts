@@ -2,7 +2,7 @@ import validateInputData from "./validateInputData";
 import type { settingsClass } from "../Classes";
 import type { settingsValueType } from "../settings";
 import { extractRows, formatPrimitiveValue, readNumbers, type InputRows, type ValidatedDataView } from "powerbi-visuals-core/powerbi";
-import { keptValues, type InputDataResult } from "powerbi-visuals-core/data";
+import { keptValue, type InputDataResult } from "powerbi-visuals-core/data";
 
 export type dataObject = InputRows<settingsValueType["scatter"], settingsValueType["labels"]> & {
   readonly keys: { x: number; id: number; label: string }[];
@@ -30,14 +30,19 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
     return extracted;
   }
   const { kept, warnings, ...annotations } = extracted.data;
-  const id = keptValues(rows, kept);
-  const labels = keptValues(keys, kept);
+  const id = new Array<number>(kept.length);
   const keyRows = new Array<dataObject["keys"][number]>(kept.length);
+  const keptNumerators = new Array<number>(kept.length);
+  const keptDenominators = new Array<number>(kept.length);
   for (let x = 0; x < kept.length; x++) {
-    keyRows[x] = { x, id: id[x], label: labels[x] };
+    const i = kept[x];
+    id[x] = rows[i];
+    keyRows[x] = { x, id: rows[i], label: keptValue(keys, i) };
+    keptNumerators[x] = keptValue(numerators, i);
+    keptDenominators[x] = keptValue(denominators, i);
   }
   return { status: "valid", data: {
-    ...annotations, keys: keyRows, id, numerators: keptValues(numerators, kept), denominators: keptValues(denominators, kept),
+    ...annotations, keys: keyRows, id, numerators: keptNumerators, denominators: keptDenominators,
     warningMessage: warnings.join("\n")
   } };
 }

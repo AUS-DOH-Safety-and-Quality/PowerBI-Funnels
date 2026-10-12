@@ -48,6 +48,32 @@ type chartObjectConstructorT = {
   readonly inputSettings: groupSettings;
 }
 
+const levels = ["99", "95", "68"] as const;
+
+/** Limits that cross or meet the next denominator's are blanked, so a funnel never folds back on itself */
+function pruneCrossing(inner: limitData, next: Readonly<limitData>): void {
+  for (let i = 0; i < levels.length; i++) {
+    const lower = `ll${levels[i]}` as const;
+    const upper = `ul${levels[i]}` as const;
+    const nextLower = next[lower];
+    const nextUpper = next[upper];
+    let low = inner[lower];
+    let high = inner[upper];
+    if (low !== undefined && nextLower !== undefined && low > nextLower) {
+      low = undefined;
+    }
+    if (high !== undefined && nextUpper !== undefined && high < nextUpper) {
+      high = undefined;
+    }
+    if (low !== undefined && high !== undefined && low >= high) {
+      low = undefined;
+      high = undefined;
+    }
+    inner[lower] = low;
+    inner[upper] = high;
+  }
+}
+
 export default class chartClass {
   readonly inputData: dataObject;
   readonly inputSettings: groupSettings;
@@ -69,21 +95,15 @@ export default class chartClass {
     const plotDenomUpper: number = Math.max(max(this.inputData.denominators) * 1.1,
                                             this.inputSettings.settings.x_axis.xlimit_u ?? -Infinity);
     const plotDenomSteps: number = 110;
-    const candidates: number[] = this.inputData.denominators.slice();
+    const candidates = new Set<number>(this.inputData.denominators);
     if (plotDenomUpper > plotDenomLower) {
       const plotDenomStep: number = (plotDenomUpper - plotDenomLower) / plotDenomSteps;
       for (let i = 0; i < plotDenomSteps; i++) {
-        candidates.push(plotDenomLower + i * plotDenomStep);
+        candidates.add(plotDenomLower + i * plotDenomStep);
       }
-      candidates.push(plotDenomUpper);
+      candidates.add(plotDenomUpper);
     }
-    const unique: number[] = [];
-    for (let i = 0; i < candidates.length; i++) {
-      if (candidates.indexOf(candidates[i]) === i) {
-        unique.push(candidates[i]);
-      }
-    }
-    return unique.sort((a, b) => a - b);
+    return Array.from(candidates).sort((a, b) => a - b);
   }
 
   getTarget(par: { readonly transformed: boolean }): number {
@@ -205,31 +225,8 @@ export default class chartClass {
         row[interval.label] = limit;
       }
       calcLimits[idx] = row;
-    }
-
-    const levels = ["99", "95", "68"] as const;
-    for (let idx = 0; idx < calcLimits.length - 1; idx++) {
-      const inner = calcLimits[idx];
-      const next = calcLimits[idx + 1];
-      for (let i = 0; i < levels.length; i++) {
-        const lower = `ll${levels[i]}` as const;
-        const upper = `ul${levels[i]}` as const;
-        const nextLower = next[lower];
-        const nextUpper = next[upper];
-        let low = inner[lower];
-        let high = inner[upper];
-        if (low !== undefined && nextLower !== undefined && low > nextLower) {
-          low = undefined;
-        }
-        if (high !== undefined && nextUpper !== undefined && high < nextUpper) {
-          high = undefined;
-        }
-        if (low !== undefined && high !== undefined && low >= high) {
-          low = undefined;
-          high = undefined;
-        }
-        inner[lower] = low;
-        inner[upper] = high;
+      if (idx > 0) {
+        pruneCrossing(calcLimits[idx - 1], row);
       }
     }
     return calcLimits;
