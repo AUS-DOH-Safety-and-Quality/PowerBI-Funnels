@@ -41,6 +41,8 @@ website:
             text: "X-Axis Settings"
           - href: SettingsReference/yAxisSettings.md
             text: "Y-Axis Settings"
+          - href: SettingsReference/summaryTableSettings.md
+            text: "Summary Table Settings"
           - href: SettingsReference/miscSettings.md
             text: "MISC Settings"
           - href: SettingsReference/downloadOptions.md

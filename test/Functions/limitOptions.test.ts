@@ -261,8 +261,8 @@ describe("scaling", () => {
     const source = reference(name);
     const raw = modelFor(source, { perc_labels: "No" });
     const scaled = modelFor(source, funnel);
-    expect(scaled.inputSettings.derivedSettings.multiplier).toBe(factor);
-    expect(scaled.inputSettings.derivedSettings.percentLabels).toBe(percent);
+    expect(scaled.inputSettings.derivedSettings[0].multiplier).toBe(factor);
+    expect(scaled.inputSettings.derivedSettings[0].percentLabels).toBe(percent);
     expectMapped(scaled, raw, x => x * factor);
     expectSameFlags(scaled, raw);
   });
@@ -282,7 +282,7 @@ describe("transformation", () => {
       const source = reference(name);
       const plain = modelFor(source);
       const transformed = modelFor(source, { transformation });
-      expect(plain.inputSettings.derivedSettings.multiplier).toBe(source.chart_type === "PR" ? 100 : 1);
+      expect(plain.inputSettings.derivedSettings[0].multiplier).toBe(source.chart_type === "PR" ? 100 : 1);
       expectMapped(transformed, plain, f);
       expectSameFlags(transformed, plain);
     });

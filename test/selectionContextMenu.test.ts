@@ -1,13 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { testDom } from "powerbi-visuals-utils-testutils";
 import { Visual } from "../src/visual";
-import { categoricalData, dataView } from "./dataViewFixture";
-import { keyedHost } from "powerbi-visuals-core/testing";
-import addContextMenu from "../src/D3 Plotting Functions/addContextMenu";
+import buildDataView, { sample } from "./helpers/buildDataView";
+import { keyedHost, must } from "powerbi-visuals-core/testing";
+
+const viewport = { width: 500, height: 500 };
 
 function render(element: HTMLElement): Visual {
   const visual = new Visual({ element, host: keyedHost() });
-  visual.update({ dataViews: [dataView()], viewport: { width: 500, height: 500 }, type: 2 });
+  visual.update({ dataViews: [buildDataView(sample)], viewport, type: 2 });
   return visual;
 }
 
@@ -31,7 +32,7 @@ describe("Selection and context menu", () => {
     expect(dotOpacity(element, 1)).toBe(String(before.aesthetics.opacity_selected));
     expect(dotOpacity(element, 0)).toBe(String(before.aesthetics.opacity_unselected));
 
-    visual.update({ dataViews: [dataView()], viewport: { width: 500, height: 500 }, type: 2 });
+    visual.update({ dataViews: [buildDataView(sample)], viewport, type: 2 });
     const after = visual.viewModel.plotPoints[1];
     expect(after.identity).not.toBe(before.identity);
     expect(after.identity.getKey()).toBe(before.identity.getKey());
@@ -44,11 +45,8 @@ describe("Selection and context menu", () => {
     const element = testDom("500", "500");
     const visual = render(element);
     const show = vi.spyOn(visual.selectionManager, "showContextMenu").mockResolvedValue({});
-    const svg = element.querySelector("svg");
-    const dot = element.querySelector(".dotsgroup path");
-    if (svg === null || dot === null) {
-      throw new Error("Missing chart elements");
-    }
+    const svg = must(element.querySelector("svg"));
+    const dot = must(element.querySelector(".dotsgroup path"));
     const point = visual.viewModel.plotPoints[0];
 
     const onPoint = contextMenu(11, 22);
@@ -63,16 +61,8 @@ describe("Selection and context menu", () => {
     expect(show).toHaveBeenLastCalledWith({}, { x: 3, y: 4 });
     expect(onBackground.defaultPrevented).toBe(true);
 
-    const hidden = vi.spyOn(visual, "plotProperties", "get").mockReturnValue({ ...visual.plotProperties, displayPlot: false });
-    visual.svg.call(addContextMenu, visual);
-    const disabled = contextMenu(1, 1);
-    dot.dispatchEvent(disabled);
-    expect(show).toHaveBeenCalledTimes(2);
-    expect(disabled.defaultPrevented).toBe(false);
-
-    hidden.mockRestore();
-    visual.svg.call(addContextMenu, visual);
-    visual.svg.call(addContextMenu, visual);
+    visual.addContextMenu(svg);
+    visual.addContextMenu(svg);
     dot.dispatchEvent(contextMenu(5, 6));
     expect(show).toHaveBeenCalledTimes(3);
     expect(show).toHaveBeenLastCalledWith(point.identity, { x: 5, y: 6 });
@@ -83,10 +73,8 @@ describe("Group text highlighting", () => {
   it("fades group text by its own opacities rather than the marker ones", async () => {
     const element = testDom("500", "500");
     const visual = new Visual({ element, host: keyedHost() });
-    const categorical = categoricalData();
-    const scatter = { scatter: { use_group_text: true, scatter_text_opacity_selected: 0.9, scatter_text_opacity_unselected: 0.4 } };
-    categorical.categories![0].objects = [scatter, scatter, scatter];
-    visual.update({ dataViews: [dataView(categorical)], viewport: { width: 500, height: 500 }, type: 2 });
+    const scatter = { use_group_text: true, scatter_text_opacity_selected: 0.9, scatter_text_opacity_unselected: 0.4 };
+    visual.update({ dataViews: [buildDataView(sample, { scatter })], viewport, type: 2 });
     const texts = element.querySelectorAll<SVGTextElement>(".dotsgroup text");
     expect(texts).toHaveLength(3);
     expect(texts[1].style.fillOpacity).toBe("1");

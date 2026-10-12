@@ -1,6 +1,7 @@
 import type { dataObject } from "../Functions/extractInputData";
-import type { settingsClass } from "../Classes";
+import type { groupSettings } from "../Classes";
 import { chisqQuantile, max } from "powerbi-visuals-core/math";
+import { limitLineNames, type LimitLineName, type LimitLineValues } from "powerbi-visuals-core/settings";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
 import getPhi from "../Funnel Calculations/getPhi";
@@ -21,14 +22,8 @@ export type zArgs = {
   tau2: number;
 }
 
-export type limitData = {
+export type limitData = LimitLineValues<number | undefined> & {
   denominators: number;
-  ll99: number | undefined;
-  ll95: number | undefined;
-  ll68: number | undefined;
-  ul68: number | undefined;
-  ul95: number | undefined;
-  ul99: number | undefined;
   target: number;
   alt_target: number | undefined;
 }
@@ -36,7 +31,7 @@ export type limitData = {
 type intervalData = {
   prob: number;
   quantile: number;
-  label: "ll99" | "ll95" | "ll68" | "ul68" | "ul95" | "ul99";
+  label: LimitLineName;
 }
 
 type chartObjectConstructorT = {
@@ -50,12 +45,12 @@ type chartObjectConstructorT = {
   limitFunction: (x: limitArgs) => number;
   limitFunctionOD: (x: limitArgs) => number;
   inputData: dataObject;
-  inputSettings: settingsClass;
+  inputSettings: groupSettings;
 }
 
 export default class chartClass {
   inputData: dataObject;
-  inputSettings: settingsClass;
+  inputSettings: groupSettings;
   seFunction: (x: dataObject, plottingDenominators?: number[]) => number[];
   seFunctionOD: (x: dataObject, plottingDenominators?: number[]) => number[];
   targetFunction: (x: dataObject) => number;
@@ -141,7 +136,7 @@ export default class chartClass {
         return this.variance.tau2 > 0;
       case "auto":
         return N * this.variance.phi > chisqQuantile(0.95, N - 1);
-      default:
+      case "no":
         return false;
     }
   }
@@ -162,11 +157,9 @@ export default class chartClass {
       1.95996398454005360534,
       3.09023230616781319213
     ];
-    const q_labels: intervalData["label"][] = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"];
-
     const result = new Array<intervalData>(qs.length);
     for (let i = 0; i < qs.length; i++) {
-      result[i] = { prob: probs[i], quantile: qs[i], label: q_labels[i] };
+      result[i] = { prob: probs[i], quantile: qs[i], label: limitLineNames[i] };
     }
     return result;
   }

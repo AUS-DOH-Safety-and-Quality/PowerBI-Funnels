@@ -1,4 +1,4 @@
-import { chartClass, type limitArgs, type settingsClass, type zArgs } from "../Classes"
+import { chartClass, type limitArgs, type groupSettings, type zArgs } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import adjustZScores from "../Funnel Calculations/adjustZScores";
 import { sum, clamp } from "powerbi-visuals-core/math";
@@ -50,7 +50,7 @@ const prLimit = function(args: limitArgs) {
 }
 
 export default class prFunnelClass extends chartClass {
-  constructor(inputData: dataObject, inputSettings: settingsClass) {
+  constructor(inputData: dataObject, inputSettings: groupSettings) {
     super({
       seFunction: prSE,
       seFunctionOD: prSE,

@@ -3,12 +3,12 @@ import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import { cells, keyedHost, findBy, must } from "powerbi-visuals-core/testing";
 import { lineSetting } from "powerbi-visuals-core/settings";
 import type { settingsValueType } from "../../src/settings";
-import lineKeys, { type LineName } from "../../src/Functions/lineKeys";
+import { standardLineKeys, type StandardLineName } from "powerbi-visuals-core/settings";
 import type { Visual } from "../../src/visual";
 import { renderVisual } from "../helpers/renderVisual";
 
 type Lines = settingsValueType["lines"];
-type LineKey = typeof lineKeys[LineName];
+type LineKey = typeof standardLineKeys[StandardLineName];
 type LineStyle = { width: number; type: string; colour: string };
 
 const data = {
@@ -18,7 +18,7 @@ const data = {
 };
 
 /** Every line group, the lines it draws in drawing order, what makes it drawable and its default style */
-const lineGroups: { key: LineKey; names: LineName[]; enable: Partial<Lines>; defaults: LineStyle }[] = [
+const lineGroups: { key: LineKey; names: StandardLineName[]; enable: Partial<Lines>; defaults: LineStyle }[] = [
   { key: "target", names: ["target"], enable: {}, defaults: { width: 1.5, type: "10 0", colour: "#000000" } },
   {
     key: "alt_target", names: ["alt_target"], enable: { show_alt_target: true, alt_target: 18 },
@@ -47,11 +47,11 @@ function allLines(): Partial<Lines> {
   return result;
 }
 
-function lineGroup(element: HTMLElement, name: LineName): SVGGElement | null {
+function lineGroup(element: HTMLElement, name: StandardLineName): SVGGElement | null {
   return element.querySelector<SVGGElement>(`.linesgroup > .${name}-linegroup`);
 }
 
-function linePath(element: HTMLElement, name: LineName): SVGPathElement {
+function linePath(element: HTMLElement, name: StandardLineName): SVGPathElement {
   return must(lineGroup(element, name)?.querySelector("path"));
 }
 
@@ -59,7 +59,7 @@ function labels(element: HTMLElement): NodeListOf<SVGTextElement> {
   return element.querySelectorAll<SVGTextElement>(".linesgroup text");
 }
 
-function lastPoint(visual: Visual, name: LineName): { x: number; value: number } {
+function lastPoint(visual: Visual, name: StandardLineName): { x: number; value: number } {
   const points = must(findBy(visual.viewModel.groupedLines, 0, name))[1];
   const last = points[points.length - 1];
   return { x: last.x, value: must(last.line_value) };
@@ -89,7 +89,7 @@ describe("line settings", () => {
       expect(path.getAttribute("stroke-width"), names[i]).toBe("3.5");
       expect(path.getAttribute("stroke-dasharray"), names[i]).toBe(type);
     }
-    const other: LineName = key === "target" ? "ul99" : "target";
+    const other: StandardLineName = key === "target" ? "ul99" : "target";
     expect(linePath(rendered.element, other).getAttribute("stroke")).toBe(other === "target" ? "#000000" : "#6495ED");
     expect(labels(rendered.element)).toHaveLength(names.length);
 
@@ -105,7 +105,7 @@ describe("line settings", () => {
     const rendered = renderVisual({
       lines: { ...enable, ...lineOverrides(key, { opacity: 0.6, opacity_unselected: 0.3 }) }
     }, data, { host: keyedHost() });
-    const other: LineName = key === "target" ? "ul99" : "target";
+    const other: StandardLineName = key === "target" ? "ul99" : "target";
     for (let i = 0; i < names.length; i++) {
       expect(must(lineGroup(rendered.element, names[i])).style.strokeOpacity, names[i]).toBe("0.6");
     }
@@ -173,8 +173,8 @@ describe("line value labels", () => {
     const visual = rendered.visual;
     const drawn = labels(rendered.element);
     expect(drawn).toHaveLength(names.length);
-    const width = lineSetting<number>(visual.viewModel.inputSettings.settings.lines, "width", key);
-    const format = visual.viewModel.inputSettings.derivedSettings.formatValue;
+    const width = lineSetting<number>(visual.viewModel.inputSettings.settings[0].lines, "width", key);
+    const format = visual.viewModel.inputSettings.derivedSettings[0].formatValue;
     for (let i = 0; i < names.length; i++) {
       const end = lastPoint(visual, names[i]);
       const label = drawn[i];
@@ -237,7 +237,7 @@ describe("line value labels", () => {
     const frame = rendered.visual.plotProperties;
     expect(frame.xScale.range()).toEqual(plain.xScale.range());
     expect(frame.yScale.range()).toEqual(plain.yScale.range());
-    const names: LineName[] = ["target", "ll99", "ul99"];
+    const names: StandardLineName[] = ["target", "ll99", "ul99"];
     const drawn = labels(rendered.element);
     expect(drawn).toHaveLength(names.length);
     for (let i = 0; i < names.length; i++) {

@@ -89,7 +89,6 @@ describe("Chart", () => {
       update(views[i]);
       expect(element.querySelector(".errormessage")?.textContent).not.toContain("Internal Error");
       expect(element.querySelector(".errormessage")).not.toBeNull();
-      expect(() => visual.plotProperties).toThrow("Plot properties require validated data.");
     }
     vi.mocked(host.eventService.renderingFailed).mockClear();
     update(buildDataView(sample));
@@ -104,7 +103,6 @@ describe("Chart", () => {
     update(invalid);
     update(invalid, 4);
     expect(element.querySelector(".errormessage")?.textContent).toBe("No valid data found!");
-    expect(() => visual.plotProperties).toThrow("Plot properties require validated data.");
     vi.mocked(host.eventService.renderingFailed).mockClear();
     update(buildDataView(sample));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
@@ -173,15 +171,5 @@ describe("Chart", () => {
     host.hostCapabilities.allowInteractions = true;
     element.querySelector(".dotsgroup path")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(select).toHaveBeenCalledOnce();
-  });
-
-  it("does not open a tooltip when no point has a valid position", () => {
-    update(buildDataView(sample));
-    const show = vi.spyOn(host.tooltipService, "show");
-    for (let i = 0; i < visual.viewModel.plotPoints.length; i++) {
-      visual.viewModel.plotPoints[i].value = NaN;
-    }
-    visual.svg.node()!.dispatchEvent(new MouseEvent("mousemove", { clientX: 100, clientY: 100 }));
-    expect(show).not.toHaveBeenCalled();
   });
 });

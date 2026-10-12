@@ -2,35 +2,43 @@ import type powerbi from "powerbi-visuals-api";
 type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 type ISelectionId = powerbi.visuals.ISelectionId;
-import settingsClass from "./settingsClass";
-import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
+import settingsClass, { type groupSettings } from "./settingsClass";
+import settingsModel from "../settings";
+import miscFormattingSchema from "../Functions/miscFormattingSchema";
+import type { settingsValueType } from "../settings";
 import {
-  groupCategoryRows, readSettingsRows, readColourPalette, validateDataView,
-  type CategoryGroups, type ColourPalette, type UpdateOptions, type ValidatedDataView
+  buildFormattingModel, groupCategoryRows, labelledMessage, rowIdentity,
+  type CategoryGroups, type FormattingItem, type FormattingModel, type ValidatedDataView
 } from "powerbi-visuals-core/powerbi";
 import { chartClass, type limitData } from "../Classes"
 import extractInputData, { type dataObject } from "../Functions/extractInputData";
 import axisRanges from "../Functions/axisRanges";
 import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
-import { groupBy, checkFlagDirection, type FlagDirection } from "powerbi-visuals-core/data";
+import { groupBy, checkFlagDirection, applyFlagColours, type DerivedScaling, type FlagDirection } from "powerbi-visuals-core/data";
+import { limitStatus } from "powerbi-visuals-core/spc";
+import { limitColumns, limitLineNames, type StandardLineName } from "powerbi-visuals-core/settings";
+import type { TableColumn } from "powerbi-visuals-core/rendering";
 import * as chartObjects from "../Chart Types"
 import getTransformation from "../Funnel Calculations/getTransformation";
-import two_sigma from "../Outlier Flagging/two_sigma"
-import three_sigma from "../Outlier Flagging/three_sigma"
-import type { LineName } from "../Functions/lineKeys";
 
-import { axisRangeError, type ErrorKind } from "powerbi-visuals-core/rendering";
-
-export type viewModelValidationT =
-  | { status: true; data: dataObject; warning?: string }
-  | { status: false; error: string; type?: ErrorKind };
+import { PlotViewModelBase, type AxisBounds, type GroupResults } from "powerbi-visuals-core/rendering";
 
 export type lineData = {
   x: number;
   line_value: number | undefined;
-  group: LineName;
+  group: StandardLineName;
 }
+
+/** The point's limits with its own values and flags */
+export type summaryTableRow = Omit<limitData, "denominators"> & {
+  group: string;
+  numerator: number;
+  denominator: number;
+  value: number;
+  two_sigma: FlagDirection;
+  three_sigma: FlagDirection;
+};
 
 export type plotData = {
   x: number;
@@ -40,6 +48,7 @@ export type plotData = {
   group_text: string;
   /** Limits at this point's denominator */
   limits: limitData;
+  table_row: summaryTableRow;
   aesthetics: settingsValueType["scatter"];
   identity: ISelectionId;
   /** Highlighted by selections in other visuals */
@@ -57,96 +66,72 @@ export type plotData = {
 
 export type miscPoint = plotData & { indicator: string; score: number };
 
-export default class viewModelClass {
-  inputData: dataObject | undefined;
-  inputSettings: settingsClass;
-  chartBase: chartClass | undefined;
-  calculatedLimits: limitData[];
-  plotPoints: plotData[];
-  groupedLines: [LineName, lineData[]][];
-  firstRun: boolean;
-  colourPalette: ColourPalette;
-  svgWidth = 0;
-  svgHeight = 0;
-  headless: boolean;
-  frontend = false;
+/** The group, value, counts and shown lines, then the flagged patterns */
+function tableColumns(settings: settingsValueType): TableColumn[] {
+  const columns: TableColumn[] = [{ name: "group", label: settings.funnel.ttip_label_group }, { name: "value", label: "Value" }];
+  if (settings.funnel.ttip_show_numerator) {
+    columns.push({ name: "numerator", label: "Numerator" });
+  }
+  if (settings.funnel.ttip_show_denominator) {
+    columns.push({ name: "denominator", label: "Denominator" });
+  }
+  columns.push(...limitColumns(settings.lines, true));
+  if (settings.outliers.three_sigma) {
+    columns.push({ name: "three_sigma", label: "Three Sigma" });
+  }
+  if (settings.outliers.two_sigma) {
+    columns.push({ name: "two_sigma", label: "Two Sigma" });
+  }
+  return columns;
+}
+
+export default class viewModelClass extends PlotViewModelBase<typeof settingsModel, DerivedScaling, "numerators" | "denominators"> {
+  inputData: dataObject | undefined = undefined;
+  chartBase: chartClass | undefined = undefined;
+  calculatedLimits: limitData[] = [];
+  plotPoints: plotData[] = [];
+  tableColumns: TableColumn[] = [];
+  groupedLines: [StandardLineName, lineData[]][] = [];
+  /** Indicators switch the view to the multi-indicator chart */
+  showMisc = false;
+  /** The groups the MISC pane offers */
+  miscGroups: FormattingItem[] = [];
   miscPoints: miscPoint[] = [];
   miscAnyHighlights = false;
 
   constructor(host: IVisualHost) {
-    this.inputData = undefined;
-    this.inputSettings = new settingsClass();
-    this.chartBase = undefined;
-    this.calculatedLimits = [];
-    this.plotPoints = new Array<plotData>();
-    this.groupedLines = new Array<[LineName, lineData[]]>();
-    this.firstRun = true;
-    this.colourPalette = readColourPalette(host);
-    this.headless = false;
+    super(host, new settingsClass(), ["numerators", "denominators"]);
   }
 
-  update(options: UpdateOptions, host: IVisualHost): viewModelValidationT {
-    // Read before any early return so error rendering is themed
-    this.colourPalette = readColourPalette(host);
-    const checkDV = validateDataView(options.dataViews, ["numerators", "denominators"]);
-    if (checkDV.status !== "valid") {
-      return this.invalidate(checkDV.error);
-    }
-    const view = checkDV.view;
-    const dataChanged = (options.type & (2 | 16)) !== 0 || this.firstRun;
-    const indicators = view.categories.indicator ?? [];
-    const indicatorGroups = groupCategoryRows(indicators, view.rowCount);
-    if (dataChanged) {
-      this.inputSettings.showMisc = indicators.length > 0;
-      this.inputSettings.miscGroups = [];
-      this.inputSettings.update(view, indicatorGroups.rows);
-    }
-    const settingsValidation = this.inputSettings.validationStatus;
-    if (settingsValidation.status !== 0) {
-      return this.invalidate(settingsValidation.error, "settings");
-    }
-
-    this.svgWidth = options.viewport.width;
-    this.svgHeight = options.viewport.height;
-    this.headless = options.headless ?? false;
-    this.frontend = options.frontend ?? false;
-
-    if (dataChanged) {
-      this.miscPoints = [];
-      this.miscAnyHighlights = false;
-      if (this.inputSettings.showMisc) {
-        return this.initialiseMisc(view, host, indicatorGroups, indicators);
-      }
-      const chartType = this.inputSettings.settings.funnel.chart_type;
-      if (chartType !== "PR" && chartType !== "SR" && chartType !== "RC") {
-        return this.invalidate("Invalid chart type", "settings");
-      }
-      const result = extractInputData(view, this.inputSettings);
-      if (result.status === "invalid") {
-        return this.invalidate(result.error);
-      }
-      this.inputData = result.data;
-      this.chartBase = new chartObjects[chartType](result.data, this.inputSettings);
-      this.calculatedLimits = this.chartBase.getLimits();
-      this.scaleAndTruncateLimits();
-      this.initialisePlotData(host, result.data, this.chartBase);
-      this.initialiseGroupedLines();
-      this.firstRun = false;
-    }
-    if (this.inputData === undefined) {
-      return this.invalidate("No validated data present");
-    }
-    // The MISC chart has no axes
-    if (!this.inputSettings.showMisc) {
-      const rangeError = axisRangeError(axisRanges(this));
-      if (rangeError !== undefined) {
-        return this.invalidate(rangeError, "settings");
-      }
-    }
-    return { status: true, data: this.inputData, warning: this.inputData.warningMessage || undefined };
+  /** The limits form one labelled period */
+  get periodEnds(): number[] {
+    return [this.calculatedLimits.length - 1];
   }
 
-  private invalidate(error: string, type?: ErrorKind): viewModelValidationT {
+  get anyLabels(): boolean {
+    return this.inputData?.anyLabels ?? false;
+  }
+
+  /** The MISC pane with its group choices, or the funnel pane without the MISC card */
+  getFormattingModel(): FormattingModel {
+    const settings = this.inputSettings.settings[0];
+    if (this.showMisc) {
+      return buildFormattingModel(miscFormattingSchema(this.miscGroups), settings);
+    }
+    const { misc, ...funnelModel } = settingsModel;
+    return buildFormattingModel(funnelModel, settings);
+  }
+
+  /** The MISC chart has no axes */
+  protected get hasAxes(): boolean {
+    return !this.showMisc;
+  }
+
+  axisRanges(): { x: AxisBounds; y: AxisBounds } {
+    return axisRanges(this);
+  }
+
+  protected reset(): void {
     this.inputData = undefined;
     this.chartBase = undefined;
     this.calculatedLimits = [];
@@ -154,20 +139,36 @@ export default class viewModelClass {
     this.groupedLines = [];
     this.miscPoints = [];
     this.miscAnyHighlights = false;
-    this.firstRun = true;
-    return { status: false, error, type };
+  }
+
+  protected updateData(view: ValidatedDataView<"numerators" | "denominators">, indicatorGroups: CategoryGroups,
+                       host: IVisualHost): GroupResults {
+    this.showMisc = (view.categories.indicator ?? []).length > 0;
+    this.miscGroups = [];
+    this.miscPoints = [];
+    this.miscAnyHighlights = false;
+    if (this.showMisc) {
+      return this.initialiseMisc(view, host, indicatorGroups);
+    }
+    const result = extractInputData(view, this.inputSettings, indicatorGroups.rows[0]);
+    if (result.status === "invalid") {
+      return { errors: [result.error], warnings: [] };
+    }
+    this.inputData = result.data;
+    const group = this.inputSettings.group(0);
+    this.chartBase = new chartObjects[group.settings.funnel.chart_type](result.data, group);
+    this.calculatedLimits = this.chartBase.getLimits();
+    this.scaleAndTruncateLimits();
+    this.initialisePlotData(host, result.data, this.chartBase);
+    this.initialiseGroupedLines();
+    return { errors: [], warnings: result.data.warningMessage === "" ? [] : [result.data.warningMessage] };
   }
 
   private initialiseMisc(view: ValidatedDataView<"numerators" | "denominators">, host: IVisualHost,
-    indicators: CategoryGroups, indicatorColumns: powerbi.DataViewCategoryColumn[]): viewModelValidationT {
+    indicators: CategoryGroups): GroupResults {
     const keyColumn = view.categories.key[0];
-    for (let i = 0; i < indicatorColumns.length; i++) {
-      if (indicatorColumns[i].values.length !== keyColumn.values.length) {
-        return this.invalidate("Indicators and groups must have matching row counts.");
-      }
-    }
     const groups = groupCategoryRows([keyColumn], keyColumn.values.length);
-    const items = this.inputSettings.miscGroups;
+    const items = this.miscGroups;
     const rowsByGroup = new Map<string, number[]>();
     for (let i = 0; i < groups.rows.length; i++) {
       if (keyColumn.values[groups.rows[i][0]] == null) {
@@ -176,46 +177,51 @@ export default class viewModelClass {
       items.push({ displayName: groups.names[i][0], value: groups.keys[i] });
       rowsByGroup.set(groups.keys[i], groups.rows[i]);
     }
-    const misc = this.inputSettings.settings.misc;
+    // The group is a visual-level choice, so lives in the report's metadata rather than the rows
+    const misc = this.inputSettings.settings[0].misc;
+    const selectedGroup = view.dataView.metadata.objects?.misc?.group;
+    misc.group = typeof selectedGroup === "string" ? selectedGroup : "";
     if (misc.group === "" && items.length > 0) {
       misc.group = items[0].value;
     }
     const targetRows = rowsByGroup.get(misc.group);
     if (targetRows === undefined) {
-      return this.invalidate("Select a MISC group present in the data.");
-    }
-    if (!(misc.lower < 0 && misc.upper > 0)) {
-      return this.invalidate("MISC sigma bounds must span zero.");
+      return { errors: ["Select a MISC group present in the data."], warnings: [] };
     }
     const selectedRows = new Set(targetRows);
+    const errors: string[] = [];
     const warnings: string[] = [];
     this.inputData = undefined;
     for (let i = 0; i < indicators.rows.length; i++) {
       const rows = indicators.rows[i];
-      const settings = this.inputSettings.forGroup(i);
-      const indicator = indicators.names[i].join(" / ");
-      const directions = readSettingsRows(settingsModel.outliers, "outliers", defaultSettings.outliers, view.category, rows).values;
-      const direction = directions[0].improvement_direction;
-      for (let j = 0; j < directions.length; j++) {
-        if (direction === "neutral" || directions[j].improvement_direction !== direction) {
-          return this.invalidate(`Each MISC indicator must have one improvement direction: increase or decrease. Invalid indicator: ${indicator}.`);
-        }
+      const group = this.inputSettings.group(i);
+      const indicator = indicators.labels[i];
+      const rowSettings = this.inputSettings.rowSettings[i];
+      const direction = rowSettings[0].outliers.improvement_direction;
+      let oneDirection = direction !== "neutral";
+      for (let j = 1; oneDirection && j < rowSettings.length; j++) {
+        oneDirection = rowSettings[j].outliers.improvement_direction === direction;
       }
-      settings.settings.outliers = { ...settings.settings.outliers, three_sigma: true, two_sigma: false };
-      const result = extractInputData(view, settings, rows);
+      if (!oneDirection) {
+        errors.push(labelledMessage(indicator, "Each MISC indicator must have one improvement direction: increase or decrease."));
+        continue;
+      }
+      const result = extractInputData(view, this.inputSettings, rows, i);
       if (result.status === "invalid") {
-        return this.invalidate(`${indicator}: ${result.error}`);
+        errors.push(labelledMessage(indicator, result.error));
+        continue;
       }
       const data = result.data;
       this.inputData ??= data;
       if (data.warningMessage !== "") {
-        warnings.push(`${indicator}: ${data.warningMessage}`);
+        warnings.push(labelledMessage(indicator, data.warningMessage));
       }
       this.miscAnyHighlights ||= data.anyHighlights;
-      const chart = new chartObjects[settings.settings.funnel.chart_type](data, settings);
+      const chart = new chartObjects[group.settings.funnel.chart_type](data, group);
       this.calculatedLimits = chart.getLimits();
-      this.scaleAndTruncateLimits(settings);
-      this.initialisePlotData(host, data, chart, settings);
+      this.scaleAndTruncateLimits(group);
+      // Bars colour by three-sigma status whatever the outlier toggles say
+      this.initialisePlotData(host, data, chart, group, { two_sigma: false, three_sigma: true });
       for (let j = 0; j < data.id.length; j++) {
         const row = data.id[j];
         if (!selectedRows.has(row)) {
@@ -223,15 +229,10 @@ export default class viewModelClass {
         }
         const point = this.plotPoints[j];
         const score = point.z * (direction === "decrease" ? -1 : 1);
-        const identity = host.createSelectionIdBuilder().withCategory(keyColumn, row);
-        for (let k = 0; k < indicatorColumns.length; k++) {
-          identity.withCategory(indicatorColumns[k], row);
-        }
         this.miscPoints.push({
           ...point,
           indicator,
           score,
-          identity: identity.createSelectionId(),
           tooltip: [
             { displayName: "Indicator", value: indicator },
             { displayName: "Z-score", value: score.toFixed(3) },
@@ -244,21 +245,21 @@ export default class viewModelClass {
     this.calculatedLimits = [];
     this.plotPoints = [];
     this.groupedLines = [];
-    if (this.inputData === undefined || this.miscPoints.length === 0) {
-      return this.invalidate("The selected MISC group has no valid indicator results.");
+    if (errors.length === 0 && (this.inputData === undefined || this.miscPoints.length === 0)) {
+      errors.push("The selected MISC group has no valid indicator results.");
     }
-    this.inputData.warningMessage = warnings.join("\n");
-    this.firstRun = false;
-    return { status: true, data: this.inputData, warning: this.inputData.warningMessage || undefined };
+    return { errors, warnings };
   }
 
-  initialisePlotData(host: IVisualHost, inputData: dataObject, chart: chartClass, inputSettings = this.inputSettings): void {
+  /** Points are flagged against the limits the flags name; by default those the outlier settings turn on */
+  initialisePlotData(host: IVisualHost, inputData: dataObject, chart: chartClass, inputSettings: groupSettings = this.inputSettings.group(0),
+                     flags: { two_sigma: boolean; three_sigma: boolean } = inputSettings.settings.outliers): void {
     this.plotPoints = new Array<plotData>();
-    const transform_text: string = inputSettings.settings.funnel.transformation;
-    const transform: (x: number) => number = getTransformation(transform_text);
+    this.tableColumns = tableColumns(inputSettings.settings);
+    const transform: (x: number) => number = getTransformation(inputSettings.settings.funnel.transformation);
     const multiplier: number = inputSettings.derivedSettings.multiplier;
-    const flag_two_sigma: boolean = inputSettings.settings.outliers.two_sigma;
-    const flag_three_sigma: boolean = inputSettings.settings.outliers.three_sigma;
+    const flag_two_sigma: boolean = flags.two_sigma;
+    const flag_three_sigma: boolean = flags.three_sigma;
     const zScores: number[] = chart.getZ();
     const limitsByDenominator = new Map<number, limitData>();
     for (let i = 0; i < this.calculatedLimits.length; i++) {
@@ -282,20 +283,13 @@ export default class viewModelClass {
         process_flag_type: inputSettings.settings.outliers.process_flag_type,
         improvement_direction: inputSettings.settings.outliers.improvement_direction
       }
-      const two_sigma_outlier = checkFlagDirection(flag_two_sigma ? two_sigma(value, limits) : "none", flagSettings);
-      const three_sigma_outlier = checkFlagDirection(flag_three_sigma ? three_sigma(value, limits) : "none", flagSettings);
+      const two_sigma_outlier = checkFlagDirection(flag_two_sigma ? limitStatus(value, limits.ll95, limits.ul95) : "none", flagSettings);
+      const three_sigma_outlier = checkFlagDirection(flag_three_sigma ? limitStatus(value, limits.ll99, limits.ul99) : "none", flagSettings);
       const category = inputData.keys[i].label;
-      if (two_sigma_outlier !== "none") {
-        aesthetics.colour = inputSettings.settings.outliers[`two_sigma_colour_${two_sigma_outlier}`];
-        aesthetics.colour_outline = inputSettings.settings.outliers[`two_sigma_colour_${two_sigma_outlier}`];
-        aesthetics.scatter_text_colour = aesthetics.colour;
-      }
-
-      if (three_sigma_outlier !== "none") {
-        aesthetics.colour = inputSettings.settings.outliers[`three_sigma_colour_${three_sigma_outlier}`];
-        aesthetics.colour_outline = inputSettings.settings.outliers[`three_sigma_colour_${three_sigma_outlier}`];
-        aesthetics.scatter_text_colour = aesthetics.colour;
-      }
+      // A three-sigma flag outranks a two-sigma one
+      applyFlagColours(aesthetics, inputSettings.settings.outliers, [
+        [two_sigma_outlier, "two_sigma_colour"], [three_sigma_outlier, "three_sigma_colour"]
+      ] as const);
 
       this.plotPoints.push({
         x: denominator,
@@ -304,10 +298,14 @@ export default class viewModelClass {
         z: zScores[i],
         group_text: category,
         limits,
+        table_row: {
+          group: category, numerator, denominator, value,
+          target: limits.target, alt_target: limits.alt_target,
+          ll99: limits.ll99, ll95: limits.ll95, ll68: limits.ll68, ul68: limits.ul68, ul95: limits.ul95, ul99: limits.ul99,
+          two_sigma: two_sigma_outlier, three_sigma: three_sigma_outlier
+        },
         aesthetics: aesthetics,
-        identity: host.createSelectionIdBuilder()
-                      .withCategory(inputData.categories, original_index)
-                      .createSelectionId(),
+        identity: rowIdentity(host, inputData.identityColumns, original_index),
         highlighted: inputData.highlights[i] !== undefined,
         tooltip: buildTooltip(
           i,
@@ -330,20 +328,20 @@ export default class viewModelClass {
   }
 
   initialiseGroupedLines(): void {
-    const labels: LineName[] = [];
-    if (this.inputSettings.settings.lines.show_target) {
+    const labels: StandardLineName[] = [];
+    if (this.inputSettings.settings[0].lines.show_target) {
       labels.push("target");
     }
-    if (this.inputSettings.settings.lines.show_alt_target) {
+    if (this.inputSettings.settings[0].lines.show_alt_target) {
       labels.push("alt_target");
     }
-    if (this.inputSettings.settings.lines.show_99) {
+    if (this.inputSettings.settings[0].lines.show_99) {
       labels.push("ll99", "ul99");
     }
-    if (this.inputSettings.settings.lines.show_95) {
+    if (this.inputSettings.settings[0].lines.show_95) {
       labels.push("ll95", "ul95");
     }
-    if (this.inputSettings.settings.lines.show_68) {
+    if (this.inputSettings.settings[0].lines.show_68) {
       labels.push("ll68", "ul68");
     }
 
@@ -359,17 +357,16 @@ export default class viewModelClass {
   }
 
   /** Flags follow the truncated limits; the alt. target is entered in display units, so is not multiplied */
-  scaleAndTruncateLimits(inputSettings = this.inputSettings): void {
+  scaleAndTruncateLimits(inputSettings: groupSettings = this.inputSettings.group(0)): void {
     const multiplier: number = inputSettings.derivedSettings.multiplier;
     const transform: (x: number) => number = getTransformation(inputSettings.settings.funnel.transformation);
     const lower: number | undefined = inputSettings.settings.funnel.ll_truncate;
     const upper: number | undefined = inputSettings.settings.funnel.ul_truncate;
-    const names = ["ll99", "ll95", "ll68", "ul68", "ul95", "ul99"] as const;
     for (let i = 0; i < this.calculatedLimits.length; i++) {
       const limit = this.calculatedLimits[i];
       limit.target = transform(limit.target * multiplier);
-      for (let j = 0; j < names.length; j++) {
-        const name = names[j];
+      for (let j = 0; j < limitLineNames.length; j++) {
+        const name = limitLineNames[j];
         const value = limit[name];
         if (value !== undefined) {
           limit[name] = clamp(transform(value * multiplier), lower, upper);

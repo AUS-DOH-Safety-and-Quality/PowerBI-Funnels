@@ -2,12 +2,11 @@ import { clamp, scaleLinear } from "powerbi-visuals-core/math";
 import { axisLabelPlacement } from "powerbi-visuals-core/rendering";
 import type { svgBaseType, Visual } from "../visual";
 import type { miscPoint } from "../Classes/viewModelClass";
-import addContextMenu from "./addContextMenu";
 
 export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   svg.selectChildren().remove();
   const model = visual.viewModel;
-  const settings = model.inputSettings.settings;
+  const settings = model.inputSettings.settings[0];
   const canvas = settings.canvas;
   const misc = settings.misc;
   const xAxis = settings.x_axis;
@@ -26,9 +25,11 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
     .style("font-family", yAxis.ylimit_tick_font).style("font-size", `${yAxis.ylimit_tick_size}px`)
     .attr("fill", colour(yAxis.ylimit_tick_colour)).text(point => point.indicator);
   let labelWidth = 0;
-  const nodes = labels.nodes();
-  for (let i = 0; i < nodes.length; i++) {
-    labelWidth = Math.max(labelWidth, nodes[i].getBBox().width);
+  if (!model.headless) {
+    const nodes = labels.nodes();
+    for (let i = 0; i < nodes.length; i++) {
+      labelWidth = Math.max(labelWidth, nodes[i].getBBox().width);
+    }
   }
   const left = canvas.left_padding + labelWidth + 10;
   const right = Math.max(left, model.svgWidth - canvas.right_padding);
@@ -114,5 +115,5 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
       isTouchEvent: false
     }))
     .on("mouseout", () => visual.host.tooltipService.hide({ immediately: true, isTouchEvent: false }));
-  svg.call(addContextMenu, visual, visual.host.hostCapabilities.allowInteractions === true);
+  visual.addContextMenu(svg.node(), visual.host.hostCapabilities.allowInteractions === true);
 }

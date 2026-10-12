@@ -8,7 +8,7 @@ export default function axisRanges(viewModel: viewModelClass): { x: AxisBounds; 
   if (inputData === undefined) {
     throw new Error("Axis ranges require validated data.");
   }
-  const settings = viewModel.inputSettings.settings;
+  const settings = viewModel.inputSettings.settings[0];
   let yUpperLimit = settings.y_axis.ylimit_u;
   if (yUpperLimit === undefined) {
     // Automatic bound follows the plotted (transformed and scaled) values

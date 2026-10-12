@@ -1,20 +1,24 @@
+import type powerbi from "powerbi-visuals-api";
 import { describe, expect, it } from "vitest";
+import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import settingsClass from "../../src/Classes/settingsClass";
+import viewModelClass from "../../src/Classes/viewModelClass";
 import { readSettingsRows } from "powerbi-visuals-core/powerbi";
+import { must } from "powerbi-visuals-core/testing";
 import settingsModel, { defaultSettings } from "../../src/settings";
-import { categoricalData, validated } from "../dataViewFixture";
+import buildDataView, { sample, type SettingsOverrides } from "../helpers/buildDataView";
+
+function category(rows: SettingsOverrides[]): powerbi.DataViewCategoryColumn {
+  return must(buildDataView(sample, rows).categorical?.categories?.[0]);
+}
 
 describe("Settings contracts", () => {
   it("preserves zero and false while rejecting non-finite numeric controls", () => {
-    const categorical = categoricalData();
-    if (categorical.categories === undefined) {
-      throw new Error("Missing fixture category");
-    }
-    categorical.categories[0].objects = [
+    const rows = category([
       { y_axis: { ylimit_sig_figs: 0, ylimit_ticks: false } },
       { y_axis: { ylimit_sig_figs: NaN } }, { y_axis: { ylimit_sig_figs: Infinity } }
-    ];
-    const result = readSettingsRows(settingsModel.y_axis, "y_axis", defaultSettings.y_axis, categorical.categories[0], [0, 1, 2]);
+    ]);
+    const result = readSettingsRows(settingsModel.y_axis, "y_axis", defaultSettings.y_axis, rows, [0, 1, 2]);
     expect(result.values?.[0].ylimit_sig_figs).toBe(0);
     expect(result.values?.[0].ylimit_ticks).toBe(false);
     expect(result.validation.messages[0]).toEqual([]);
@@ -23,14 +27,8 @@ describe("Settings contracts", () => {
   });
 
   it("checks supplied optional numbers against descriptor constraints", () => {
-    const categorical = categoricalData();
-    if (categorical.categories === undefined) {
-      throw new Error("Missing fixture category");
-    }
-    categorical.categories[0].objects = [
-      { y_axis: { ylimit_sig_figs: -1 } }, { y_axis: { ylimit_sig_figs: 3 } }, {}
-    ];
-    const result = readSettingsRows(settingsModel.y_axis, "y_axis", defaultSettings.y_axis, categorical.categories[0], [0, 1, 2]);
+    const rows = category([{ y_axis: { ylimit_sig_figs: -1 } }, { y_axis: { ylimit_sig_figs: 3 } }, {}]);
+    const result = readSettingsRows(settingsModel.y_axis, "y_axis", defaultSettings.y_axis, rows, [0, 1, 2]);
     expect(result.values?.[0].ylimit_sig_figs).toBeUndefined();
     expect(result.values?.[1].ylimit_sig_figs).toBe(3);
     expect(result.values?.[2].ylimit_sig_figs).toBeUndefined();
@@ -41,24 +39,19 @@ describe("Settings contracts", () => {
   });
 
   it("rejects an invalid dropdown on all rows and recovers on the next update", () => {
-    const categorical = categoricalData();
-    if (categorical.categories === undefined) {
-      throw new Error("Missing fixture category");
-    }
-    categorical.categories[0].objects = [
-      { funnel: { chart_type: "bad" } }, { funnel: { chart_type: "bad" } }, { funnel: { chart_type: "bad" } }
-    ];
+    const view = buildDataView(sample);
+    const bad: powerbi.DataViewObjects = { funnel: { chart_type: "bad" } };
+    must(view.categorical?.categories)[0].objects = [bad, bad, bad];
     const settings = new settingsClass();
-    settings.update(validated(categorical));
+    settings.update(must(view.categorical?.categories)[0], [[0, 1, 2]]);
     expect(settings.validationStatus.status).toBe(1);
-    settings.update(validated());
+    settings.update(category([]), [[0, 1, 2]]);
     expect(settings.validationStatus).toEqual({ status: 0, messages: [[], [], []] });
-    expect(settings.settings.funnel.chart_type).toBe("PR");
+    expect(settings.settings[0].funnel.chart_type).toBe("PR");
   });
 
   it("builds only real cards and preserves explicit unset numeric values", () => {
-    const settings = new settingsClass();
-    const model = settings.getFormattingModel();
+    const model = new viewModelClass(createVisualHost({})).getFormattingModel();
     expect(model.cards).toHaveLength(Object.keys(defaultSettings).length - 1);
     let found = false;
     for (let i = 0; i < model.cards.length; i++) {

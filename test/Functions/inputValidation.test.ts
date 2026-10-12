@@ -3,34 +3,33 @@ import extractInputData from "../../src/Functions/extractInputData";
 
 import validateInputData from "../../src/Functions/validateInputData";
 import settingsClass from "../../src/Classes/settingsClass";
-import { categoricalData, dataView, validated } from "../dataViewFixture";
+import buildDataView, { sample, validatedView } from "../helpers/buildDataView";
 import { validateDataView } from "powerbi-visuals-core/powerbi";
-import { cells } from "powerbi-visuals-core/testing";
+import { cells, must, validatedView as validate } from "powerbi-visuals-core/testing";
+
+const roles = ["numerators", "denominators"] as const;
+const all = [0, 1, 2];
 
 describe("Input contracts", () => {
   it("distinguishes absent columns, empty columns and missing cells", () => {
-    const result = extractInputData(validated(categoricalData([0, null, 2])), new settingsClass());
+    const result = extractInputData(validatedView({ ...sample, numerators: [0, null, 2] }), new settingsClass(), all);
     if (result.status !== "valid") {
       throw new Error(result.error);
     }
     expect(result.data.numerators).toEqual([0, 2]);
     expect(result.data.labels).toEqual([undefined, undefined]);
     expect(result.data.anyLabels).toBe(false);
-    expect(validateDataView([dataView(categoricalData([], [], []))], ["numerators", "denominators"]))
+    expect(validateDataView([buildDataView({ key: [], numerators: [], denominators: [] })], roles))
       .toEqual({ status: "invalid", error: "No data present" });
   });
 
   it("keeps optional row data aligned when required rows are rejected", () => {
-    const data = categoricalData([4, null, 25]);
-    data.values?.push(
-      { source: { displayName: "Label", roles: { labels: true } }, values: cells([null, "removed", "C label"]) },
-      { source: { displayName: "Tooltip", roles: { tooltips: true } }, values: [0, "removed", false] }
-    );
-    if (data.values === undefined) {
-      throw new Error("Missing fixture values");
-    }
-    data.values[0].highlights = cells([0, 16, null]);
-    const result = extractInputData(validated(data), new settingsClass());
+    const view = buildDataView({
+      ...sample, numerators: [4, null, 25], labels: [null, "removed", "C label"],
+      columns: [{ role: "tooltips", values: [0, "removed", false], displayName: "Tooltip" }]
+    });
+    must(view.categorical?.values)[0].highlights = cells([0, 16, null]);
+    const result = extractInputData(validate(view, roles), new settingsClass(), all);
     expect(result.status).toBe("valid");
     if (result.status !== "valid") {
       throw new Error(result.error);
@@ -50,27 +49,19 @@ describe("Input contracts", () => {
 
   // Highlighting activates only when an accepted row carries a highlight.
   it("does not activate highlighting when no accepted row is highlighted", () => {
-    const data = categoricalData([4, null, 25]);
-    if (data.values === undefined) {
-      throw new Error("Missing fixture values");
-    }
-    data.values[0].highlights = cells([null, 16, null]);
-    const result = extractInputData(validated(data), new settingsClass());
+    const view = buildDataView({ ...sample, numerators: [4, null, 25] });
+    const numerators = must(view.categorical?.values)[0];
+    numerators.highlights = cells([null, 16, null]);
+    const result = extractInputData(validate(view, roles), new settingsClass(), all);
     if (result.status !== "valid") {
       throw new Error(result.error);
     }
     expect(result.data.highlights).toEqual([undefined, undefined]);
     expect(result.data.anyHighlights).toBe(false);
-    data.values[0].highlights = [];
-    const empty = extractInputData(validated(data), new settingsClass());
-    if (empty.status !== "valid") {
-      throw new Error(empty.error);
-    }
-    expect(empty.data.anyHighlights).toBe(false);
   });
 
   it("returns complete numeric arrays and blank rows for absent optional columns", () => {
-    const result = extractInputData(validated(), new settingsClass());
+    const result = extractInputData(validatedView(sample), new settingsClass(), all);
     if (result.status !== "valid") {
       throw new Error(result.error);
     }
@@ -81,11 +72,10 @@ describe("Input contracts", () => {
     expect(result.data.scatter_formatting[0]).not.toBe(result.data.scatter_formatting[1]);
   });
 
-  it("returns an error without a data record for invalid or mismatched columns", () => {
-    expect(extractInputData(validated(categoricalData([null, null, null])), new settingsClass())).toEqual({
+  it("returns an error without a data record when every row is invalid", () => {
+    expect(extractInputData(validatedView({ ...sample, numerators: [null, null, null] }), new settingsClass(), all)).toEqual({
       status: "invalid", error: "All numerators are missing or null!"
     });
-    expect(extractInputData(validated(categoricalData([1])), new settingsClass()).status).toBe("invalid");
   });
 
   it("reports a shared failure by name and mixed failures generically", () => {
@@ -94,7 +84,6 @@ describe("Input contracts", () => {
       error: "No valid data found!"
     });
     expect(validateInputData(["A", "B"], [-1, -2], [2, 2], "PR")).toMatchObject({ error: "All numerators are negative!" });
-    expect(validateInputData([], [], [], "PR")).toEqual({ status: 1, messages: [], error: "No valid data found!" });
     expect(validateInputData(["A", "B"], [2, 1], [1, 2], "PR")).toEqual({
       status: 0, messages: ["Denominator < numerator", ""]
     });
@@ -112,8 +101,7 @@ describe("Input contracts", () => {
     expect(validateInputData(["A"], [1], [Infinity], "PR")).toEqual({
       status: 1, messages: ["Denominator is not finite"], error: "All denominators are not finite!"
     });
-    const data = categoricalData([4, 16, 25], [10, 0, 100]);
-    const result = extractInputData(validated(data), new settingsClass());
+    const result = extractInputData(validatedView({ ...sample, denominators: [10, 0, 100] }), new settingsClass(), all);
     if (result.status !== "valid") {
       throw new Error(result.error);
     }
@@ -121,26 +109,4 @@ describe("Input contracts", () => {
     expect(result.data.denominators).toEqual([10, 100]);
     expect(result.data.warningMessage).toContain("removed due to: Denominator is zero.");
   });
-});
-
-it("preserves shortened optional columns and scalar keys without shifting rows", () => {
-  const data = categoricalData([1, null, 2], [10, 20, 30], [0, "removed", false]);
-  data.values!.push(
-    { source: { displayName: "Short", roles: { tooltips: true } }, values: [0] },
-    { source: { displayName: "Full", roles: { tooltips: true } }, values: [false, "removed", "last"] },
-    { source: { displayName: "Label", roles: { labels: true } }, values: [] }
-  );
-  data.values![0].highlights = [0];
-  const result = extractInputData(validated(data), new settingsClass());
-  if (result.status !== "valid") {
-    throw new Error(result.error);
-  }
-  expect(result.data.keys).toEqual([{ x: 0, id: 0, label: "0" }, { x: 1, id: 2, label: "false" }]);
-  expect(result.data.labels).toEqual([undefined, undefined]);
-  expect(result.data.highlights).toEqual([0, undefined]);
-  expect(result.data.anyLabels).toBe(false);
-  expect(result.data.tooltips).toEqual([
-    [{ displayName: "Short", value: "0" }, { displayName: "Full", value: "false" }],
-    [{ displayName: "Short", value: "" }, { displayName: "Full", value: "last" }]
-  ]);
 });

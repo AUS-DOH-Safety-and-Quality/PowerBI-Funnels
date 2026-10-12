@@ -1,14 +1,12 @@
-export default function getTransformation(setting_name: string): (x: number) => number {
-  switch(setting_name) {
-    case "none":
-      return function(x: number): number { return x; };
-    case "ln":
-      return function(x: number): number { return Math.log(x+1); };
-    case "log10":
-      return function(x: number): number { return Math.log10(x+1); };
-    case "sqrt":
-      return Math.sqrt
-    default:
-      return function(x: number): number { return x; };
-  }
+import type { settingsValueType } from "../settings";
+
+const transformations: Record<settingsValueType["funnel"]["transformation"], (x: number) => number> = {
+  none: function(x: number): number { return x; },
+  ln: function(x: number): number { return Math.log(x + 1); },
+  log10: function(x: number): number { return Math.log10(x + 1); },
+  sqrt: Math.sqrt
+};
+
+export default function getTransformation(setting_name: settingsValueType["funnel"]["transformation"]): (x: number) => number {
+  return transformations[setting_name];
 }
