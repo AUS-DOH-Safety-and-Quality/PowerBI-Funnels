@@ -12,7 +12,8 @@ export type dataObject = RowAnnotations<settingsValueType["scatter"], settingsVa
   id: number[];
   numerators: number[];
   denominators: number[];
-  categories: powerbi.DataViewCategoryColumn;
+  /** Key and indicator columns, which together identify a row */
+  identityColumns: powerbi.DataViewCategoryColumn[];
   warningMessage: string;
   validationStatus: ValidRows;
 };
@@ -49,7 +50,8 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
   const warnings = rowWarnings(categories.source.displayName, rows, keys, validation.messages,
     { messages: inputSettingsClass.validationStatus.messages, messagePositionByRowIndex: inputSettingsClass.messagePositionByRowIndex });
   return { status: "valid", data: {
-    ...annotations, keys: keyRows, id, numerators: keptValues(numerators, kept), denominators: keptValues(denominators, kept), categories,
+    ...annotations, keys: keyRows, id, numerators: keptValues(numerators, kept), denominators: keptValues(denominators, kept),
+    identityColumns: [...view.categories.key, ...(view.categories.indicator ?? [])],
     warningMessage: warnings.join("\n"), validationStatus: validation
   } };
 }

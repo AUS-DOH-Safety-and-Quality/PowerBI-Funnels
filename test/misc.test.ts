@@ -75,18 +75,17 @@ describe("MISC calculations", () => {
     const model = new viewModelClass(host);
     const view = miscView();
     expect(update(model, view, host).status).toBe(true);
-    const settings = model.inputSettings;
-    expect(settings.miscGroups).toMatchObject([
+    expect(model.miscGroups).toMatchObject([
       { displayName: "A" },
       { displayName: "B" },
       { displayName: "C" },
       { displayName: "D" }
     ]);
-    const card = must(findBy(settings.getFormattingModel().cards, "uid", "misc_card_uid"));
+    const card = must(findBy(model.getFormattingModel().cards, "uid", "misc_card_uid"));
     expect(card.groups[0].slices[0]).toMatchObject({ control: { type: "Dropdown", properties: {
-      descriptor: { objectName: "misc", propertyName: "group" }, items: settings.miscGroups, value: settings.miscGroups[0]
+      descriptor: { objectName: "misc", propertyName: "group" }, items: model.miscGroups, value: model.miscGroups[0]
     } } });
-    const selected = settings.miscGroups[1].value;
+    const selected = model.miscGroups[1].value;
     view.metadata.objects = { misc: { group: selected } };
     expect(update(model, view, host).status).toBe(true);
     expect(model.miscPoints[0].group_text).toBe("B");
@@ -134,7 +133,7 @@ describe("MISC calculations", () => {
     const view = miscView(undefined, rows, { ...miscInputs(), key: [1, 1, 2, 2, 3, 3, 4, 4] });
     const model = new viewModelClass(keyedHost());
     expect(update(model, view).status).toBe(true);
-    const items = model.inputSettings.miscGroups;
+    const items = model.miscGroups;
     expect(items).toHaveLength(4);
     expect(model.inputSettings.groupSettings[0].funnel.chart_type).toBe("PR");
     expect(model.inputSettings.groupSettings[1].funnel.chart_type).toBe("RC");
@@ -149,8 +148,14 @@ describe("MISC calculations", () => {
     const rows = miscSettings();
     rows[2] = { outliers: { improvement_direction: "decrease" } };
     // The messages name the setting, so they skip the all-observations settings preamble
-    expect(update(model, miscView(undefined, rows))).toMatchObject({ status: false, type: undefined });
+    expect(update(model, miscView(undefined, rows))).toEqual({
+      status: false, type: undefined, error: "Higher: Each MISC indicator must have one improvement direction: increase or decrease."
+    });
     expect(model.miscPoints).toEqual([]);
+    expect(update(model, miscView([80, null, 20, null, 24, null, 30, null], rows))).toEqual({
+      status: false, type: undefined,
+      error: "Higher: Each MISC indicator must have one improvement direction: increase or decrease.\nLower: All numerators are missing or null!"
+    });
     const valid = miscView();
     valid.metadata.objects = { misc: { group: "missing" } };
     expect(update(model, valid)).toMatchObject({ status: false, type: undefined });
@@ -187,7 +192,7 @@ describe("MISC rendering", () => {
       expect(bars[1].getAttribute("opacity")).toBe("1");
       bars[1].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 20 }));
       expect(menu).toHaveBeenCalledWith(visual.viewModel.miscPoints[1].identity, { x: 10, y: 20 });
-      view.metadata.objects = { misc: { group: visual.viewModel.inputSettings.miscGroups[1].value } };
+      view.metadata.objects = { misc: { group: visual.viewModel.miscGroups[1].value } };
       visual.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: 16 });
       expect(visual.viewModel.miscPoints[0].group_text).toBe("B");
     } finally {

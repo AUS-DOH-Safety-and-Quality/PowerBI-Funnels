@@ -496,16 +496,16 @@ describe("MISC canvas", () => {
 
 describe("MISC validation", () => {
   it.each([
-    { lower: 1, upper: 5 },
-    { lower: 0, upper: 5 },
-    { lower: -5, upper: 0 },
-    { lower: -5, upper: -1 }
-  ])("reports bounds [$lower, $upper] that do not span zero, then recovers", misc => {
+    { lower: 1, upper: 5, error: "1 is not a valid value for lower. Valid values are numbers, below 0" },
+    { lower: 0, upper: 5, error: "0 is not a valid value for lower. Valid values are numbers, below 0" },
+    { lower: -5, upper: 0, error: "0 is not a valid value for upper. Valid values are numbers, above 0" },
+    { lower: -5, upper: -1, error: "-1 is not a valid value for upper. Valid values are numbers, above 0" }
+  ])("reports bounds [$lower, $upper] that do not span zero, then recovers", ({ lower, upper, error }) => {
     const host = createVisualHost({});
     const failed = vi.spyOn(host.eventService, "renderingFailed");
-    const rendered = renderMisc({ misc }, host);
+    const rendered = renderMisc({ misc: { lower, upper } }, host);
     expect(failed).toHaveBeenCalledTimes(1);
-    expect(errorMessage(rendered)).toBe("MISC sigma bounds must span zero.");
+    expect(texts(all(rendered, ".errormessage text"))).toEqual(["Invalid settings provided for all observations! First error:", error]);
     expect(all(rendered, ".misc-bar")).toHaveLength(0);
     rendered.update(rowSettings({}));
     expect(failed).toHaveBeenCalledTimes(1);
@@ -530,11 +530,13 @@ describe("MISC validation", () => {
 
 describe("MISC formatting pane", () => {
   it("exposes only the MISC settings when indicators are present", () => {
-    const funnel = renderVisual({}, data).visual.viewModel.inputSettings.getFormattingModel();
-    expect(cardNames(funnel)).toEqual(["canvas", "funnel", "outliers", "scatter", "lines", "x_axis", "y_axis", "download_options", "labels"]);
+    const funnel = renderVisual({}, data).visual.viewModel.getFormattingModel();
+    expect(cardNames(funnel)).toEqual([
+      "canvas", "funnel", "outliers", "scatter", "lines", "x_axis", "y_axis", "summary_table", "download_options", "labels"
+    ]);
 
     const rendered = renderMisc();
-    const model = rendered.visual.viewModel.inputSettings.getFormattingModel();
+    const model = rendered.visual.viewModel.getFormattingModel();
     expect(cardNames(model)).toEqual(["canvas", "funnel", "misc", "outliers", "scatter", "lines", "x_axis", "y_axis"]);
     const card = (name: string): Card | undefined => findBy(model.cards, "uid", `${name}_card_uid`);
     expect(sliceNames(card("misc"))).toEqual(["group", "lower", "upper", "bar_height", "unfavourable_label", "favourable_label"]);
@@ -564,6 +566,6 @@ describe("MISC formatting pane", () => {
     expect(sliceNames(card("y_axis"))).toEqual(["ylimit_tick_font", "ylimit_tick_size", "ylimit_tick_colour"]);
 
     rendered.visual.update({ dataViews: [buildDataView(data)], viewport: { width: 500, height: 500 }, type: 2 });
-    expect(cardNames(rendered.visual.viewModel.inputSettings.getFormattingModel())).toEqual(cardNames(funnel));
+    expect(cardNames(rendered.visual.viewModel.getFormattingModel())).toEqual(cardNames(funnel));
   });
 });

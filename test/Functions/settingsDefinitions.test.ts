@@ -5,7 +5,7 @@ import settingsClass from "../../src/Classes/settingsClass";
 describe("setting definitions", () => {
   it("preserves the local schema and explicit optional defaults", () => {
     expect(Object.keys(settingsModel)).toEqual(Object.keys(defaultSettings));
-    expect(Object.keys(settingsModel)).toHaveLength(10);
+    expect(Object.keys(settingsModel)).toHaveLength(11);
     expect(defaultSettings.funnel.chart_type).toBe("PR");
     expect(defaultSettings.x_axis.xlimit_tick_rotation).toBe(0);
     expect(defaultSettings.x_axis.xlimit_show).toBe(true);

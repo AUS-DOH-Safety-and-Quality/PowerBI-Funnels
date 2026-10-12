@@ -2,6 +2,8 @@
   "supportsHighlight": true,
   "supportsKeyboardFocus": true,
   "supportsMultiVisualSelection": true,
+  "supportsLandingPage": true,
+  "supportsEmptyDataView": true,
   "sorting": {
     "implicit": { "clauses": [{ "role": "indicator", "direction": 1 }, { "role": "key", "direction": 1 }] }
   },
@@ -588,6 +590,125 @@
         }
       }
     },
+    "summary_table": {
+      "displayName": "Summary Table Settings",
+      "properties": {
+        "show_table": {
+          "type" : { "bool" : true }
+        },
+        "table_opacity": {
+          "type": { "numeric": true }
+        },
+        "table_opacity_selected": {
+          "type": { "numeric": true }
+        },
+        "table_opacity_unselected": {
+          "type": { "numeric": true }
+        },
+        "table_text_overflow": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_outer_border_colour": {
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "table_outer_border_width": {
+          "type": { "numeric": true }
+        },
+        "table_outer_border_style": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_outer_border_top": {
+          "type" : { "bool" : true }
+        },
+        "table_outer_border_bottom": {
+          "type" : { "bool" : true }
+        },
+        "table_outer_border_left": {
+          "type" : { "bool" : true }
+        },
+        "table_outer_border_right": {
+          "type" : { "bool" : true }
+        },
+        "table_header_font": {
+          "type": { "formatting": { "fontFamily": true } }
+        },
+        "table_header_size": {
+          "type": { "formatting": { "fontSize": true } }
+        },
+        "table_header_colour": {
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "table_header_bg_colour": {
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "table_header_font_weight": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_header_text_transform": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_header_text_align": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_header_text_padding": {
+          "type": { "numeric": true }
+        },
+        "table_header_border_colour": {
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "table_header_border_width": {
+          "type": { "numeric": true }
+        },
+        "table_header_border_style": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_header_border_bottom": {
+          "type" : { "bool" : true }
+        },
+        "table_header_border_inner": {
+          "type" : { "bool" : true }
+        },
+        "table_body_font": {
+          "type": { "formatting": { "fontFamily": true } }
+        },
+        "table_body_size": {
+          "type": { "formatting": { "fontSize": true } }
+        },
+        "table_body_colour": {
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "table_body_bg_colour": {
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "table_body_font_weight": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_body_text_transform": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_body_text_align": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_body_text_padding": {
+          "type": { "numeric": true }
+        },
+        "table_body_border_colour": {
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "table_body_border_width": {
+          "type": { "numeric": true }
+        },
+        "table_body_border_style": {
+          "type": { "enumeration" : [ ] }
+        },
+        "table_body_border_top_bottom": {
+          "type" : { "bool" : true }
+        },
+        "table_body_border_left_right": {
+          "type" : { "bool" : true }
+        }
+      }
+    },
     "download_options" : {
       "displayName" : "Download Options",
       "properties": {
@@ -662,7 +783,7 @@
     "categorical": {
       "categories": {
         "select": [{ "for": { "in": "key" } }, { "for": { "in": "indicator" } }],
-        "dataReductionAlgorithm": { "top": {} }
+        "dataReductionAlgorithm": { "window": { "count": 30000 } }
       },
       "values": {
         "select": [

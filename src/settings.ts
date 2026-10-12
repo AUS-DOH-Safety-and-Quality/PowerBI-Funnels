@@ -4,7 +4,7 @@ import outliersSettings from "./Settings Model/outliersSettings";
 import scatterSettings from "./Settings Model/scatterSettings";
 import linesSettings from "./Settings Model/linesSettings";
 import {
-  createCanvasCard, createLabelsCard, createAxisCard, createDownloadCard, defineCard, createDefaultValues,
+  createCanvasCard, createLabelsCard, createAxisCard, createDownloadCard, createSummaryTableCard, defineCard, createDefaultValues,
   type SettingsValues
 } from "powerbi-visuals-core/settings";
 
@@ -17,6 +17,7 @@ const settingsModel = {
   lines: defineCard(linesSettings),
   x_axis: createAxisCard("x", { tickRotation: 0, limitUnits: "a denominator" }),
   y_axis: createAxisCard("y", { tickRotation: 0, limitUnits: "a plotted value" }),
+  summary_table: createSummaryTableCard({ showDescription: "Shows the groups as a table instead of a chart." }),
   download_options: createDownloadCard(),
   labels: createLabelsCard()
 };

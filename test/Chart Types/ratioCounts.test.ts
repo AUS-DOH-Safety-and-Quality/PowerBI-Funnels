@@ -12,7 +12,7 @@ function createChart(numerators: number[]): rcFunnelClass {
     id: [],
     highlights: [],
     anyHighlights: false,
-    categories: { source: { displayName: "Group" }, values: [] },
+    identityColumns: [],
     scatter_formatting: [],
     label_formatting: [],
     tooltips: [],

@@ -3,7 +3,8 @@
 import type powerbi from "powerbi-visuals-api";
 import {
   PlotVisual, drawPlotAxes, drawPlotTooltips, drawPlotDots, drawPlotDownload, drawPlotValueLabels, drawPlotLines, drawPlotLineLabels,
-  highlightOpacity, initialiseSvg, valueTickFormat, type AxisBounds, type SvgSelection
+  highlightOpacity, initialiseSvg, valueTickFormat, createTableContainer, showTable, drawSummaryTable, highlightTable,
+  type AxisBounds, type ColumnKind, type SvgSelection, type TableSelection
 } from "powerbi-visuals-core/rendering";
 import drawMisc from "./D3 Plotting Functions/drawMisc";
 import { viewModelClass, type plotData } from "./Classes";
@@ -16,11 +17,25 @@ import { lineStyle, lowerLimitLines, standardLineKeys } from "powerbi-visuals-co
 
 export type svgBaseType = SvgSelection;
 
+const columnKinds: Record<string, ColumnKind> = {
+  value: "number", target: "number", alt_target: "number",
+  ll99: "number", ll95: "number", ll68: "number", ul68: "number", ul95: "number", ul99: "number",
+  numerator: "integer", denominator: "integer",
+  two_sigma: "flag", three_sigma: "flag"
+};
+
 export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueType> {
+  tableDiv: TableSelection;
   protected readonly lineKeys = standardLineKeys;
 
   constructor(options: powerbi.extensibility.visual.VisualConstructorOptions | undefined) {
     super(options, host => new viewModelClass(host));
+    this.tableDiv = createTableContainer(this.element);
+  }
+
+  resizeCanvas(width: number, height: number): void {
+    super.resizeCanvas(width, height);
+    showTable(this.tableDiv, width === 0 && height === 0);
   }
 
   protected get settings(): settingsValueType {
@@ -32,7 +47,8 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
   }
 
   protected drawAlternate(): boolean {
-    if (this.viewModel.inputSettings.showMisc) {
+    const viewModel = this.viewModel;
+    if (viewModel.showMisc) {
       this.svg.call(drawMisc, this);
       return true;
     }
@@ -40,12 +56,28 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
     if (svg !== null && !this.svg.select(".misc-root").empty()) {
       initialiseSvg(svg, true);
     }
-    return false;
+    if (!this.settings.summary_table.show_table) {
+      return false;
+    }
+    this.resizeCanvas(0, 0);
+    drawSummaryTable(this.tableDiv, {
+      columns: viewModel.tableColumns,
+      rows: viewModel.plotPoints,
+      kinds: columnKinds,
+      settings: this.settings.summary_table,
+      formatValue: viewModel.inputSettings.derivedSettings.formatValue,
+      width: viewModel.svgWidth,
+      host: this.host,
+      selectionManager: this.selectionManager,
+      onSelectionChange: () => this.updateHighlighting()
+    });
+    this.addContextMenu(this.tableDiv.node(), true);
+    return true;
   }
 
   updateHighlighting(): void {
     const viewModel = this.viewModel;
-    if (viewModel.inputSettings.showMisc) {
+    if (viewModel.showMisc) {
       const state = selectionState(this.selectionManager, viewModel.miscAnyHighlights);
       this.svg.selectAll<SVGRectElement, miscPoint>(".misc-bar").attr("opacity", point =>
         highlightOpacity(point.aesthetics, state.active, identitySelected(point.identity, state.selected) || point.highlighted));
@@ -53,6 +85,10 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
     }
     const state = selectionState(this.selectionManager, viewModel.inputData ? viewModel.inputData.anyHighlights : false);
     const settings = this.settings;
+    const table = settings.summary_table;
+    highlightTable(this.tableDiv, state, () => ({
+      opacity: table.table_opacity, opacity_selected: table.table_opacity_selected, opacity_unselected: table.table_opacity_unselected
+    }));
     // Group text fades by its own opacities; markers by the dot ones
     this.highlightPlotPoints(state, point => settings.scatter.use_group_text
       ? {

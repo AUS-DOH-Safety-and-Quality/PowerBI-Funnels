@@ -2,9 +2,9 @@ import type powerbi from "powerbi-visuals-api";
 import { describe, expect, it } from "vitest";
 import settingsClass from "../../src/Classes/settingsClass";
 import { readSettingsRows } from "powerbi-visuals-core/powerbi";
-import { must, validatedView as validate } from "powerbi-visuals-core/testing";
+import { must } from "powerbi-visuals-core/testing";
 import settingsModel, { defaultSettings } from "../../src/settings";
-import buildDataView, { sample, validatedView, type SettingsOverrides } from "../helpers/buildDataView";
+import buildDataView, { sample, type SettingsOverrides } from "../helpers/buildDataView";
 
 function category(rows: SettingsOverrides[]): powerbi.DataViewCategoryColumn {
   return must(buildDataView(sample, rows).categorical?.categories?.[0]);
@@ -41,9 +41,9 @@ describe("Settings contracts", () => {
     const bad: powerbi.DataViewObjects = { funnel: { chart_type: "bad" } };
     must(view.categorical?.categories)[0].objects = [bad, bad, bad];
     const settings = new settingsClass();
-    settings.update(validate(view, ["numerators", "denominators"]), [[0, 1, 2]]);
+    settings.update(must(view.categorical?.categories)[0], [[0, 1, 2]]);
     expect(settings.validationStatus.status).toBe(1);
-    settings.update(validatedView(sample), [[0, 1, 2]]);
+    settings.update(category([]), [[0, 1, 2]]);
     expect(settings.validationStatus).toEqual({ status: 0, messages: [[], [], []] });
     expect(settings.settings.funnel.chart_type).toBe("PR");
   });

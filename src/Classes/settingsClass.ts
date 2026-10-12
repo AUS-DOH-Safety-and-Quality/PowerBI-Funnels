@@ -1,6 +1,7 @@
 import {
-  readSettingsGroups, buildFormattingModel, type FormattingItem, type FormattingModel, type SettingsValidation, type ValidatedDataView
+  readSettingsGroups, buildFormattingModel, type FormattingItem, type FormattingModel, type SettingsValidation
 } from "powerbi-visuals-core/powerbi";
+import type powerbi from "powerbi-visuals-api";
 import { deriveScaling, type DerivedScaling } from "powerbi-visuals-core/data";
 import settingsModel, { type settingsValueType } from "../settings";
 import { createDefaultValues, orderedBoundsError } from "powerbi-visuals-core/settings";
@@ -21,18 +22,17 @@ export default class settingsClass {
   derivedSettings: DerivedScaling;
   validationStatus: SettingsValidation;
   groupSettings: settingsValueType[] = [];
+  /** Each group's rows' own values */
+  rowSettings: settingsValueType[][] = [];
   messagePositionByRowIndex = new Map<number, number>();
-  miscGroups: FormattingItem[] = [];
-  showMisc = false;
 
-  update(view: ValidatedDataView, groups: readonly (readonly number[])[]): void {
-    const result = readSettingsGroups(settingsModel, view.category, groups, [settings => orderedBoundsError(settings, settings.funnel)]);
+  update(category: powerbi.DataViewCategoryColumn, groups: readonly (readonly number[])[]): void {
+    const result = readSettingsGroups(settingsModel, category, groups, [settings => orderedBoundsError(settings, settings.funnel)]);
     this.groupSettings = result.values;
+    this.rowSettings = result.rowValues;
     this.settings = result.values[0];
     this.validationStatus = result.validation;
     this.messagePositionByRowIndex = result.messagePositionByRowIndex;
-    const selectedGroup = view.dataView.metadata.objects?.misc?.group;
-    this.settings.misc.group = typeof selectedGroup === "string" ? selectedGroup : "";
     this.derivedSettings = derive(this.settings);
   }
 
@@ -43,12 +43,13 @@ export default class settingsClass {
     return result;
   }
 
-  public getFormattingModel(): FormattingModel {
+  /** The MISC pane, with its group choices, when given them; otherwise the funnel pane */
+  public getFormattingModel(miscGroups?: FormattingItem[]): FormattingModel {
     const { misc, ...funnelModel } = settingsModel;
-    if (!this.showMisc) {
+    if (miscGroups === undefined) {
       return buildFormattingModel(funnelModel, this.settings);
     }
-    return buildFormattingModel(miscFormattingSchema(this.miscGroups), this.settings);
+    return buildFormattingModel(miscFormattingSchema(miscGroups), this.settings);
   }
 
   constructor(settings = createDefaultValues(settingsModel)) {
