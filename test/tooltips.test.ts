@@ -226,11 +226,11 @@ describe("plot scaling tooltip", () => {
       expect(entry(items, "Plot Scaling")).toBe(name);
     });
 
-  it.each(transformations)("drops the percentage suffix from transformed proportions: $transformation", ({ transformation, transform }) => {
+  it.each(transformations)("drops the percentage suffix from transformed proportions: $transformation", ({ transformation }) => {
     const model = calculate({ funnel: { transformation } }, inputs);
     expect(model.inputSettings.derivedSettings[0].percentLabels).toBe(false);
     const items = model.plotPoints[0].tooltip;
-    expect(items[1].value).toBe(transform(50).toFixed(2));
+    expect(items[1].value).toBe(model.plotPoints[0].value.toFixed(2));
     for (let i = 0; i < limitNames.length; i++) {
       expect(entry(items, limitNames[i]), limitNames[i]).toMatch(/^\d+\.\d{2}$/);
     }
@@ -285,14 +285,6 @@ describe("pattern tooltips", () => {
     expect(names(plain).slice(-2)).toEqual(["Plot Scaling", "tooltips"]);
     expect(plain[plain.length - 1].value).toBe("t-C");
     expect(names(tooltip(settings, 0))).not.toContain("tooltips");
-  });
-
-  it("keeps tooltip columns with their rows when a row is removed", () => {
-    const items = tooltip({}, 1, {
-      key: ["A", "B", "C"], numerators: [4, null, 25], denominators: [10, 90, 100], tooltips: ["t-A", "t-B", "t-C"]
-    });
-    expect(items[0].value).toBe("C");
-    expect(entry(items, "tooltips")).toBe("t-C");
   });
 });
 

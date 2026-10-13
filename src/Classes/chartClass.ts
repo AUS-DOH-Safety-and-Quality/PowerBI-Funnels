@@ -50,7 +50,7 @@ type chartObjectConstructorT = {
 
 const levels = ["99", "95", "68"] as const;
 
-/** Limits that cross or meet the next denominator's are blanked, so a funnel never folds back on itself */
+/** Limits that widen towards the next denominator's, or meet, are blanked, so a funnel never folds back on itself */
 function pruneCrossing(inner: limitData, next: Readonly<limitData>): void {
   for (let i = 0; i < levels.length; i++) {
     const lower = `ll${levels[i]}` as const;
@@ -186,8 +186,9 @@ export default class chartClass {
 
   getLimits(): limitData[] {
     const tau2 = this.getTau2();
-    this.odAdjust = this.getODAdjust();
-    const curr_tau2: number = this.odAdjust ? tau2 : 0;
+    const odAdjust: boolean = this.getODAdjust();
+    this.odAdjust = odAdjust;
+    const curr_tau2: number = odAdjust ? tau2 : 0;
 
     const target: number = this.getTarget({ transformed: false });
     const alt_target = this.inputSettings.settings.lines.alt_target;
@@ -196,14 +197,21 @@ export default class chartClass {
     const intervals: intervalData[] = this.getIntervals();
 
     const plottingDenominators: number[] = this.getPlottingDenominators();
+    // Each denominator is checked against one just beyond it, so pruning is independent of the plotting grid
+    const nextDenominators = new Array<number>(plottingDenominators.length);
+    for (let idx = 0; idx < plottingDenominators.length; idx++) {
+      nextDenominators[idx] = plottingDenominators[idx] * (1 + 1e-3);
+    }
     const plottingSE: number[] = this.getSE({
-      odAdjust: this.odAdjust,
+      odAdjust: odAdjust,
       plottingDenominators: plottingDenominators
     });
+    const nextSE: number[] = this.getSE({
+      odAdjust: odAdjust,
+      plottingDenominators: nextDenominators
+    });
 
-    const calcLimits = new Array<limitData>(plottingDenominators.length);
-    for (let idx = 0; idx < plottingDenominators.length; idx++) {
-      const denom = plottingDenominators[idx];
+    const limitRow = (denom: number, SE: number): limitData => {
       const row: limitData = { denominators: denom, target, alt_target,
         ll99: undefined, ll95: undefined, ll68: undefined, ul68: undefined, ul95: undefined, ul99: undefined };
       for (let i = 0; i < intervals.length; i++) {
@@ -212,22 +220,26 @@ export default class chartClass {
           p: interval.prob,
           q: interval.quantile,
           target_transformed: target_transformed,
-          SE: plottingSE[idx],
+          SE: SE,
           tau2: curr_tau2,
           denominators: denom
         };
 
         const limit: number = this.getSingleLimit({
-          odAdjust: this.odAdjust,
+          odAdjust: odAdjust,
           inputArgs: functionArgs
         });
 
         row[interval.label] = limit;
       }
+      return row;
+    };
+
+    const calcLimits = new Array<limitData>(plottingDenominators.length);
+    for (let idx = 0; idx < plottingDenominators.length; idx++) {
+      const row = limitRow(plottingDenominators[idx], plottingSE[idx]);
+      pruneCrossing(row, limitRow(nextDenominators[idx], nextSE[idx]));
       calcLimits[idx] = row;
-      if (idx > 0) {
-        pruneCrossing(calcLimits[idx - 1], row);
-      }
     }
     return calcLimits;
   }

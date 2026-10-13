@@ -3,7 +3,7 @@ import { createVisualHost } from "powerbi-visuals-utils-testutils";
 import { cells, keyedHost, findBy, must } from "powerbi-visuals-core/testing";
 import { lineSetting } from "powerbi-visuals-core/settings";
 import type { settingsValueType } from "../../src/settings";
-import { standardLineKeys, type StandardLineName } from "powerbi-visuals-core/settings";
+import type { standardLineKeys, StandardLineName } from "powerbi-visuals-core/settings";
 import type { Visual } from "../../src/visual";
 import { renderVisual } from "../helpers/renderVisual";
 

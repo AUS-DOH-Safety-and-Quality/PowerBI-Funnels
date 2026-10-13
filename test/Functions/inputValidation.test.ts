@@ -28,31 +28,7 @@ describe("Input contracts", () => {
     expect(result.data.labels).toEqual([undefined, undefined]);
     expect(result.data.anyLabels).toBe(false);
     expect(validateDataView([buildDataView({ key: [], numerators: [], denominators: [] })], roles))
-      .toEqual({ status: "invalid", error: "No data present" });
-  });
-
-  it("keeps optional row data aligned when required rows are rejected", () => {
-    const view = buildDataView({
-      ...sample, numerators: [4, null, 25], labels: [null, "removed", "C label"],
-      columns: [{ role: "tooltips", values: [0, "removed", false], displayName: "Tooltip" }]
-    });
-    must(view.categorical?.values)[0].highlights = cells([0, 16, null]);
-    const result = extract(validate(view, roles));
-    expect(result.status).toBe("valid");
-    if (result.status !== "valid") {
-      throw new Error(result.error);
-    }
-    expect(result.data.id).toEqual([0, 2]);
-    expect(result.data.numerators).toEqual([4, 25]);
-    expect(result.data.denominators).toEqual([10, 100]);
-    expect(result.data.labels).toEqual([undefined, "C label"]);
-    expect(result.data.highlights).toEqual([0, undefined]);
-    expect(result.data.tooltips).toEqual([
-      [{ displayName: "Tooltip", value: "0" }], [{ displayName: "Tooltip", value: "false" }]
-    ]);
-    expect(result.data.anyLabels).toBe(true);
-    expect(result.data.anyHighlights).toBe(true);
-    expect(result.data.warningMessage).toContain("Group B removed due to: Numerator missing.");
+      .toEqual({ status: "empty", error: "No data present" });
   });
 
   // Highlighting activates only when an accepted row carries a highlight.

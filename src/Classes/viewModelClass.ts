@@ -10,7 +10,7 @@ import {
   buildFormattingModel, groupCategoryRows, labelledMessage, rowIdentity,
   type CategoryGroups, type FormattingItem, type FormattingModel, type ValidatedDataView
 } from "powerbi-visuals-core/powerbi";
-import { chartClass, type limitData } from "../Classes"
+import type { chartClass, limitData } from "../Classes";
 import extractInputData, { type dataObject } from "../Functions/extractInputData";
 import axisRanges from "../Functions/axisRanges";
 import buildTooltip from "../Functions/buildTooltip";
@@ -114,7 +114,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
   }
 
   /** The MISC pane with its group choices, or the funnel pane without the MISC card */
-  getFormattingModel(): FormattingModel {
+  override getFormattingModel(): FormattingModel {
     const settings = this.inputSettings.settings[0];
     if (this.showMisc) {
       return buildFormattingModel(miscFormattingSchema(this.miscGroups), { ...settings, misc: { ...settings.misc, group: this.miscGroup } });

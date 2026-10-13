@@ -30,7 +30,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
     this.tableDiv = createTableContainer(this.element);
   }
 
-  resizeCanvas(width: number, height: number): void {
+  override resizeCanvas(width: number, height: number): void {
     super.resizeCanvas(width, height);
     showTable(this.tableDiv, width === 0 && height === 0);
   }
@@ -39,7 +39,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
     return this.viewModel.inputSettings.settings[0];
   }
 
-  protected drawAlternate(): boolean {
+  protected override drawAlternate(): boolean {
     const viewModel = this.viewModel;
     if (viewModel.showMisc) {
       this.svg.call(drawMisc, this);

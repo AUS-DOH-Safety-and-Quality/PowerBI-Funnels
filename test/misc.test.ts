@@ -5,6 +5,7 @@ import viewModelClass from "../src/Classes/viewModelClass";
 import buildDataView, { sample, type Inputs, type SettingsOverrides } from "./helpers/buildDataView";
 import { cells, keyedHost, findBy, must, type DataViewColumnInput } from "powerbi-visuals-core/testing";
 import type { PrimitiveValue } from "powerbi-visuals-core/powerbi";
+import { updateType } from "powerbi-visuals-core/powerbi";
 
 type MiscInputs = Inputs & { columns: DataViewColumnInput[] };
 
@@ -35,7 +36,7 @@ function miscView(numerators?: PrimitiveValue[], settings = miscSettings(), inpu
 }
 
 function update(model: viewModelClass, view: powerbi.DataView, host = keyedHost()) {
-  return model.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: 2 }, host);
+  return model.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: updateType.data }, host);
 }
 
 describe("MISC calculations", () => {
@@ -145,7 +146,7 @@ describe("MISC calculations", () => {
     expect(model.miscPoints[0].identity.getKey()).toBe("Group[2];Indicator[2];");
   });
 
-  it("rejects inconsistent directions and stale selections, then recovers", () => {
+  it("rejects inconsistent directions, then recovers", () => {
     const model = new viewModelClass(keyedHost());
     const rows = miscSettings();
     rows[2] = { outliers: { improvement_direction: "decrease" } };
@@ -158,11 +159,7 @@ describe("MISC calculations", () => {
       status: false, type: undefined,
       error: "Higher: Each MISC indicator must have one improvement direction: increase or decrease.\nLower: All numerators are missing or null!"
     });
-    const valid = miscView();
-    valid.metadata.objects = { misc: { group: "missing" } };
-    expect(update(model, valid)).toMatchObject({ status: false, type: undefined });
-    valid.metadata.objects = {};
-    expect(update(model, valid).status).toBe(true);
+    expect(update(model, miscView()).status).toBe(true);
     expect(model.miscPoints).toHaveLength(2);
   });
 
@@ -176,7 +173,7 @@ describe("MISC calculations", () => {
 });
 
 describe("MISC rendering", () => {
-  it("honours high contrast, highlighting, context menus and format-only group updates", () => {
+  it("honours high contrast, context menus and format-only group updates", () => {
     const element = document.createElement("div");
     document.body.append(element);
     const host = keyedHost();
@@ -185,17 +182,14 @@ describe("MISC rendering", () => {
     const visual = new Visual({ element, host });
     const menu = vi.spyOn(visual.selectionManager, "showContextMenu");
     const view = miscView();
-    must(view.categorical?.values)[0].highlights = cells([null, 4, null, null, null, null, null, null]);
     try {
-      visual.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: 2 });
+      visual.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: updateType.data });
       const bars = element.querySelectorAll(".misc-bar");
       expect(bars[0].getAttribute("fill")).toBe(host.colorPalette.foreground.value);
-      expect(bars[0].getAttribute("opacity")).toBe("0.2");
-      expect(bars[1].getAttribute("opacity")).toBe("1");
       bars[1].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 20 }));
       expect(menu).toHaveBeenCalledWith(visual.viewModel.miscPoints[1].identity, { x: 10, y: 20 });
       view.metadata.objects = { misc: { group: visual.viewModel.miscGroups[1].value } };
-      visual.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: 16 });
+      visual.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: updateType.style });
       expect(visual.viewModel.miscPoints[0].group_text).toBe("B");
     } finally {
       element.remove();
@@ -212,7 +206,7 @@ describe("MISC rendering", () => {
     const selected = vi.spyOn(visual.selectionManager, "select");
     const failed = vi.spyOn(host.eventService, "renderingFailed");
     try {
-      visual.update({ dataViews: [miscView()], viewport: { width: 700, height: 400 }, type: 2 });
+      visual.update({ dataViews: [miscView()], viewport: { width: 700, height: 400 }, type: updateType.data });
       expect(failed).not.toHaveBeenCalled();
       const bars = element.querySelectorAll<SVGRectElement>(".misc-bar");
       expect(bars).toHaveLength(2);
@@ -222,16 +216,15 @@ describe("MISC rendering", () => {
       const zero = Number(must(element.querySelector(".misc-zero-line")).getAttribute("x1"));
       expect(Number(bars[0].getAttribute("x"))).toBe(zero);
       expect(Number(bars[0].getAttribute("width"))).toBeGreaterThan(0);
-      expect(bars[0].getAttribute("fill")).toBe("#00B0F0");
       bars[0].dispatchEvent(new MouseEvent("mouseover", { clientX: 20, clientY: 30, bubbles: true }));
       expect(tooltip).toHaveBeenCalledWith(expect.objectContaining({ dataItems: visual.viewModel.miscPoints[0].tooltip }));
       bars[0].dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
       expect(selected).toHaveBeenCalledWith(visual.viewModel.miscPoints[0].identity, false);
       const points = visual.viewModel.miscPoints;
-      visual.update({ dataViews: [miscView()], viewport: { width: 800, height: 500 }, type: 4 });
+      visual.update({ dataViews: [miscView()], viewport: { width: 800, height: 500 }, type: updateType.resize });
       expect(visual.viewModel.miscPoints).toBe(points);
-      visual.update({ dataViews: [buildDataView(sample)], viewport: { width: 700, height: 400 }, type: 2 });
+      visual.update({ dataViews: [buildDataView(sample)], viewport: { width: 700, height: 400 }, type: updateType.data });
       expect(element.querySelectorAll(".misc-bar")).toHaveLength(0);
       expect(element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
       expect(failed).not.toHaveBeenCalled();

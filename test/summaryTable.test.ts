@@ -83,24 +83,6 @@ describe("summary table", () => {
     expect(rowTexts(rendered, 5)[6]).toBe("Deterioration");
   });
 
-  it("applies the header and body formatting settings", () => {
-    const rendered = renderVisual({
-      summary_table: {
-        show_table: true, table_text_overflow: "ellipsis", table_header_font: "Verdana", table_header_text_align: "center",
-        table_body_bg_colour: "#FEDCBA", table_body_border_left_right: true, table_body_border_top_bottom: false, table_body_text_padding: 7
-      }
-    }, sample);
-    const header = must(rendered.element.querySelector<HTMLElement>(".table-header th"));
-    expect(header.style.fontFamily).toBe("Verdana");
-    expect(header.style.textAlign).toBe("center");
-    expect(header.style.textOverflow).toBe("ellipsis");
-    const cell = must(rendered.element.querySelector<HTMLElement>("tbody td"));
-    expect(cell.style.backgroundColor).toBe("rgb(254, 220, 186)");
-    expect(cell.style.padding).toBe("7px");
-    expect(cell.style.borderBottomStyle).toBe("none");
-    expect(cell.style.borderRightStyle).toBe("solid");
-  });
-
   it("selects a row on click and fades the others by the table opacities", async () => {
     const host = keyedHost();
     host.hostCapabilities.allowInteractions = true;

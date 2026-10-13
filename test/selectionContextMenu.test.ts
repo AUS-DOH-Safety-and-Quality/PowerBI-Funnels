@@ -3,12 +3,13 @@ import { testDom } from "powerbi-visuals-utils-testutils";
 import { Visual } from "../src/visual";
 import buildDataView, { sample } from "./helpers/buildDataView";
 import { keyedHost, must } from "powerbi-visuals-core/testing";
+import { updateType } from "powerbi-visuals-core/powerbi";
 
 const viewport = { width: 500, height: 500 };
 
 function render(element: HTMLElement): Visual {
   const visual = new Visual({ element, host: keyedHost() });
-  visual.update({ dataViews: [buildDataView(sample)], viewport, type: 2 });
+  visual.update({ dataViews: [buildDataView(sample)], viewport, type: updateType.data });
   return visual;
 }
 
@@ -32,7 +33,7 @@ describe("Selection and context menu", () => {
     expect(dotOpacity(element, 1)).toBe(String(before.aesthetics.opacity_selected));
     expect(dotOpacity(element, 0)).toBe(String(before.aesthetics.opacity_unselected));
 
-    visual.update({ dataViews: [buildDataView(sample)], viewport, type: 2 });
+    visual.update({ dataViews: [buildDataView(sample)], viewport, type: updateType.data });
     const after = visual.viewModel.plotPoints[1];
     expect(after.identity).not.toBe(before.identity);
     expect(after.identity.getKey()).toBe(before.identity.getKey());
@@ -74,7 +75,7 @@ describe("Group text highlighting", () => {
     const element = testDom("500", "500");
     const visual = new Visual({ element, host: keyedHost() });
     const scatter = { use_group_text: true, scatter_text_opacity_selected: 0.9, scatter_text_opacity_unselected: 0.4 };
-    visual.update({ dataViews: [buildDataView(sample, { scatter })], viewport, type: 2 });
+    visual.update({ dataViews: [buildDataView(sample, { scatter })], viewport, type: updateType.data });
     const texts = element.querySelectorAll<SVGTextElement>(".dotsgroup text");
     expect(texts).toHaveLength(3);
     expect(texts[1].style.fillOpacity).toBe("1");

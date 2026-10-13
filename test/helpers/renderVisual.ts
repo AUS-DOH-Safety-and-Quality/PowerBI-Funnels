@@ -3,6 +3,7 @@ import { createRenderer, type Rendered as BaseRendered } from "powerbi-visuals-c
 import { Visual } from "../../src/visual";
 import viewModelClass from "../../src/Classes/viewModelClass";
 import buildDataView, { type Inputs, type Settings } from "./buildDataView";
+import { updateType } from "powerbi-visuals-core/powerbi";
 
 export type { Inputs } from "./buildDataView";
 export type Rendered = BaseRendered<Visual, Settings, Inputs>;
@@ -13,7 +14,7 @@ export const renderVisual = createRenderer<Visual, Settings, Inputs>(Visual, bui
 export function calculate(settings: Settings, inputs: Inputs): viewModelClass {
   const host = createVisualHost({});
   const model = new viewModelClass(host);
-  const status = model.update({ dataViews: [buildDataView(inputs, settings)], viewport: { width: 500, height: 500 }, type: 2 }, host);
+  const status = model.update({ dataViews: [buildDataView(inputs, settings)], viewport: { width: 500, height: 500 }, type: updateType.data }, host);
   if (!status.status) {
     throw new Error(status.error);
   }

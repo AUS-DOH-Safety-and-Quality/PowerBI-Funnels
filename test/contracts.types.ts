@@ -6,6 +6,7 @@ import type settingsClass from "../src/Classes/settingsClass";
 import validateInputData from "../src/Functions/validateInputData";
 import extractInputData from "../src/Functions/extractInputData";
 import buildDataView, { sample, validatedView } from "./helpers/buildDataView";
+import { updateType } from "powerbi-visuals-core/powerbi";
 
 declare const viewModel: viewModelClass;
 declare const host: powerbi.extensibility.visual.IVisualHost;
@@ -21,7 +22,7 @@ validateInputData(["A"], [1], [2], "PR");
 validateInputData(["A"], [1], [2], "XY");
 
 // Test flags ride on the host's update options without a cast
-viewModel.update({ dataViews: [], viewport: { width: 1, height: 1 }, type: 2, headless: true }, host);
+viewModel.update({ dataViews: [], viewport: { width: 1, height: 1 }, type: updateType.data, headless: true }, host);
 
 // @ts-expect-error The chart type is a closed union.
 const chart: settingsValueType["funnel"]["chart_type"] = "XY";
@@ -35,4 +36,4 @@ extractInputData(buildDataView(sample), settings, [0, 1, 2]);
 const limits: limitData = viewModel.plotPoints[0].limits;
 const se: number = args.SE;
 const labels: (string | undefined)[] = viewModel.plotPoints.length > 0 && viewModel.inputData !== undefined ? viewModel.inputData.labels : [];
-void [chart, limits, se, labels];
+[chart, limits, se, labels];

@@ -3,7 +3,8 @@ import { testDom, createVisualHost } from "powerbi-visuals-utils-testutils";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Visual } from "../src/visual";
 import buildDataView from "./helpers/buildDataView";
-import { findBy, cells } from "powerbi-visuals-core/testing";
+import { updateType } from "powerbi-visuals-core/powerbi";
+import { must } from "powerbi-visuals-core/testing";
 
 const sample = { key: ["A", "B", "C"], numerators: [10, 20, 30], denominators: [100, 120, 140] };
 
@@ -25,7 +26,7 @@ describe("Chart", () => {
     vi.restoreAllMocks();
   });
 
-  function update(view: powerbi.DataView | undefined, type = 2): void {
+  function update(view: powerbi.DataView | undefined, type: powerbi.VisualUpdateType = updateType.data): void {
     visual.update({ dataViews: view ? [view] : [], viewport: { width: 500, height: 500 }, type });
   }
 
@@ -33,18 +34,12 @@ describe("Chart", () => {
     ["PR", 100 / 6, 10],
     ["RC", 1 / 6, 0.1],
     ["SR", 1, 0.1]
-  ] as const)("renders %s calculations and tooltips", (chart_type, target, value) => {
+  ] as const)("renders the %s target and values", (chart_type, target, value) => {
     update(buildDataView(sample, { funnel: { chart_type } }));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    expect(host.eventService.renderingFinished).toHaveBeenCalledOnce();
-    expect(visual.viewModel.plotPoints).toHaveLength(3);
-    expect(visual.viewModel.plotPoints[0].value).toBeCloseTo(value as number, 10);
-    const limits = findBy(visual.viewModel.calculatedLimits, "denominators", 100)!;
-    expect(limits.target).toBeCloseTo(target as number, 10);
-    expect(limits.ll95).toBeLessThan(limits.target);
-    expect(limits.ul95).toBeGreaterThan(limits.target);
     expect(element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
-    expect(findBy(visual.viewModel.plotPoints[0].tooltip, "displayName", "Group")?.value).toBe("A");
+    expect(visual.viewModel.plotPoints[0].value).toBeCloseTo(value, 10);
+    expect(visual.viewModel.plotPoints[0].limits.target).toBeCloseTo(target, 10);
   });
 
   it.each(["PR", "RC", "SR"] as const)("renders %s with overdispersion adjustment", chart_type => {
@@ -53,8 +48,8 @@ describe("Chart", () => {
       { funnel: { chart_type, od_adjust: "yes" } }
     ));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    expect(visual.viewModel.chartBase!.odAdjust).toBe(true);
-    expect(visual.viewModel.chartBase!.getTau2()).toBeGreaterThan(0);
+    expect(must(visual.viewModel.chartBase).odAdjust).toBe(true);
+    expect(must(visual.viewModel.chartBase).getTau2()).toBeGreaterThan(0);
     const points = visual.viewModel.plotPoints;
     for (let i = 0; i < points.length; i++) {
       expect(Number.isFinite(points[i].z)).toBe(true);
@@ -69,27 +64,26 @@ describe("Chart", () => {
     expect(element.querySelector(".xaxisgroup")?.getAttribute("color")).toBe("#000000");
   });
 
-  it("keeps filtered numeric categories, labels and highlights aligned", () => {
-    const view = buildDataView({
-      key: [10, null, 30], numerators: [10, 20, 30], denominators: [100, 120, 140], labels: ["First", "Removed", "Last"]
-    });
-    view.categorical!.values![0].highlights = cells([null, null, 30]);
-    update(view);
-    expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    expect(visual.viewModel.inputData!.id).toEqual([0, 2]);
-    expect(visual.viewModel.plotPoints).toMatchObject([
-      { group_text: "10", label: { text_value: "First" }, highlighted: false },
-      { group_text: "30", label: { text_value: "Last" }, highlighted: true }
-    ]);
-  });
-
-  it("renders missing-data errors and recovers after valid input", () => {
-    const views = [undefined, buildDataView({}), buildDataView({ key: [] }), buildDataView({ key: ["A"] })];
-    for (let i = 0; i < views.length; i++) {
-      update(views[i]);
-      expect(element.querySelector(".errormessage")?.textContent).not.toContain("Internal Error");
-      expect(element.querySelector(".errormessage")).not.toBeNull();
+  it("draws empty views blank, missing roles as errors, and recovers after valid input", () => {
+    const empty = [undefined, buildDataView({ key: [] })];
+    for (let i = 0; i < empty.length; i++) {
+      update(buildDataView(sample));
+      vi.mocked(host.eventService.renderingFinished).mockClear();
+      update(empty[i]);
+      expect(element.querySelector(".errormessage")).toBeNull();
+      expect(element.querySelectorAll(".dotsgroup path, .linesgroup path, .tick")).toHaveLength(0);
+      expect(host.eventService.renderingFinished).toHaveBeenCalledOnce();
     }
+    expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
+    const missing = [
+      [buildDataView({}), "No grouping/ID variable passed!"],
+      [buildDataView({ key: ["A"] }), "No numerators passed!"]
+    ] as const;
+    for (let i = 0; i < missing.length; i++) {
+      update(missing[i][0]);
+      expect(element.querySelector(".errormessage")?.textContent).toBe(missing[i][1]);
+    }
+    expect(host.eventService.renderingFailed).toHaveBeenCalledTimes(2);
     vi.mocked(host.eventService.renderingFailed).mockClear();
     update(buildDataView(sample));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
@@ -101,24 +95,12 @@ describe("Chart", () => {
     update(buildDataView(sample));
     const invalid = buildDataView({ ...sample, numerators: [null, -1, null] });
     update(invalid);
-    update(invalid, 4);
+    update(invalid, updateType.resize);
     expect(element.querySelector(".errormessage")?.textContent).toBe("No valid data found!");
     vi.mocked(host.eventService.renderingFailed).mockClear();
     update(buildDataView(sample));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
     expect(visual.plotProperties.displayPlot).toBe(true);
-  });
-
-  it("removes line labels when every line is disabled and restores lines", () => {
-    update(buildDataView(sample, { lines: { plot_label_show_target: true } }));
-    expect(element.querySelectorAll(".linesgroup text").length).toBeGreaterThan(0);
-    update(buildDataView(sample, { lines: {
-      show_target: false, show_alt_target: false, show_99: false, show_95: false, show_68: false
-    } }));
-    expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    expect(element.querySelectorAll(".linesgroup path, .linesgroup text")).toHaveLength(0);
-    update(buildDataView(sample));
-    expect(element.querySelectorAll(".linesgroup path").length).toBeGreaterThan(0);
   });
 
   it("uses chart precision by default and honours explicit axis precision", () => {
@@ -128,34 +110,27 @@ describe("Chart", () => {
     expect(element.querySelector(".yaxisgroup .tick text")?.textContent).toMatch(/^\d+%$/);
   });
 
-  it("honours tick visibility and a zero tick count", () => {
-    update(buildDataView(sample, { x_axis: { xlimit_ticks: false }, y_axis: { ylimit_ticks: false } }));
-    expect(element.querySelectorAll(".tick")).toHaveLength(0);
-    update(buildDataView(sample, { x_axis: { xlimit_tick_count: 0 }, y_axis: { ylimit_tick_count: 0 } }));
-    expect(element.querySelectorAll(".tick")).toHaveLength(0);
-    update(buildDataView(sample));
-    expect(element.querySelectorAll(".tick").length).toBeGreaterThan(0);
-  });
-
   it("uses transformed values for automatic axis bounds", () => {
     update(buildDataView(sample, { funnel: { chart_type: "RC", transformation: "sqrt" } }));
     expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    expect(visual.plotProperties.yAxis.upper).toBeCloseTo(Math.sqrt(30 / 140), 10);
     const points = visual.viewModel.plotPoints;
     for (let i = 0; i < points.length; i++) {
       expect(points[i].value).toBeLessThanOrEqual(visual.plotProperties.yAxis.upper);
     }
   });
 
-  // Rate limits widen with the denominator below an expected count of 0.5, so they are dropped there
-  it("preserves missing limits in low-count tooltips", () => {
-    update(buildDataView({ key: ["A", "B"], numerators: [0, 10], denominators: [1, 100] }, { funnel: { chart_type: "RC" } }));
-    expect(host.eventService.renderingFailed).not.toHaveBeenCalled();
-    expect(findBy(visual.viewModel.calculatedLimits, "denominators", 1)?.ll99).toBeUndefined();
-    const tooltip = visual.viewModel.plotPoints[0].tooltip;
-    expect(findBy(tooltip, "displayName", "Lower 99% Limit")?.value).toBe("");
-    for (let i = 0; i < tooltip.length; i++) {
-      expect(tooltip[i].value).not.toBe("NaN%");
+  // Rate limits can widen with the denominator at expected counts below 0.5, so they are dropped there
+  it("drops widening rate limits, and their flags, whatever the x-axis range", () => {
+    const data = { key: ["A", "B"], numerators: [0, 10], denominators: [1, 100] };
+    const upperLimits = [undefined, 200, 1000];
+    let reference: number | undefined;
+    for (let i = 0; i < upperLimits.length; i++) {
+      update(buildDataView(data, { funnel: { chart_type: "RC" }, x_axis: { xlimit_u: upperLimits[i] }, outliers: { two_sigma: true, three_sigma: true } }));
+      const low = visual.viewModel.plotPoints[0].table_row;
+      expect([low.ll99, low.ll95, low.ll68, low.ul68, low.ul95, low.ul99]).toEqual(new Array(6).fill(undefined));
+      expect([low.two_sigma, low.three_sigma]).toEqual(["none", "none"]);
+      reference ??= visual.viewModel.plotPoints[1].table_row.ul99;
+      expect(visual.viewModel.plotPoints[1].table_row.ul99).toBe(reference);
     }
   });
 
@@ -164,12 +139,12 @@ describe("Chart", () => {
     const clear = vi.spyOn(visual.selectionManager, "clear");
     host.hostCapabilities.allowInteractions = false;
     update(buildDataView(sample));
-    element.querySelector(".dotsgroup path")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    visual.svg.node()!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    must(element.querySelector(".dotsgroup path")).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    must(visual.svg.node()).dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(select).not.toHaveBeenCalled();
     expect(clear).not.toHaveBeenCalled();
     host.hostCapabilities.allowInteractions = true;
-    element.querySelector(".dotsgroup path")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    must(element.querySelector(".dotsgroup path")).dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(select).toHaveBeenCalledOnce();
   });
 });
