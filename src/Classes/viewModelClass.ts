@@ -10,12 +10,12 @@ import {
   buildFormattingModel, groupCategoryRows, labelledMessage, rowIdentity,
   type CategoryGroups, type FormattingItem, type FormattingModel, type ValidatedDataView
 } from "powerbi-visuals-core/powerbi";
-import { chartClass, type limitData } from "../Classes"
+import type { chartClass, limitData } from "../Classes";
 import extractInputData, { type dataObject } from "../Functions/extractInputData";
 import axisRanges from "../Functions/axisRanges";
 import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
-import { groupBy, checkFlagDirection, applyFlagColours, type DerivedScaling, type FlagDirection } from "powerbi-visuals-core/data";
+import { checkFlagDirection, applyFlagColours, type DerivedScaling, type FlagDirection, type FlagSettings } from "powerbi-visuals-core/data";
 import { limitStatus } from "powerbi-visuals-core/spc";
 import { limitColumns, limitLineNames, type StandardLineName } from "powerbi-visuals-core/settings";
 import type { TableColumn } from "powerbi-visuals-core/rendering";
@@ -25,43 +25,43 @@ import getTransformation from "../Funnel Calculations/getTransformation";
 import { PlotViewModelBase, type AxisBounds, type GroupResults } from "powerbi-visuals-core/rendering";
 
 export type lineData = {
-  x: number;
-  line_value: number | undefined;
-  group: StandardLineName;
+  readonly x: number;
+  readonly line_value: number | undefined;
+  readonly group: StandardLineName;
 }
 
 /** The point's limits with its own values and flags */
 export type summaryTableRow = Omit<limitData, "denominators"> & {
-  group: string;
-  numerator: number;
-  denominator: number;
-  value: number;
-  two_sigma: FlagDirection;
-  three_sigma: FlagDirection;
+  readonly group: string;
+  readonly numerator: number;
+  readonly denominator: number;
+  readonly value: number;
+  readonly two_sigma: FlagDirection;
+  readonly three_sigma: FlagDirection;
 };
 
 export type plotData = {
-  x: number;
-  numerator: number;
-  value: number;
-  z: number;
-  group_text: string;
+  readonly x: number;
+  readonly numerator: number;
+  readonly value: number;
+  readonly z: number;
+  readonly group_text: string;
   /** Limits at this point's denominator */
-  limits: limitData;
-  table_row: summaryTableRow;
-  aesthetics: settingsValueType["scatter"];
-  identity: ISelectionId;
+  readonly limits: Readonly<limitData>;
+  readonly table_row: summaryTableRow;
+  readonly aesthetics: settingsValueType["scatter"];
+  readonly identity: ISelectionId;
   /** Highlighted by selections in other visuals */
-  highlighted: boolean;
-  tooltip: VisualTooltipDataItem[];
-  label: {
-    text_value: string | undefined,
-    aesthetics: settingsValueType["labels"],
+  readonly highlighted: boolean;
+  readonly tooltip: VisualTooltipDataItem[];
+  readonly label: {
+    readonly text_value: string | undefined,
+    readonly aesthetics: settingsValueType["labels"],
     angle: number | undefined,
     distance: number | undefined
   };
-  two_sigma: FlagDirection;
-  three_sigma: FlagDirection;
+  readonly two_sigma: FlagDirection;
+  readonly three_sigma: FlagDirection;
 }
 
 export type miscPoint = plotData & { indicator: string; score: number };
@@ -94,8 +94,9 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
   groupedLines: [StandardLineName, lineData[]][] = [];
   /** Indicators switch the view to the multi-indicator chart */
   showMisc = false;
-  /** The groups the MISC pane offers */
+  /** The groups the MISC pane offers, and the one chosen */
   miscGroups: FormattingItem[] = [];
+  miscGroup = "";
   miscPoints: miscPoint[] = [];
   miscAnyHighlights = false;
 
@@ -113,10 +114,10 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
   }
 
   /** The MISC pane with its group choices, or the funnel pane without the MISC card */
-  getFormattingModel(): FormattingModel {
+  override getFormattingModel(): FormattingModel {
     const settings = this.inputSettings.settings[0];
     if (this.showMisc) {
-      return buildFormattingModel(miscFormattingSchema(this.miscGroups), settings);
+      return buildFormattingModel(miscFormattingSchema(this.miscGroups), { ...settings, misc: { ...settings.misc, group: this.miscGroup } });
     }
     const { misc, ...funnelModel } = settingsModel;
     return buildFormattingModel(funnelModel, settings);
@@ -178,13 +179,12 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       rowsByGroup.set(groups.keys[i], groups.rows[i]);
     }
     // The group is a visual-level choice, so lives in the report's metadata rather than the rows
-    const misc = this.inputSettings.settings[0].misc;
     const selectedGroup = view.dataView.metadata.objects?.misc?.group;
-    misc.group = typeof selectedGroup === "string" ? selectedGroup : "";
-    if (misc.group === "" && items.length > 0) {
-      misc.group = items[0].value;
+    this.miscGroup = typeof selectedGroup === "string" ? selectedGroup : "";
+    if (this.miscGroup === "" && items.length > 0) {
+      this.miscGroup = items[0].value;
     }
-    const targetRows = rowsByGroup.get(misc.group);
+    const targetRows = rowsByGroup.get(this.miscGroup);
     if (targetRows === undefined) {
       return { errors: ["Select a MISC group present in the data."], warnings: [] };
     }
@@ -253,14 +253,18 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
 
   /** Points are flagged against the limits the flags name; by default those the outlier settings turn on */
   initialisePlotData(host: IVisualHost, inputData: dataObject, chart: chartClass, inputSettings: groupSettings = this.inputSettings.group(0),
-                     flags: { two_sigma: boolean; three_sigma: boolean } = inputSettings.settings.outliers): void {
+                     flags: { readonly two_sigma: boolean; readonly three_sigma: boolean } = inputSettings.settings.outliers): void {
     this.plotPoints = new Array<plotData>();
     this.tableColumns = tableColumns(inputSettings.settings);
     const transform: (x: number) => number = getTransformation(inputSettings.settings.funnel.transformation);
     const multiplier: number = inputSettings.derivedSettings.multiplier;
     const flag_two_sigma: boolean = flags.two_sigma;
     const flag_three_sigma: boolean = flags.three_sigma;
-    const zScores: number[] = chart.getZ();
+    const zScores = chart.getZ();
+    const flagSettings: FlagSettings = {
+      process_flag_type: inputSettings.settings.outliers.process_flag_type,
+      improvement_direction: inputSettings.settings.outliers.improvement_direction
+    };
     const limitsByDenominator = new Map<number, limitData>();
     for (let i = 0; i < this.calculatedLimits.length; i++) {
       limitsByDenominator.set(this.calculatedLimits[i].denominators, this.calculatedLimits[i]);
@@ -275,13 +279,10 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       if (limits === undefined) {
         throw new Error("Missing limits for an observed denominator.");
       }
-      const aesthetics: settingsValueType["scatter"] = inputData.scatter_formatting[i]
+      // Rows may share the store's default settings, so colour a copy
+      const aesthetics = { ...inputData.scatter_formatting[i] };
       if (this.colourPalette.isHighContrast) {
         aesthetics.colour = this.colourPalette.foregroundColour;
-      }
-      const flagSettings = {
-        process_flag_type: inputSettings.settings.outliers.process_flag_type,
-        improvement_direction: inputSettings.settings.outliers.improvement_direction
       }
       const two_sigma_outlier = checkFlagDirection(flag_two_sigma ? limitStatus(value, limits.ll95, limits.ul95) : "none", flagSettings);
       const three_sigma_outlier = checkFlagDirection(flag_three_sigma ? limitStatus(value, limits.ll99, limits.ul99) : "none", flagSettings);
@@ -345,15 +346,18 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       labels.push("ll68", "ul68");
     }
 
-    const formattedLines: lineData[] = new Array<lineData>();
+    const lines = new Array<[StandardLineName, lineData[]]>(labels.length);
+    for (let j = 0; j < labels.length; j++) {
+      lines[j] = [labels[j], []];
+    }
     for (let i = 0; i < this.calculatedLimits.length; i++) {
       const limits = this.calculatedLimits[i];
       for (let j = 0; j < labels.length; j++) {
         const label = labels[j];
-        formattedLines.push({ x: limits.denominators, line_value: limits[label], group: label });
+        lines[j][1].push({ x: limits.denominators, line_value: limits[label], group: label });
       }
     }
-    this.groupedLines = groupBy(formattedLines, "group");
+    this.groupedLines = lines;
   }
 
   /** Flags follow the truncated limits; the alt. target is entered in display units, so is not multiplied */

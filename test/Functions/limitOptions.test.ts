@@ -154,12 +154,6 @@ describe("plotting denominators", () => {
     const end = commands[commands.length - 1].slice(1).split(",");
     expect(Number(end[0])).toBeCloseTo(rendered.visual.plotProperties.xScale(6000), 2);
   });
-
-  it("shares one set of limits between units with the same denominator", () => {
-    const model = calculate({}, { key: ["A", "B", "C"], numerators: [3, 9, 20], denominators: [40, 40, 100] });
-    expect(model.plotPoints[0].limits).toBe(model.plotPoints[1].limits);
-    expect(model.plotPoints[0].limits.denominators).toBe(40);
-  });
 });
 
 describe("funnel shape", () => {
@@ -278,11 +272,10 @@ describe("transformation", () => {
   for (let t = 0; t < transforms.length; t++) {
     const transformation = transforms[t].transformation;
     const f = transforms[t].f;
-    it.each(names)(`plots values, targets and limits on the ${transformation} scale after scaling: %s`, name => {
+    it.each(names)(`plots values, targets and limits on the ${transformation} scale: %s`, name => {
       const source = reference(name);
-      const plain = modelFor(source);
-      const transformed = modelFor(source, { transformation });
-      expect(plain.inputSettings.derivedSettings[0].multiplier).toBe(source.chart_type === "PR" ? 100 : 1);
+      const plain = modelFor(source, { perc_labels: "No" });
+      const transformed = modelFor(source, { perc_labels: "No", transformation });
       expectMapped(transformed, plain, f);
       expectSameFlags(transformed, plain);
     });

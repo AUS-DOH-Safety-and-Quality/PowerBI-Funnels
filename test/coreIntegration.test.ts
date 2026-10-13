@@ -1,4 +1,3 @@
-import { pickRows } from "powerbi-visuals-core/data";
 import { derive } from "../src/Classes/settingsClass";
 import { expect, it } from "vitest";
 import settingsModel, { defaultSettings } from "../src/settings";
@@ -9,8 +8,7 @@ import capabilities from "../capabilities.json";
 formattingContractsSuite(settingsModel, defaultSettings);
 capabilitiesSuite(settingsModel, capabilities);
 
-it("uses Core data helpers while retaining Funnel display precision", () => {
-  expect(pickRows([10, 20], [1, 5, 0, 1])).toEqual([20, undefined, 10, 20]);
+it("formats counts and percentages with the Funnel display precision", () => {
   const settings = createDefaultValues(settingsModel);
   settings.funnel.sig_figs = 2;
   settings.funnel.chart_type = "PR";

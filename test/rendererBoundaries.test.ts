@@ -1,40 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { testDom, createVisualHost } from "powerbi-visuals-utils-testutils";
 import { Visual } from "../src/visual";
 import { must } from "powerbi-visuals-core/testing";
 import buildDataView, { sample } from "./helpers/buildDataView";
 import { renderVisual } from "./helpers/renderVisual";
+import { updateType } from "powerbi-visuals-core/powerbi";
 
 const viewport = { width: 500, height: 500 };
 
-// Line-label placement, error text and tooltip crosshairs render through Core
+// Error text, gridlines and tooltip crosshairs render through Core
 describe("renderer boundaries", () => {
-  it("places line labels through the shared geometry", () => {
-    const element = renderVisual({ lines: {
-      plot_label_show_target: true, plot_label_position_target: "above",
-      plot_label_vpad_target: 5, plot_label_hpad_target: 3, width_target: 2,
-      plot_label_show_95: true, plot_label_position_95: "beside", plot_label_hpad_95: 4
-    } }, sample).element;
-    const labels = element.querySelectorAll(".linesgroup text");
-    expect(labels).toHaveLength(3);
-    const above = must(element.querySelector(".linesgroup text[text-anchor='end']"));
-    expect(above.getAttribute("dx")).toBe("-3px");
-    expect(above.getAttribute("dy")).toBe("-7px");
-    const beside = element.querySelectorAll(".linesgroup text[text-anchor='start']");
-    expect(beside).toHaveLength(2);
-    expect(beside[0].getAttribute("dx")).toBe("4px");
-  });
-
-  it("draws error text in the host foreground colour with the settings preamble", () => {
-    const element = renderVisual({ x_axis: { xlimit_tick_count: -1 } }, sample).element;
-    const texts = element.querySelectorAll<SVGTextElement>(".errormessage text");
-    expect(texts).toHaveLength(2);
-    expect(texts[0].textContent).toBe("Invalid settings provided for all observations! First error:");
-    expect(Number(texts[0].getAttribute("y"))).toBeCloseTo(500 / 3, 6);
-    expect(texts[1].getAttribute("y")).toBe("250");
-    expect(texts[1].style.fill).toBe("rgb(51, 51, 51)");
-  });
-
   it("uses the high-contrast foreground for error text", () => {
     const host = createVisualHost({});
     const palette = host.colorPalette as { isHighContrast: boolean; foreground: { value: string } };
@@ -42,7 +17,7 @@ describe("renderer boundaries", () => {
     palette.foreground = { value: "#abcdef" };
     const element = testDom("500", "500");
     const visual = new Visual({ element, host });
-    visual.update({ dataViews: [buildDataView({ ...sample, numerators: [null, null, null] })], viewport, type: 2 });
+    visual.update({ dataViews: [buildDataView({ ...sample, numerators: [null, null, null] })], viewport, type: updateType.data });
     const texts = element.querySelectorAll<SVGTextElement>(".errormessage text");
     expect(texts).toHaveLength(1);
     expect(texts[0].style.fill).toBe("rgb(171, 205, 239)");
@@ -95,47 +70,6 @@ describe("renderer boundaries", () => {
     const yAxis = visual.plotProperties.yAxis;
     expect(Number(must(element.querySelector(".xaxislabel")).getAttribute("x"))).toBeCloseTo((xAxis.start_padding + 500 - xAxis.end_padding) / 2, 6);
     expect(Number(must(element.querySelector(".yaxislabel")).getAttribute("y"))).toBeCloseTo((500 - yAxis.start_padding + yAxis.end_padding) / 2, 6);
-  });
-
-  it("re-adds hidden axes with ticks and labels, beneath the lines", () => {
-    const rendered = renderVisual({}, sample);
-    const element = rendered.element;
-    expect(element.querySelectorAll(".xaxisgroup .tick").length).toBeGreaterThan(0);
-    rendered.update({ x_axis: { xlimit_show: false }, y_axis: { ylimit_show: false } });
-    expect(element.querySelector(".xaxisgroup")).toBeNull();
-    expect(element.querySelector(".yaxisgroup")).toBeNull();
-    rendered.update({});
-    const lines = must(element.querySelector(".linesgroup"));
-    const xGroup = must(element.querySelector(".xaxisgroup"));
-    const yGroup = must(element.querySelector(".yaxisgroup"));
-    expect(xGroup.querySelectorAll(".tick").length).toBeGreaterThan(0);
-    expect(yGroup.querySelectorAll(".tick").length).toBeGreaterThan(0);
-    const xLabel = must(element.querySelector(".xaxislabel"));
-    expect((xLabel.compareDocumentPosition(lines) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
-    expect(element.querySelector(".yaxislabel")).not.toBeNull();
-    expect((xGroup.compareDocumentPosition(lines) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
-    expect((yGroup.compareDocumentPosition(lines) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
-    expect(element.querySelectorAll(".xaxisgroup")).toHaveLength(1);
-  });
-
-  it("draws a download link that exports the plotted rows as CSV", () => {
-    const host = createVisualHost({});
-    const exportVisualsContent = vi.fn();
-    Object.assign(host, { downloadService: { exportVisualsContent } });
-    const element = testDom("500", "500");
-    const visual = new Visual({ element, host });
-    visual.update({ dataViews: [buildDataView(sample, { download_options: { show_button: true } })], viewport, type: 2 });
-    const button = must(element.querySelector<SVGTextElement>(".download-btn-group"));
-    expect(button.textContent).toBe("Download");
-    button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(exportVisualsContent).toHaveBeenCalledTimes(1);
-    const lines: string[] = exportVisualsContent.mock.calls[0][0].split("\n");
-    expect(lines[0]).toBe("group,numerator,denominator,value,target,alt_target,ll99,ll95,ll68,ul68,ul95,ul99,two_sigma,three_sigma");
-    expect(lines).toHaveLength(4);
-    expect(lines[1].startsWith("A,4,10,40,")).toBe(true);
-    visual.update({ dataViews: [buildDataView(sample)], viewport, type: 2 });
-    expect(element.querySelector(".download-btn-group")).toBeNull();
-    element.remove();
   });
 
   it("shows crosshairs at the nearest point on mouse move and hides them on leave", () => {

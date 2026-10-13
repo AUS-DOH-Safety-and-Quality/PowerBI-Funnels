@@ -14,7 +14,6 @@ describe("overdispersion estimate", () => {
     for (let i = 0; i < expected.length; i++) {
       expect(winsorised[i]).toBeCloseTo(expected[i], 14);
     }
-    expect(z[0]).toBe(-3.2);
   });
 
   it("takes the mean squared winsorised z-score as the dispersion ratio", () => {

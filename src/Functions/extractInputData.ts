@@ -1,14 +1,14 @@
 import validateInputData from "./validateInputData";
 import type { settingsClass } from "../Classes";
-import settingsModel, { defaultSettings, type settingsValueType } from "../settings";
+import type { settingsValueType } from "../settings";
 import { extractRows, formatPrimitiveValue, readNumbers, type InputRows, type ValidatedDataView } from "powerbi-visuals-core/powerbi";
-import { keptValues, type InputDataResult } from "powerbi-visuals-core/data";
+import { keptValue, type InputDataResult } from "powerbi-visuals-core/data";
 
 export type dataObject = InputRows<settingsValueType["scatter"], settingsValueType["labels"]> & {
-  keys: { x: number; id: number; label: string }[];
-  id: number[];
-  numerators: number[];
-  denominators: number[];
+  readonly keys: { x: number; id: number; label: string }[];
+  readonly id: number[];
+  readonly numerators: number[];
+  readonly denominators: number[];
 };
 
 export default function extractInputData(view: ValidatedDataView<"numerators" | "denominators">, inputSettingsClass: settingsClass,
@@ -23,22 +23,26 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
   const extracted = extractRows(view, rows, {
     keys,
     validation: validateInputData(keys, numerators, denominators, inputSettingsClass.settings[group].funnel.chart_type),
-    cards: { scatter: settingsModel.scatter, labels: settingsModel.labels },
-    defaults: { scatter: defaultSettings.scatter, labels: defaultSettings.labels },
+    rowSettings: inputSettingsClass.rowSettings[group],
     settings: { messages: inputSettingsClass.validationStatus.messages, messagePositionByRowIndex: inputSettingsClass.messagePositionByRowIndex }
   });
   if (extracted.status === "invalid") {
     return extracted;
   }
   const { kept, warnings, ...annotations } = extracted.data;
-  const id = keptValues(rows, kept);
-  const labels = keptValues(keys, kept);
+  const id = new Array<number>(kept.length);
   const keyRows = new Array<dataObject["keys"][number]>(kept.length);
+  const keptNumerators = new Array<number>(kept.length);
+  const keptDenominators = new Array<number>(kept.length);
   for (let x = 0; x < kept.length; x++) {
-    keyRows[x] = { x, id: id[x], label: labels[x] };
+    const i = kept[x];
+    id[x] = rows[i];
+    keyRows[x] = { x, id: rows[i], label: keptValue(keys, i) };
+    keptNumerators[x] = keptValue(numerators, i);
+    keptDenominators[x] = keptValue(denominators, i);
   }
   return { status: "valid", data: {
-    ...annotations, keys: keyRows, id, numerators: keptValues(numerators, kept), denominators: keptValues(denominators, kept),
+    ...annotations, keys: keyRows, id, numerators: keptNumerators, denominators: keptDenominators,
     warningMessage: warnings.join("\n")
   } };
 }

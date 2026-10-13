@@ -7,15 +7,15 @@ import getTransformation from "../Funnel Calculations/getTransformation";
 import { valueTooltips, limitTooltips, appendPatternTooltips } from "powerbi-visuals-core/powerbi";
 import type { DerivedScaling } from "powerbi-visuals-core/data";
 
-const valueLabel: Record<string, string> = {
+const valueLabel: Readonly<Record<string, string>> = {
   "PR" : "Proportion",
   "SR" : "Standardised Ratio",
   "RC" : "Rate"
 }
 
 export default function buildTooltip(index: number,
-                                      limits: limitData,
-                                      outliers: { two_sigma: boolean, three_sigma: boolean },
+                                      limits: Readonly<limitData>,
+                                      outliers: { readonly two_sigma: boolean, readonly three_sigma: boolean },
                                       inputData: dataObject,
                                       inputSettings: settingsValueType,
                                       derivedSettings: DerivedScaling): VisualTooltipDataItem[] {

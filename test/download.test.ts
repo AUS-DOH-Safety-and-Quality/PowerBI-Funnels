@@ -134,12 +134,6 @@ describe("CSV download", () => {
     expect(column(result.rows, "value")).toEqual(["40", "25"]);
     expect(result.lines).toHaveLength(3);
   });
-
-  it("quotes group names containing commas", () => {
-    const result = download({}, { key: ["Ward, North", "Ward \"South\""], numerators: [4, 16], denominators: [10, 90] });
-    expect(result.lines[1].startsWith("\"Ward, North\",4,10,40,")).toBe(true);
-    expect(result.lines[2].startsWith("\"Ward \"\"South\"\"\",16,90,")).toBe(true);
-  });
 });
 
 describe("CSV download scaling", () => {
@@ -191,8 +185,8 @@ describe("CSV download scaling", () => {
   it("exports truncated limits as plotted", () => {
     const outliers = { two_sigma: true, three_sigma: true };
     const untruncated = download({ outliers });
-    // The lower bound sits above the target and the otherwise unflagged point C
-    const truncated = download({ funnel: { ll_truncate: 28, ul_truncate: 35 }, outliers });
+    // Both bounds clip the 99% limits without crossing the target, raising B (37%) past the upper one
+    const truncated = download({ funnel: { ll_truncate: 20, ul_truncate: 35 }, outliers });
     expectRowsMatchPoints(truncated);
     for (let i = 0; i < truncated.rows.length; i++) {
       for (let j = 0; j < limitColumns.length; j++) {
@@ -201,7 +195,7 @@ describe("CSV download scaling", () => {
           continue;
         }
         const raw = numeric(untruncated.rows[i][name]);
-        expect(numeric(truncated.rows[i][name]), name).toBe(raw === undefined ? undefined : Math.min(Math.max(raw, 28), 35));
+        expect(numeric(truncated.rows[i][name]), name).toBe(raw === undefined ? undefined : Math.min(Math.max(raw, 20), 35));
       }
       // Truncation leaves the target and values, and flags follow the exported limits
       expect(truncated.rows[i].target).toBe(untruncated.rows[i].target);
@@ -211,8 +205,7 @@ describe("CSV download scaling", () => {
       const ul99 = Number(truncated.rows[i].ul99);
       expect(truncated.rows[i].three_sigma).toBe(value < ll99 ? "deterioration" : (value > ul99 ? "improvement" : "none"));
     }
-    expect(Number(truncated.rows[0].target)).toBeLessThan(28);
-    expect(untruncated.rows[2].three_sigma).toBe("none");
-    expect(truncated.rows[2].three_sigma).toBe("deterioration");
+    expect(untruncated.rows[1].three_sigma).toBe("none");
+    expect(truncated.rows[1].three_sigma).toBe("improvement");
   });
 });

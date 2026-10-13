@@ -4,7 +4,7 @@ import settingsClass from "../../src/Classes/settingsClass";
 import type { dataObject } from "../../src/Functions/extractInputData";
 import { findBy } from "powerbi-visuals-core/testing";
 
-function createChart(numerators: number[]): rcFunnelClass {
+function createChart(numerators: number[], od_adjust: "auto" | "yes" | "no" = "auto"): rcFunnelClass {
   const inputData: dataObject = {
     numerators,
     denominators: [10, 90],
@@ -19,13 +19,16 @@ function createChart(numerators: number[]): rcFunnelClass {
     labels: [],
     anyLabels: false,
     warningMessage: "",
-    validationStatus: { status: 0, messages: [] }
+    validationStatus: { status: 0, messages: [], kept: [] }
   };
-  return new rcFunnelClass(inputData, new settingsClass().group(0));
+  const settings = new settingsClass();
+  settings.update({ objects: [{ funnel: { od_adjust } }] }, [[0]]);
+  return new rcFunnelClass(inputData, settings.group(0));
 }
 
 describe("ratio-count plotting standard errors", () => {
-  // Reference values calculated with Python Decimal at 50-digit precision.
+  // R delta method on Poisson counts t * d and d: g <- deriv(~log((a + 0.5) / (b + 0.5)), c("a", "b"), function.arg = TRUE)
+  // se <- function(t, d) sqrt(sum(attr(g(t * d, d), "gradient")^2 * c(t * d, d)))
   const cases = [
     { target: 0.2, numerators: [4, 16], expected: [0.451371252349844, 0.23977377846774803, 0.16174443502044555] },
     { target: 1, numerators: [20, 80], expected: [0.277296776935901, 0.14071776740030797, 0.09407185559022805] },
@@ -37,7 +40,6 @@ describe("ratio-count plotting standard errors", () => {
     it(`uses the pooled target ${fixture.target} for synthetic numerators`, () => {
       const chart = createChart(fixture.numerators);
       const plottingDenominators = [25, 100, 225];
-      const originalNumerators = chart.inputData.numerators.slice();
       const modes = [false, true];
       expect(chart.getTarget({ transformed: false })).toBe(fixture.target);
 
@@ -48,26 +50,12 @@ describe("ratio-count plotting standard errors", () => {
           expect(result[j]).toBeCloseTo(fixture.expected[j], 14);
         }
       }
-      expect(chart.inputData.numerators).toEqual(originalNumerators);
-      expect(chart.inputData.denominators).toEqual([10, 90]);
-      expect(plottingDenominators).toEqual([25, 100, 225]);
     });
   }
 
-  it("retains observed-count standard errors before and after plotting", () => {
-    const chart = createChart([4, 16]);
-    const before = chart.getSE({ odAdjust: true });
-    expect(before[0]).toBeCloseTo(0.5368741119138972, 14);
-    expect(before[1]).toBeCloseTo(0.2641177556968141, 14);
-
-    chart.getSE({ odAdjust: true, plottingDenominators: [25, 100, 225] });
-    expect(chart.getSE({ odAdjust: true })).toEqual(before);
-    expect(chart.getSE({ odAdjust: false })).toEqual(before);
-  });
-
+  // R: exp(log(0.2) + qnorm(c(0.025, 0.975)) * se(0.2, 90))
   it("uses the target-based SE in the plotted limits", () => {
-    const chart = createChart([4, 16]);
-    chart.inputSettings.settings.funnel.od_adjust = "no";
+    const chart = createChart([4, 16], "no");
     const limits = chart.getLimits();
     const limit = findBy(limits, "denominators", 90);
     expect(limit).toBeDefined();

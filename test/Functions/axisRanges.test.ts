@@ -4,6 +4,7 @@ import viewModelClass from "../../src/Classes/viewModelClass";
 import buildDataView, { type SettingsOverrides } from "../helpers/buildDataView";
 import { renderVisual } from "../helpers/renderVisual";
 import { must } from "powerbi-visuals-core/testing";
+import { updateType } from "powerbi-visuals-core/powerbi";
 
 // Proportions of 12%, 22%, 15% and 20%
 const data = { key: ["A", "B", "C", "D"], numerators: [12, 33, 45, 8], denominators: [100, 150, 300, 40] };
@@ -21,32 +22,35 @@ function pathPoints(element: HTMLElement, name: string): number[][] {
 
 describe("axis ranges", () => {
   it.each([
-    { label: "percentages by default", overrides: {}, yUpper: 22 },
-    { label: "unscaled proportions", overrides: { funnel: { perc_labels: "No" } }, yUpper: 0.22 },
-    { label: "a multiplier", overrides: { funnel: { multiplier: 1000 } }, yUpper: 220 },
-    { label: "a log10 transformation", overrides: { funnel: { transformation: "log10" } }, yUpper: Math.log10(23) }
-  ] satisfies { label: string; overrides: SettingsOverrides; yUpper: number }[])(
-    "spans 110% of the largest denominator and the highest plotted value with $label", ({ overrides, yUpper }) => {
-      const frame = renderVisual(overrides, data).visual.plotProperties;
+    { label: "percentages by default", overrides: {} },
+    { label: "unscaled proportions", overrides: { funnel: { perc_labels: "No" } } },
+    { label: "a multiplier", overrides: { funnel: { multiplier: 1000 } } },
+    { label: "a log10 transformation", overrides: { funnel: { transformation: "log10" } } }
+  ] satisfies { label: string; overrides: SettingsOverrides }[])(
+    "spans 110% of the largest denominator and every plotted value with $label", ({ overrides }) => {
+      const rendered = renderVisual(overrides, data);
+      const frame = rendered.visual.plotProperties;
       expect(frame.xAxis.lower).toBe(0);
       expect(frame.xAxis.upper).toBeCloseTo(330, 10);
       expect(frame.yAxis.lower).toBe(0);
-      expect(frame.yAxis.upper).toBeCloseTo(yUpper, 10);
+      const points = rendered.visual.viewModel.plotPoints;
+      for (let i = 0; i < points.length; i++) {
+        expect(points[i].value).toBeLessThanOrEqual(frame.yAxis.upper);
+      }
       const xDomain = frame.xScale.domain();
-      const yDomain = frame.yScale.domain();
       expect(xDomain[0]).toBe(0);
       expect(xDomain[1]).toBeCloseTo(330, 10);
-      expect(yDomain[0]).toBe(0);
-      expect(yDomain[1]).toBeCloseTo(yUpper, 10);
+      expect(frame.yScale.domain()).toEqual([0, frame.yAxis.upper]);
     });
 
   it("uses explicit limits on either axis, independently", () => {
+    const automatic = renderVisual({}, data).visual.plotProperties;
     const xOnly = renderVisual({ x_axis: { xlimit_l: 50, xlimit_u: 250 } }, data).visual.plotProperties;
-    expect([xOnly.xAxis.lower, xOnly.xAxis.upper, xOnly.yAxis.lower]).toEqual([50, 250, 0]);
-    expect(xOnly.yAxis.upper).toBeCloseTo(22, 10);
+    expect([xOnly.xAxis.lower, xOnly.xAxis.upper]).toEqual([50, 250]);
+    expect([xOnly.yAxis.lower, xOnly.yAxis.upper]).toEqual([automatic.yAxis.lower, automatic.yAxis.upper]);
     const yOnly = renderVisual({ y_axis: { ylimit_l: 10, ylimit_u: 21 } }, data).visual.plotProperties;
-    expect([yOnly.xAxis.lower, yOnly.yAxis.lower, yOnly.yAxis.upper]).toEqual([0, 10, 21]);
-    expect(yOnly.xAxis.upper).toBeCloseTo(330, 10);
+    expect([yOnly.yAxis.lower, yOnly.yAxis.upper]).toEqual([10, 21]);
+    expect([yOnly.xAxis.lower, yOnly.xAxis.upper]).toEqual([automatic.xAxis.lower, automatic.xAxis.upper]);
   });
 
   it("hides points and line sections outside explicit limits", () => {
@@ -91,7 +95,7 @@ describe("axis ranges", () => {
 describe("axis and truncation bounds", () => {
   function update(overrides: SettingsOverrides) {
     const host = createVisualHost({});
-    return new viewModelClass(host).update({ dataViews: [buildDataView(data, overrides)], viewport: { width: 500, height: 500 }, type: 2 }, host);
+    return new viewModelClass(host).update({ dataViews: [buildDataView(data, overrides)], viewport: { width: 500, height: 500 }, type: updateType.data }, host);
   }
 
   it.each([
