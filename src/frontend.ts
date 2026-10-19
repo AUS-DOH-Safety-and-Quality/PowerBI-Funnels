@@ -1,10 +1,17 @@
-import { limitValue, type FrontendChart } from "powerbi-visuals-core/frontends";
+import { indicatorFields, limitValue, type FrontendChart } from "powerbi-visuals-core/frontends";
+import { checkFlagDirection } from "powerbi-visuals-core/data";
+import { limitStatus } from "powerbi-visuals-core/spc";
 import { Visual } from "./visual";
-import settingsModel, { type settingsValueType } from "./settings";
+import settingsModel from "./settings";
 import type { limitData } from "./Classes";
-import type { miscPoint, plotData } from "./Classes/viewModelClass";
+import type { funnelResult } from "./Classes/viewModelClass";
 
 type LimitRow = Record<string, string | number | null>;
+
+const limitColumns = [
+  "denominator", "group", "numerator", "value", "z", "score", "two_sigma", "three_sigma",
+  "target", "alt_target", "ll99", "ll95", "ll68", "ul68", "ul95", "ul99"
+] as const;
 
 /** The fields, then the limits other than the denominator they were calculated at */
 function limitRow(fields: Readonly<Record<string, string | number | undefined>>, limits: Readonly<limitData>,
@@ -25,63 +32,53 @@ function limitRow(fields: Readonly<Record<string, string | number | undefined>>,
   return row;
 }
 
-function funnelLimits(plotPoints: readonly plotData[], outlierSettings: settingsValueType["outliers"], showAltTarget: boolean): LimitRow[] {
-  const points = plotPoints.slice().sort((a, b) => a.x - b.x);
-  const rows = new Array<LimitRow>(points.length);
+function appendResults(rows: LimitRow[], rowIds: number[], limitLines: LimitRow[], result: funnelResult, showScore: boolean): void {
+  const settings = result.settings;
+  const showAltTarget = settings.lines.alt_target != null;
+  const points = result.points.slice().sort((a, b) => a.x - b.x);
+  const indicators = indicatorFields(result.indicators, limitColumns);
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
-    const fields: Record<string, string | number> = {
+    const fields: Record<string, string | number | undefined> = {
+      ...indicators,
       denominator: point.x,
       group: point.group_text,
       numerator: point.numerator,
       value: point.value,
       z: point.z
     };
-    if (outlierSettings.two_sigma) {
-      fields.two_sigma = point.two_sigma;
+    if (showScore) {
+      fields.score = point.z * (settings.outliers.improvement_direction === "decrease" ? -1 : 1);
     }
-    if (outlierSettings.three_sigma) {
+    if (settings.outliers.two_sigma) {
+      fields.two_sigma = showScore
+        ? checkFlagDirection(limitStatus(point.value, point.limits.ll95, point.limits.ul95), settings.outliers)
+        : point.two_sigma;
+    }
+    if (settings.outliers.three_sigma || showScore) {
       fields.three_sigma = point.three_sigma;
     }
-    rows[i] = limitRow(fields, point.limits, showAltTarget);
+    rows.push(limitRow(fields, point.limits, showAltTarget));
+    rowIds.push(point.id);
   }
-  return rows;
-}
-
-function miscLimits(miscPoints: readonly miscPoint[]): LimitRow[] {
-  const rows = new Array<LimitRow>(miscPoints.length);
-  for (let i = 0; i < miscPoints.length; i++) {
-    const point = miscPoints[i];
-    rows[i] = limitRow({
-      indicator: point.indicator,
-      group: point.group_text,
-      z: point.z,
-      score: point.score,
-      three_sigma: point.three_sigma,
-      numerator: point.numerator,
-      denominator: point.x,
-      value: point.value
-    }, point.limits, false);
+  for (let i = 0; i < result.limits.length; i++) {
+    const limits = result.limits[i];
+    limitLines.push(limitRow({ ...indicators, denominator: limits.denominators }, limits, showAltTarget));
   }
-  return rows;
 }
 
 export const frontend: FrontendChart<Visual> = {
   Visual,
   settingsModel,
-  /** Multi-indicator charts return a row per indicator; funnels also return the limit lines they were drawn from */
+  limitColumns,
   limits: visual => {
     const viewModel = visual.viewModel;
-    if (viewModel.showMisc) {
-      return { limits: miscLimits(viewModel.miscPoints) };
+    const limits: LimitRow[] = [];
+    const rowIds: number[] = [];
+    const limitLines: LimitRow[] = [];
+    for (let i = 0; i < viewModel.funnelResults.length; i++) {
+      appendResults(limits, rowIds, limitLines, viewModel.funnelResults[i], viewModel.showMisc);
     }
-    const settings = viewModel.inputSettings.settings[0];
-    const showAltTarget = settings.lines.alt_target != null;
-    const limitLines = new Array<LimitRow>(viewModel.calculatedLimits.length);
-    for (let i = 0; i < limitLines.length; i++) {
-      const limits = viewModel.calculatedLimits[i];
-      limitLines[i] = limitRow({ denominator: limits.denominators }, limits, showAltTarget);
-    }
-    return { limits: funnelLimits(viewModel.plotPoints, settings.outliers, showAltTarget), limitLines };
+    return { limits, rowIds, limitLines };
   }
 };

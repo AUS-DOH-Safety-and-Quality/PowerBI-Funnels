@@ -71,6 +71,35 @@ describe("MISC calculations", () => {
     });
   }
 
+  it("does not adjust an indicator only one group reports for overdispersion", () => {
+    const inputs = miscInputs();
+    inputs.columns[0] = { ...inputs.columns[0], values: ["Higher", "Lower", "Other", "Lower", "Other", "Lower", "Other", "Lower"] };
+    const higher = (od_adjust: "no" | "yes" | "auto") => {
+      const host = keyedHost();
+      const model = new viewModelClass(host);
+      const rows = miscSettings();
+      for (let i = 0; i < rows.length; i++) {
+        rows[i] = { ...rows[i], funnel: { chart_type: "SR", od_adjust } };
+      }
+      expect(update(model, miscView(undefined, rows, inputs), host).status).toBe(true);
+      for (let i = 0; i < model.funnelResults.length; i++) {
+        if (model.funnelResults[i].indicators.Indicator === "Higher") {
+          return model.funnelResults[i];
+        }
+      }
+      throw new Error("Missing the Higher indicator.");
+    };
+    const unadjusted = higher("no");
+    expect(unadjusted.points).toHaveLength(1);
+    expect(Number.isFinite(unadjusted.points[0].z)).toBe(true);
+    const adjustments = ["yes", "auto"] as const;
+    for (let a = 0; a < adjustments.length; a++) {
+      const adjusted = higher(adjustments[a]);
+      expect(adjusted.points[0].z).toBe(unadjusted.points[0].z);
+      expect(adjusted.limits).toEqual(unadjusted.limits);
+    }
+  });
+
   it("populates and persists a group dropdown without filtering the comparison population", () => {
     const host = keyedHost();
     const model = new viewModelClass(host);
@@ -128,6 +157,22 @@ describe("MISC calculations", () => {
     expect(model.miscPoints).toHaveLength(1);
   });
 
+  it("leaves out, with a warning, an RC indicator whose numerators are all zero", () => {
+    const rows = miscSettings();
+    for (let i = 0; i < rows.length; i++) {
+      rows[i] = { ...rows[i], funnel: { chart_type: "RC" } };
+    }
+    const model = new viewModelClass(keyedHost());
+    const warning = "All numerators are zero, so RC limits cannot be calculated and the indicator is not shown.";
+    expect(update(model, miscView([80, 0, 20, 0, 24, 0, 30, 0], rows))).toEqual({ status: true, warning: `Lower: ${warning}` });
+    expect(model.miscPoints).toHaveLength(1);
+    expect(model.miscPoints[0].indicator).toBe("Higher");
+    expect(model.funnelResults).toHaveLength(1);
+    expect(update(model, miscView(Array<number>(8).fill(0), rows))).toEqual({
+      status: false, error: "The selected MISC group has no valid indicator results."
+    });
+  });
+
   it("retains per-indicator chart types and numeric group choices", () => {
     const rows = miscSettings();
     for (let i = 0; i < 8; i++) {
@@ -163,6 +208,55 @@ describe("MISC calculations", () => {
     expect(model.miscPoints).toHaveLength(2);
   });
 
+  it("rejects an indicator whose every row is neutral, naming it", () => {
+    const model = new viewModelClass(keyedHost());
+    const rows = miscSettings();
+    for (let i = 0; i < rows.length; i += 2) {
+      rows[i] = { outliers: { improvement_direction: "neutral" } };
+    }
+    expect(update(model, miscView(undefined, rows))).toEqual({
+      status: false, type: undefined, error: "Higher: Each MISC indicator must have one improvement direction: increase or decrease."
+    });
+    expect(model.miscPoints).toEqual([]);
+    expect(model.funnelResults).toEqual([]);
+  });
+
+  it("reports a selected group that no indicator keeps, and recovers when another group is chosen", () => {
+    const model = new viewModelClass(keyedHost());
+    const view = miscView([null, null, 20, 20, 24, 24, 30, 30]);
+    expect(update(model, view)).toEqual({ status: false, error: "The selected MISC group has no valid indicator results." });
+    expect(model.miscPoints).toEqual([]);
+    // Both indicators still have funnels, so the group list is intact
+    expect(model.miscGroups).toHaveLength(4);
+    view.metadata.objects = { misc: { group: model.miscGroups[1].value } };
+    expect(update(model, view).status).toBe(true);
+    expect(model.miscPoints).toHaveLength(2);
+    expect(model.miscPoints[0].group_text).toBe("B");
+  });
+
+  it("lists each indicator's error when none has valid rows, without the generic one", () => {
+    const model = new viewModelClass(keyedHost());
+    expect(update(model, miscView([null, null, null, null, null, null, null, null]))).toEqual({
+      status: false, type: undefined, error: "Higher: All numerators are missing or null!\nLower: All numerators are missing or null!"
+    });
+    expect(update(model, miscView([-1, -2, -3, -4, -5, -6, -7, -8]))).toEqual({
+      status: false, type: undefined, error: "Higher: All numerators are negative!\nLower: All numerators are negative!"
+    });
+  });
+
+  it("asks for a group when every key is null or the stored group is not in the data", () => {
+    const model = new viewModelClass(keyedHost());
+    const nullKeys = miscView(undefined, undefined, { ...miscInputs(), key: cells([null, null, null, null, null, null, null, null]) });
+    expect(update(model, nullKeys)).toEqual({ status: false, error: "Select a MISC group present in the data." });
+    expect(model.miscGroups).toEqual([]);
+    expect(model.miscPoints).toEqual([]);
+    const stale = miscView();
+    stale.metadata.objects = { misc: { group: "not a group" } };
+    expect(update(model, stale)).toEqual({ status: false, error: "Select a MISC group present in the data." });
+    expect(model.miscGroups).toHaveLength(4);
+    expect(model.miscGroup).toBe("not a group");
+  });
+
   it("omits indicators with no valid selected group", () => {
     const view = miscView([80, null, 20, 20, 24, 24, 30, 30]);
     const model = new viewModelClass(keyedHost());
@@ -193,6 +287,55 @@ describe("MISC rendering", () => {
       expect(visual.viewModel.miscPoints[0].group_text).toBe("B");
     } finally {
       element.remove();
+    }
+  });
+
+  it("leaves no funnel tooltips behind after switching from a funnel", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const host = keyedHost();
+    const visual = new Visual({ element, host });
+    const tooltip = vi.spyOn(host.tooltipService, "show");
+    const viewport = { width: 700, height: 400 };
+    try {
+      visual.update({ dataViews: [buildDataView(sample)], viewport, type: updateType.data });
+      visual.update({ dataViews: [miscView()], viewport, type: updateType.data });
+      const svg = must(element.querySelector("svg"));
+      const box = svg.getBoundingClientRect();
+      svg.dispatchEvent(new MouseEvent("mousemove", { clientX: box.left + 350, clientY: box.top + 200 }));
+      expect(tooltip).not.toHaveBeenCalled();
+    } finally {
+      element.remove();
+    }
+  });
+
+  it("clears the selection from the background but not from a bar, whether or not a funnel was drawn first", async () => {
+    const viewport = { width: 700, height: 400 };
+    const histories = [[miscView()], [buildDataView(sample), miscView()]];
+    for (let h = 0; h < histories.length; h++) {
+      const element = document.createElement("div");
+      document.body.append(element);
+      const host = keyedHost();
+      host.hostCapabilities.allowInteractions = true;
+      const visual = new Visual({ element, host });
+      const clear = vi.spyOn(visual.selectionManager, "clear");
+      try {
+        for (let i = 0; i < histories[h].length; i++) {
+          visual.update({ dataViews: [histories[h][i]], viewport, type: updateType.data });
+        }
+        const bars = element.querySelectorAll<SVGRectElement>(".misc-bar");
+        bars[0].dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        await Promise.resolve();
+        expect(clear).not.toHaveBeenCalled();
+        expect(bars[0].getAttribute("opacity")).not.toBe(bars[1].getAttribute("opacity"));
+        must(element.querySelector("svg")).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        await Promise.resolve();
+        expect(clear).toHaveBeenCalledTimes(1);
+        expect(visual.selectionManager.getSelectionIds()).toEqual([]);
+        expect(bars[0].getAttribute("opacity")).toBe(bars[1].getAttribute("opacity"));
+      } finally {
+        element.remove();
+      }
     }
   });
 

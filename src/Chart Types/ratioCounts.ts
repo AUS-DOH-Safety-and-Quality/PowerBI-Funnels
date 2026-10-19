@@ -71,14 +71,11 @@ export default class rcFunnelClass extends chartClass {
   constructor(inputData: dataObject, inputSettings: groupSettings) {
     super({
       seFunction: rcSE,
-      seFunctionOD: rcSE,
       targetFunction: rcTarget,
       targetFunctionTransformed: rcTargetTransformed,
       yFunction: rcY,
       zFunction: rcZ,
-      zFunctionOD: rcZ,
       limitFunction: rcLimit,
-      limitFunctionOD: rcLimit,
       inputData: inputData,
       inputSettings: inputSettings
     });

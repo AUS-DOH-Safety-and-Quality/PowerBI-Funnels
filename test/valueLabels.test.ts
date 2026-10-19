@@ -26,4 +26,27 @@ describe("Value labels", () => {
     expect(attribute(line, "y2")).toBeCloseTo(pointY - 10, 6);
     expect(groups[1].querySelector("text")?.textContent).toBe("Three");
   });
+
+  it("draws the connector with the label line type, width and colour", () => {
+    const inputs = { ...sample, labels: ["One", "Two", "Three"] };
+    const rendered = renderVisual({ canvas: { upper_padding: 40 } }, inputs);
+    const lines = rendered.element.querySelectorAll<SVGLineElement>(".text-labels .text-group-inner line");
+    expect(lines).toHaveLength(3);
+    for (let i = 0; i < lines.length; i++) {
+      expect(lines[i].style.strokeDasharray).toBe("10, 0");
+      expect(lines[i].style.strokeWidth).toBe("1");
+      expect(lines[i].style.stroke).toBe("rgb(0, 0, 0)");
+    }
+    rendered.update({
+      canvas: { upper_padding: 40 },
+      labels: { label_line_type: "2 5", label_line_width: 3, label_line_colour: "#123456" }
+    });
+    const styled = rendered.element.querySelectorAll<SVGLineElement>(".text-labels .text-group-inner line");
+    expect(styled).toHaveLength(3);
+    for (let i = 0; i < styled.length; i++) {
+      expect(styled[i].style.strokeDasharray).toBe("2, 5");
+      expect(styled[i].style.strokeWidth).toBe("3");
+      expect(styled[i].style.stroke).toBe("rgb(18, 52, 86)");
+    }
+  });
 });

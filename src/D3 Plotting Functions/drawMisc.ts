@@ -1,4 +1,4 @@
-import { clamp, scaleLinear } from "powerbi-visuals-core/math";
+import { clamp, normalQuantile, scaleLinear } from "powerbi-visuals-core/math";
 import { axisLabelPlacement } from "powerbi-visuals-core/rendering";
 import type { svgBaseType, Visual } from "../visual";
 import type { miscPoint } from "../Classes/viewModelClass";
@@ -37,8 +37,8 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   const scale = scaleLinear().domain([misc.lower, misc.upper]).range([left, right]);
   const zero = scale(0);
   const limits = [
-    { value: -3.090232306167813, level: "99" }, { value: 3.090232306167813, level: "99" },
-    { value: -1.959963984540054, level: "95" }, { value: 1.959963984540054, level: "95" },
+    { value: normalQuantile(0.001, 0, 1, true, false), level: "99" }, { value: normalQuantile(0.999, 0, 1, true, false), level: "99" },
+    { value: normalQuantile(0.025, 0, 1, true, false), level: "95" }, { value: normalQuantile(0.975, 0, 1, true, false), level: "95" },
     { value: 0, level: "target" }
   ] as const;
   const drawn = { "99": false, "95": false, target: false };
@@ -115,5 +115,12 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
       isTouchEvent: false
     }))
     .on("mouseout", () => visual.host.tooltipService.hide({ immediately: true, isTouchEvent: false }));
+  // Namespaced with the plot's handlers, which are dropped whenever the view changes
+  svg.on("click.plot", () => {
+    if (!visual.host.hostCapabilities.allowInteractions) {
+      return;
+    }
+    visual.selectionManager.clear().then(() => visual.updateHighlighting());
+  });
   visual.addContextMenu(svg.node(), visual.host.hostCapabilities.allowInteractions === true);
 }

@@ -53,14 +53,12 @@ export default class prFunnelClass extends chartClass {
   constructor(inputData: dataObject, inputSettings: groupSettings) {
     super({
       seFunction: prSE,
-      seFunctionOD: prSE,
       targetFunction: prTarget,
       targetFunctionTransformed: prTargetTransformed,
       yFunction: prY,
       zFunction: prZ,
       zFunctionOD: adjustZScores,
       limitFunction: prLimit,
-      limitFunctionOD: prLimit,
       inputData: inputData,
       inputSettings: inputSettings
     });

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import winsoriseZScores from "../../src/Funnel Calculations/winsoriseZScores";
 import getPhi from "../../src/Funnel Calculations/getPhi";
 import getTau2 from "../../src/Funnel Calculations/getTau2";
+import { must } from "powerbi-visuals-core/testing";
+import { calculate } from "../helpers/renderVisual";
 
 // Reference values from FunnelPlotR 0.6.0's winsorisation, phi_func and tau_func
 describe("overdispersion estimate", () => {
@@ -30,4 +32,36 @@ describe("overdispersion estimate", () => {
   ])("estimates a between-unit variance of $tau2 from phi = $phi", ({ phi, tau2 }) => {
     expect(getTau2(phi, [0.1, 0.2, 0.15, 0.3, 0.25])).toBeCloseTo(tau2, 15);
   });
+
+  // The fewest units the estimator takes
+  it.each([
+    { phi: 0.4, tau2: 0 },
+    { phi: 0.6, tau2: 0.0049999999999999992 },
+    { phi: 2, tau2: 0.074999999999999997 }
+  ])("estimates a between-unit variance of $tau2 for two units from phi = $phi", ({ phi, tau2 }) => {
+    expect(getTau2(phi, [0.1, 0.2])).toBeCloseTo(tau2, 15);
+  });
+
+  it.each([0, 2])("has no between-unit variance for one unit, with phi = %d", phi => {
+    expect(getTau2(phi, [0.2])).toBe(0);
+  });
+
+  // A single unit cannot estimate between-unit variance, so adjusting leaves the limits unchanged
+  const chartTypes = ["PR", "SR", "RC"] as const;
+  const adjustments = ["yes", "auto"] as const;
+  for (let c = 0; c < chartTypes.length; c++) {
+    for (let a = 0; a < adjustments.length; a++) {
+      it(`does not adjust a single-unit ${chartTypes[c]} funnel with od_adjust = "${adjustments[a]}"`, () => {
+        const unit = { key: ["A"], numerators: [4], denominators: [10] };
+        const unadjusted = calculate({ funnel: { chart_type: chartTypes[c], od_adjust: "no" } }, unit);
+        const model = calculate({ funnel: { chart_type: chartTypes[c], od_adjust: adjustments[a] } }, unit);
+        const chart = must(model.chartBase);
+        expect(chart.getTau2()).toBe(0);
+        expect(chart.odAdjust).toBe(false);
+        expect(model.calculatedLimits).toEqual(unadjusted.calculatedLimits);
+        expect(model.plotPoints[0].z).toBe(unadjusted.plotPoints[0].z);
+        expect(Number.isFinite(model.plotPoints[0].z)).toBe(true);
+      });
+    }
+  }
 });

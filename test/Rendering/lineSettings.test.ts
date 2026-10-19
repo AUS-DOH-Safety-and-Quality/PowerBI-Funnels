@@ -265,15 +265,24 @@ describe("line value labels", () => {
       expect(below[i].getAttribute("dx")).toBe("-7px");
       expect(below[i].getAttribute("dy")).toBe("17px");
     }
-    // Beside labels centre on the line by a quarter of their rendered height
-    const beside = labels(renderVisual({
+    // Beside labels centre on their line, raised by the vertical padding
+    const rendered = renderVisual({
       lines: { plot_label_show_99: true, plot_label_vpad_99: 5, plot_label_hpad_99: 7, plot_label_size_99: 12 }
-    }, data).element);
+    }, data);
+    const beside = labels(rendered.element);
     expect(beside).toHaveLength(2);
+    const svgTop = must(rendered.element.querySelector("svg")).getBoundingClientRect().top;
+    const lineNames: StandardLineName[] = ["ll99", "ul99"];
     for (let i = 0; i < beside.length; i++) {
       expect(beside[i].getAttribute("text-anchor")).toBe("start");
       expect(beside[i].getAttribute("dx")).toBe("7px");
-      expect(parseFloat(must(beside[i].getAttribute("dy")))).toBeCloseTo(-5 + beside[i].getBoundingClientRect().height / 4, 6);
+      const box = beside[i].getBoundingClientRect();
+      const centre = (box.top + box.bottom) / 2 - svgTop + 5;
+      let nearest = Number.POSITIVE_INFINITY;
+      for (let n = 0; n < lineNames.length; n++) {
+        nearest = Math.min(nearest, Math.abs(centre - rendered.visual.plotProperties.yScale(lastPoint(rendered.visual, lineNames[n]).value)));
+      }
+      expect(nearest).toBeLessThan(box.height / 10);
     }
   });
 });

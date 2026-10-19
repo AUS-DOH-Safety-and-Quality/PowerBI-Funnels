@@ -1,6 +1,6 @@
 import type { dataObject } from "../Functions/extractInputData";
 import type { groupSettings } from "../Classes";
-import { chisqQuantile, max } from "powerbi-visuals-core/math";
+import { chisqQuantile, max, normalQuantile } from "powerbi-visuals-core/math";
 import { limitLineNames, type LimitLineName, type LimitLineValues } from "powerbi-visuals-core/settings";
 import getZScores from "../Funnel Calculations/getZScores";
 import winsoriseZScores from "../Funnel Calculations/winsoriseZScores";
@@ -34,16 +34,17 @@ type intervalData = {
   readonly label: LimitLineName;
 }
 
+/** An omitted overdispersion variant is the plain function */
 type chartObjectConstructorT = {
   readonly seFunction: (x: dataObject, plottingDenominators?: readonly number[]) => number[];
-  readonly seFunctionOD: (x: dataObject, plottingDenominators?: readonly number[]) => number[];
+  readonly seFunctionOD?: (x: dataObject, plottingDenominators?: readonly number[]) => number[];
   readonly targetFunction: (x: dataObject) => number;
   readonly targetFunctionTransformed: (x: dataObject) => number;
   readonly yFunction: (x: dataObject) => number[];
   readonly zFunction: (x: dataObject, args: zArgs) => readonly number[];
-  readonly zFunctionOD: (x: dataObject, args: zArgs) => readonly number[];
+  readonly zFunctionOD?: (x: dataObject, args: zArgs) => readonly number[];
   readonly limitFunction: (x: limitArgs) => number;
-  readonly limitFunctionOD: (x: limitArgs) => number;
+  readonly limitFunctionOD?: (x: limitArgs) => number;
   readonly inputData: dataObject;
   readonly inputSettings: groupSettings;
 }
@@ -150,10 +151,13 @@ export default class chartClass {
     if (this.variance === undefined) {
       throw new Error("Estimate tau2 before choosing whether to adjust for it.");
     }
+    if (this.variance.tau2 === 0) {
+      return false;
+    }
     const N: number = this.variance.zScores.length;
     switch (this.inputSettings.settings.funnel.od_adjust) {
       case "yes":
-        return this.variance.tau2 > 0;
+        return true;
       case "auto":
         return N * this.variance.phi > chisqQuantile(0.95, N - 1);
       case "no":
@@ -167,19 +171,11 @@ export default class chartClass {
   }
 
   getIntervals(): intervalData[] {
+    // The 99.8%, 95% and 68% limits
     const probs: number[] = [0.001, 0.025, 0.16, 0.84, 0.975, 0.999];
-    // Normal quantiles at probs: the 99.8%, 95% and 68% limits
-    const qs: number[] = [
-      -3.09023230616781319213,
-      -1.95996398454005382739,
-      -0.99445788320975281316,
-      0.99445788320975281316,
-      1.95996398454005360534,
-      3.09023230616781319213
-    ];
-    const result = new Array<intervalData>(qs.length);
-    for (let i = 0; i < qs.length; i++) {
-      result[i] = { prob: probs[i], quantile: qs[i], label: limitLineNames[i] };
+    const result = new Array<intervalData>(probs.length);
+    for (let i = 0; i < probs.length; i++) {
+      result[i] = { prob: probs[i], quantile: normalQuantile(probs[i], 0, 1, true, false), label: limitLineNames[i] };
     }
     return result;
   }
@@ -246,14 +242,14 @@ export default class chartClass {
 
   constructor(args: chartObjectConstructorT) {
     this.seFunction = args.seFunction;
-    this.seFunctionOD = args.seFunctionOD;
+    this.seFunctionOD = args.seFunctionOD ?? args.seFunction;
     this.targetFunction = args.targetFunction;
     this.targetFunctionTransformed = args.targetFunctionTransformed;
     this.yFunction = args.yFunction;
     this.zFunction = args.zFunction;
-    this.zFunctionOD = args.zFunctionOD;
+    this.zFunctionOD = args.zFunctionOD ?? args.zFunction;
     this.limitFunction = args.limitFunction;
-    this.limitFunctionOD = args.limitFunctionOD;
+    this.limitFunctionOD = args.limitFunctionOD ?? args.limitFunction;
     this.inputData = args.inputData;
     this.inputSettings = args.inputSettings;
   }

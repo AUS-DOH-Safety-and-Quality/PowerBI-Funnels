@@ -7,11 +7,11 @@ import settingsModel from "../settings";
 import miscFormattingSchema from "../Functions/miscFormattingSchema";
 import type { settingsValueType } from "../settings";
 import {
-  buildFormattingModel, groupCategoryRows, labelledMessage, rowIdentity,
+  buildFormattingModel, formatPrimitiveValue, groupCategoryRows, labelledMessage, rowIdentity,
   type CategoryGroups, type FormattingItem, type FormattingModel, type ValidatedDataView
 } from "powerbi-visuals-core/powerbi";
 import type { chartClass, limitData } from "../Classes";
-import extractInputData, { type dataObject } from "../Functions/extractInputData";
+import extractInputData, { lacksCount, type dataObject } from "../Functions/extractInputData";
 import axisRanges from "../Functions/axisRanges";
 import buildTooltip from "../Functions/buildTooltip";
 import { clamp } from "powerbi-visuals-core/math";
@@ -41,6 +41,7 @@ export type summaryTableRow = Omit<limitData, "denominators"> & {
 };
 
 export type plotData = {
+  readonly id: number;
   readonly x: number;
   readonly numerator: number;
   readonly value: number;
@@ -65,6 +66,13 @@ export type plotData = {
 }
 
 export type miscPoint = plotData & { indicator: string; score: number };
+
+export type funnelResult = {
+  readonly indicators: Readonly<Record<string, string | undefined>>;
+  readonly points: readonly plotData[];
+  readonly limits: readonly limitData[];
+  readonly settings: settingsValueType;
+};
 
 /** The group, value, counts and shown lines, then the flagged patterns */
 function tableColumns(settings: settingsValueType): TableColumn[] {
@@ -92,6 +100,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
   plotPoints: plotData[] = [];
   tableColumns: TableColumn[] = [];
   groupedLines: [StandardLineName, lineData[]][] = [];
+  funnelResults: funnelResult[] = [];
   /** Indicators switch the view to the multi-indicator chart */
   showMisc = false;
   /** The groups the MISC pane offers, and the one chosen */
@@ -138,6 +147,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
     this.calculatedLimits = [];
     this.plotPoints = [];
     this.groupedLines = [];
+    this.funnelResults = [];
     this.miscPoints = [];
     this.miscAnyHighlights = false;
   }
@@ -145,6 +155,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
   protected updateData(view: ValidatedDataView<"numerators" | "denominators">, indicatorGroups: CategoryGroups,
                        host: IVisualHost): GroupResults {
     this.showMisc = (view.categories.indicator ?? []).length > 0;
+    this.funnelResults = [];
     this.miscGroups = [];
     this.miscPoints = [];
     this.miscAnyHighlights = false;
@@ -155,12 +166,16 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
     if (result.status === "invalid") {
       return { errors: [result.error], warnings: [] };
     }
-    this.inputData = result.data;
     const group = this.inputSettings.group(0);
+    if (lacksCount(result.data, group.settings.funnel.chart_type)) {
+      return { errors: ["All numerators are zero, so RC limits cannot be calculated."], warnings: [] };
+    }
+    this.inputData = result.data;
     this.chartBase = new chartObjects[group.settings.funnel.chart_type](result.data, group);
     this.calculatedLimits = this.chartBase.getLimits();
     this.scaleAndTruncateLimits();
     this.initialisePlotData(host, result.data, this.chartBase);
+    this.funnelResults.push({ indicators: {}, points: this.plotPoints, limits: this.calculatedLimits, settings: group.settings });
     this.initialiseGroupedLines();
     return { errors: [], warnings: result.data.warningMessage === "" ? [] : [result.data.warningMessage] };
   }
@@ -212,6 +227,10 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
         continue;
       }
       const data = result.data;
+      if (lacksCount(data, group.settings.funnel.chart_type)) {
+        warnings.push(labelledMessage(indicator, "All numerators are zero, so RC limits cannot be calculated and the indicator is not shown."));
+        continue;
+      }
       this.inputData ??= data;
       if (data.warningMessage !== "") {
         warnings.push(labelledMessage(indicator, data.warningMessage));
@@ -222,6 +241,15 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       this.scaleAndTruncateLimits(group);
       // Bars colour by three-sigma status whatever the outlier toggles say
       this.initialisePlotData(host, data, chart, group, { two_sigma: false, three_sigma: true });
+      const indicatorValues: Record<string, string | undefined> = {};
+      const indicatorColumns = view.categories.indicator ?? [];
+      for (let j = 0; j < indicatorColumns.length; j++) {
+        const column = indicatorColumns[j];
+        indicatorValues[column.source.displayName] = formatPrimitiveValue(column.values[rows[0]]);
+      }
+      this.funnelResults.push({
+        indicators: indicatorValues, points: this.plotPoints, limits: this.calculatedLimits, settings: group.settings
+      });
       for (let j = 0; j < data.id.length; j++) {
         const row = data.id[j];
         if (!selectedRows.has(row)) {
@@ -293,6 +321,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       ] as const);
 
       this.plotPoints.push({
+        id: original_index,
         x: denominator,
         numerator: numerator,
         value: value,

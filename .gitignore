@@ -27,3 +27,7 @@ coverage
 # Vitest browser artifacts
 /.vitest-attachments/
 /test/**/__screenshots__/
+.vitest/
+
+*.md
+!README.md

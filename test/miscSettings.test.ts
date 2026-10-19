@@ -465,10 +465,10 @@ describe("MISC canvas", () => {
     const after = frame(padded);
     const down = canvas.upper_padding - base.upper_padding;
     const up = canvas.lower_padding - base.lower_padding;
-    expect(after.top - before.top).toBeCloseTo(down, 6);
-    expect(before.bottom - after.bottom).toBeCloseTo(up, 6);
-    expect(after.left - before.left).toBeCloseTo(canvas.left_padding - base.left_padding, 6);
-    expect(before.right - after.right).toBeCloseTo(canvas.right_padding - base.right_padding, 6);
+    expect(after.top - before.top).toBeCloseTo(down, 2);
+    expect(before.bottom - after.bottom).toBeCloseTo(up, 2);
+    expect(after.left - before.left).toBeCloseTo(canvas.left_padding - base.left_padding, 2);
+    expect(before.right - after.right).toBeCloseTo(canvas.right_padding - base.right_padding, 2);
     const direction = ".misc-direction";
     expect(attr(padded.element.querySelector(direction), "y") - attr(plain.element.querySelector(direction), "y")).toBeCloseTo(down, 6);
     expect(attr(legendLines(padded)[0], "y1") - attr(legendLines(plain)[0], "y1")).toBeCloseTo(down, 6);

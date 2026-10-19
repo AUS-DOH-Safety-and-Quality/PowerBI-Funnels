@@ -162,7 +162,7 @@ describe("axis settings", () => {
     expect(element.querySelectorAll(`.${other}gridline`)).toHaveLength(tickTexts(element, other).length);
   });
 
-  // Bottom titles sit midway between the axis and the canvas edge; left titles at 0.7 of the axis offset
+  // Titles are centred between the tick labels and the canvas edge, which overflow fitting moves to fit them
   it("places each title between its axis and the canvas edge, rotating the y title", () => {
     const element = renderVisual({
       x_axis: { xlimit_label: "X", xlimit_label_size: 14, xlimit_tick_size: 16 },
@@ -173,8 +173,12 @@ describe("axis settings", () => {
     const yLeft = must(element.querySelector(".yaxisgroup")).getBoundingClientRect().left - svg.left;
     const xTitle = must(element.querySelector(".xaxislabel"));
     const yTitle = must(element.querySelector(".yaxislabel"));
-    expect(Number(xTitle.getAttribute("y"))).toBeCloseTo(500 - (500 - xBottom) / 2, 6);
-    expect(Number(yTitle.getAttribute("x"))).toBeCloseTo(0.7 * yLeft, 6);
+    const xBox = xTitle.getBoundingClientRect();
+    const yBox = yTitle.getBoundingClientRect();
+    expect(xBox.top - svg.top).toBeGreaterThanOrEqual(xBottom - 1e-6);
+    expect(xBox.top - svg.top - xBottom).toBeCloseTo(svg.bottom - xBox.bottom, 2);
+    expect(yBox.left - svg.left).toBeGreaterThanOrEqual(-1e-6);
+    expect(yBox.left - svg.left).toBeCloseTo(yLeft - (yBox.right - svg.left), 6);
     expect(yTitle.getAttribute("transform")).toBe(`rotate(-90, ${yTitle.getAttribute("x")}, ${yTitle.getAttribute("y")})`);
     expect(xTitle.getAttribute("transform")).toBeNull();
   });

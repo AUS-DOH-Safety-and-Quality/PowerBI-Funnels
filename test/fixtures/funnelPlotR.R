@@ -1,5 +1,8 @@
 # Regenerates test/fixtures/funnelPlotR.ts: Rscript test/fixtures/funnelPlotR.R
-# Expected values evaluate the visual's methods in full precision; FunnelPlotR verifies every quantity it shares
+# Expected values evaluate the visual's methods in full precision; FunnelPlotR verifies every quantity it shares,
+# and its own outputs are written alongside so the visual is also tested directly against them.
+# FunnelPlotR has no equivalent for: 68% limits; RC limits and z-scores (it draws RC limits with the proportion
+# SE 1 / (2 sqrt(d)), the visual with the delta-method SE at the target count); overdispersion-adjusted z-scores.
 
 probs <- c(ll99 = 0.001, ll95 = 0.025, ll68 = 0.16, ul68 = 0.84, ul95 = 0.975, ul99 = 0.999)
 levels <- c("99", "95", "68")
@@ -37,14 +40,15 @@ observed_se <- function(chart_type, numerators, denominators) {
   se
 }
 
-# DerSimonian-Laird between-unit variance from 10%/90% winsorised z-scores
+# DerSimonian-Laird between-unit variance from 10%/90% winsorised z-scores.
+# One unit cannot estimate it: the estimator's denominator is zero, so tau2 is 0 (FunnelPlotR returns NaN or Inf)
 dispersion <- function(z, se) {
   bounds <- stats::quantile(z, c(0.1, 0.9), type = 7, names = FALSE)
   phi <- mean(pmin(pmax(z, bounds[1]), bounds[2])^2)
   n <- length(z)
   w <- 1 / se^2
   tau2 <- 0
-  if (n * phi >= n - 1) {
+  if (n > 1 && n * phi >= n - 1) {
     tau2 <- (n * phi - (n - 1)) / (sum(w) - sum(w^2) / sum(w))
   }
   list(phi = phi, tau2 = tau2)
@@ -102,6 +106,11 @@ trim_limits <- function(limits) {
   trimmed
 }
 
+# A one-row matrix's columns carry the column name, which would serialise as an object
+column <- function(limits, name) {
+  as.vector(limits[, name])
+}
+
 flags <- function(values, lower, upper) {
   ifelse(!is.na(lower) & values < lower, "lower", ifelse(!is.na(upper) & values > upper, "upper", "none"))
 }
@@ -113,6 +122,7 @@ funnel <- function(data, chart_type, adjusted, limit = 99) {
 }
 
 add_case <- function(name, chart_type, od_adjust, keys, numerators, denominators) {
+  n <- length(keys)
   target <- 1
   if (chart_type != "SR") {
     target <- sum(numerators) / sum(denominators)
@@ -144,32 +154,46 @@ add_case <- function(name, chart_type, od_adjust, keys, numerators, denominators
     log_p <- stats::pchisq(values * 2 * denominators, 2 * (denominators + (values > 1)), log.p = TRUE)
     z <- stats::qnorm(log_p, log.p = TRUE)
   }
-  two_sigma <- flags(values, observed[, "ll95"], observed[, "ul95"])
-  three_sigma <- flags(values, observed[, "ll99"], observed[, "ul99"])
+  two_sigma <- flags(values, column(observed, "ll95"), column(observed, "ul95"))
+  three_sigma <- flags(values, column(observed, "ll99"), column(observed, "ul99"))
 
   data <- data.frame(numerator = numerators, denominator = denominators, group = keys)
   reference <- funnel(data, chart_type, TRUE)
   rows <- match(keys, reference$aggregated_data$group)
+  reference_uz <- reference$aggregated_data$Uzscore[rows]
   stopifnot(
-    isTRUE(all.equal(reference$aggregated_data$Uzscore[rows], uz, tolerance = 1e-12)),
-    isTRUE(all.equal(reference$phi, spread$phi, tolerance = 1e-12)),
-    isTRUE(all.equal(reference$tau2, spread$tau2, tolerance = 1e-12)),
-    # FunnelPlotR adjusts when phi > 1 rather than when tau2 > 0; the datasets avoid the band between
-    reference$draw_adjusted == (spread$tau2 > 0)
+    isTRUE(all.equal(reference_uz, uz, tolerance = 1e-12)),
+    isTRUE(all.equal(reference$phi, spread$phi, tolerance = 1e-12))
   )
+  reference_tau2 <- NA
+  if (n > 1) {
+    reference_tau2 <- reference$tau2
+    stopifnot(
+      isTRUE(all.equal(reference_tau2, spread$tau2, tolerance = 1e-12)),
+      # FunnelPlotR adjusts when phi > 1 rather than when tau2 > 0; the datasets avoid the band between
+      reference$draw_adjusted == (spread$tau2 > 0)
+    )
+  } else {
+    stopifnot(!is.finite(reference$tau2), spread$tau2 == 0)
+  }
 
-  # FunnelPlotR rounds its normal quantiles to 7 digits, and plots RC limits with the proportion SE
+  # FunnelPlotR rounds its normal quantiles to 7 digits
+  reference_limits <- NA
+  reference_flags <- NA
   if (chart_type != "RC") {
     shown <- funnel(data, chart_type, adjusted, 95)
     shown99 <- funnel(data, chart_type, adjusted, 99)
     rows <- match(keys, shown$aggregated_data$group)
+    rows99 <- match(keys, shown99$aggregated_data$group)
     columns <- c(ll95 = "LCL95", ul95 = "UCL95", ll99 = "LCL99", ul99 = "UCL99")
     if (adjusted) {
       columns <- c(ll95 = "OD95LCL", ul95 = "OD95UCL", ll99 = "OD99LCL", ul99 = "OD99UCL")
     }
+    reference_limits <- list()
     for (limit in names(columns)) {
-      ours <- observed[, limit]
+      ours <- column(observed, limit)
       theirs <- shown$aggregated_data[rows, columns[[limit]]]
+      reference_limits[[limit]] <- I(theirs)
       if (chart_type == "SR" && adjusted) {
         # FunnelPlotR's CQC limits stay on the square-root scale
         ours <- sqrt(ours)
@@ -180,10 +204,23 @@ add_case <- function(name, chart_type, od_adjust, keys, numerators, denominators
       tolerance <- ifelse(chart_type == "SR" && !adjusted, 1e-12, 1e-6)
       stopifnot(any(comparable), all(abs(ours[comparable] - theirs[comparable]) <= tolerance * pmax(1, abs(theirs[comparable]))))
     }
-    if (!(chart_type == "SR" && adjusted)) {
+    if (chart_type == "SR" && adjusted) {
+      # FunnelPlotR flags the raw ratio against these square-root-scale limits, so its outlier column is not
+      # usable; flagging sqrt(ratio) against its limits must agree with ours instead
+      agg <- shown$aggregated_data[rows, ]
+      agg99 <- shown99$aggregated_data[rows99, ]
       stopifnot(
-        identical(shown$aggregated_data$outlier[rows] == 1, two_sigma != "none"),
-        identical(shown99$aggregated_data$outlier[match(keys, shown99$aggregated_data$group)] == 1, three_sigma != "none")
+        identical((sqrt(values) < agg$OD95LCL | sqrt(values) > agg$OD95UCL), two_sigma != "none"),
+        identical((sqrt(values) < agg99$OD99LCL | sqrt(values) > agg99$OD99UCL), three_sigma != "none")
+      )
+    } else {
+      reference_flags <- list(
+        two_sigma = I(shown$aggregated_data$outlier[rows] == 1),
+        three_sigma = I(shown99$aggregated_data$outlier[rows99] == 1)
+      )
+      stopifnot(
+        identical(unclass(reference_flags$two_sigma), two_sigma != "none"),
+        identical(unclass(reference_flags$three_sigma), three_sigma != "none")
       )
     }
   }
@@ -192,22 +229,23 @@ add_case <- function(name, chart_type, od_adjust, keys, numerators, denominators
     target = target,
     tau2 = spread$tau2,
     od_adjusted = adjusted,
-    values = values,
-    z = z,
-    two_sigma = two_sigma,
-    three_sigma = three_sigma
+    values = I(values),
+    z = I(z),
+    two_sigma = I(two_sigma),
+    three_sigma = I(three_sigma)
   )
   for (limit in names(probs)) {
-    expected[[limit]] <- observed[, limit]
+    expected[[limit]] <- I(column(observed, limit))
   }
   cases[[length(cases) + 1]] <<- list(
     name = name,
     chart_type = chart_type,
     od_adjust = od_adjust,
-    keys = keys,
-    numerators = numerators,
-    denominators = denominators,
-    expected = expected
+    keys = I(keys),
+    numerators = I(numerators),
+    denominators = I(denominators),
+    expected = expected,
+    funnelPlotR = list(tau2 = reference_tau2, uz = I(reference_uz), limits = reference_limits, outliers = reference_flags)
   )
 }
 
@@ -238,6 +276,15 @@ infections$expected <- infections$days * rates[as.character(infections$infection
 infections$key <- paste(infections$hospital, infections$infection)
 by_unit <- stats::aggregate(cbind(n, expected) ~ key, data = infections, FUN = sum)
 add_both("hospital infections SR", "SR", by_unit$key, by_unit$n, by_unit$expected)
+
+# Small groups: one unit gives tau2 = 0 whatever the request; two and three units sit clearly either side of phi = 1
+for (chart_type in c("PR", "SR", "RC")) {
+  add_both(paste("single unit", chart_type), chart_type, "A", 5, 50)
+}
+add_both("two units PR overdispersed", "PR", c("A", "B"), c(10, 25), c(200, 200))
+add_both("two units SR", "SR", c("A", "B"), c(20, 22), c(20, 20))
+add_both("three units RC overdispersed", "RC", c("A", "B", "C"), c(2, 30, 10), c(100, 100, 100))
+add_both("three units SR", "SR", c("A", "B", "C"), c(18, 20, 23), c(20, 20, 20))
 
 # Missing limits are null and a zero count's RC or unadjusted SR z-score is -Infinity
 json <- jsonlite::toJSON(cases, digits = I(17), auto_unbox = TRUE, na = "string", pretty = TRUE)

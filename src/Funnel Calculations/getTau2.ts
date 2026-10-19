@@ -1,10 +1,10 @@
 /**
  * Between-unit variance by the DerSimonian & Laird method-of-moments estimator;
- * zero when phi shows no overdispersion.
+ * zero when phi shows no overdispersion, or for one unit, which cannot estimate it.
  */
 function getTau2(phi: number, SE: readonly number[]): number {
   const N: number = SE.length;
-  if (N * phi < N - 1) {
+  if (N < 2 || N * phi < N - 1) {
     return 0.0;
   }
 

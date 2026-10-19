@@ -46,3 +46,16 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
     warningMessage: warnings.join("\n")
   } };
 }
+
+/** RC limits centre on log(sum(numerators)), which is undefined without a count */
+export function lacksCount(data: dataObject, chartType: settingsValueType["funnel"]["chart_type"]): boolean {
+  if (chartType !== "RC") {
+    return false;
+  }
+  for (let i = 0; i < data.numerators.length; i++) {
+    if (data.numerators[i] > 0) {
+      return false;
+    }
+  }
+  return true;
+}

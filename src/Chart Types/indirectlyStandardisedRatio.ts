@@ -3,11 +3,8 @@ import type { dataObject } from "../Functions/extractInputData";
 import adjustZScores from "../Funnel Calculations/adjustZScores";
 import { clamp, chisqCDF, chisqQuantile, normalQuantile } from "powerbi-visuals-core/math";
 
-const smrSE = function(): number[] {
-  return [];
-}
-
-const smrSEOD = function(inputData: dataObject, plottingDenominators?: readonly number[]): number[] {
+/** Only the overdispersion adjustment uses the SE; the exact limits come from the chi-squared quantile */
+const smrSE = function(inputData: dataObject, plottingDenominators?: readonly number[]): number[] {
   const denominators: readonly number[] = plottingDenominators ?? inputData.denominators;
   const n: number = denominators.length;
   const result: number[] = new Array<number>(n);
@@ -76,7 +73,6 @@ export default class smrFunnelClass extends chartClass {
   constructor(inputData: dataObject, inputSettings: groupSettings) {
     super({
       seFunction: smrSE,
-      seFunctionOD: smrSEOD,
       targetFunction: smrTarget,
       targetFunctionTransformed: smrTarget,
       yFunction: smrY,

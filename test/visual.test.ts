@@ -91,6 +91,12 @@ describe("Chart", () => {
     expect(element.querySelectorAll(".dotsgroup path")).toHaveLength(3);
   });
 
+  it("shows an error rather than NaN limits for an RC funnel without counts", () => {
+    update(buildDataView({ ...sample, numerators: [0, 0, 0] }, { funnel: { chart_type: "RC" } }));
+    expect(element.querySelector(".errormessage")?.textContent).toBe("All numerators are zero, so RC limits cannot be calculated.");
+    expect(element.innerHTML).not.toContain("NaN");
+  });
+
   it("shows invalid-data errors through resize and recovers on the next data update", () => {
     update(buildDataView(sample));
     const invalid = buildDataView({ ...sample, numerators: [null, -1, null] });

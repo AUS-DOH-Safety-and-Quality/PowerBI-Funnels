@@ -34,6 +34,14 @@ function tableShown(rendered: Rendered): boolean {
 }
 
 describe("summary table", () => {
+  it("opens the context menu for the row of a right-clicked cell", () => {
+    const rendered = renderVisual({ summary_table: { show_table: true } }, sample);
+    const show = vi.spyOn(rendered.visual.selectionManager, "showContextMenu").mockResolvedValue({});
+    const cell = rendered.element.querySelectorAll("tbody tr")[1].querySelectorAll("td")[2];
+    cell.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 5, clientY: 6 }));
+    expect(show).toHaveBeenLastCalledWith(rendered.visual.viewModel.plotPoints[1].identity, { x: 5, y: 6 });
+  });
+
   it("draws the chart until the table is turned on, then the groups as rows", () => {
     const rendered = renderVisual({}, sample);
     expect(tableShown(rendered)).toBe(false);
@@ -95,6 +103,26 @@ describe("summary table", () => {
     expect(rows[0].style.opacity).toBe("0.4");
     expect(rows[1].style.opacity).toBe("1");
     expect(rows[2].style.opacity).toBe("0.4");
+  });
+
+  it("shows rows at the table opacity, then the selected row at its own opacity", async () => {
+    const host = keyedHost();
+    host.hostCapabilities.allowInteractions = true;
+    const opacities = { table_opacity: 0.9, table_opacity_selected: 0.6, table_opacity_unselected: 0.2 };
+    const rendered = renderVisual({ summary_table: { show_table: true, ...opacities } }, sample, { host });
+    const rows = rendered.element.querySelectorAll<HTMLElement>("tbody tr");
+    for (let i = 0; i < rows.length; i++) {
+      expect(rows[i].style.opacity).toBe("0.9");
+    }
+    rows[2].dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await new Promise(resolve => setTimeout(resolve));
+    expect(rows[0].style.opacity).toBe("0.2");
+    expect(rows[1].style.opacity).toBe("0.2");
+    expect(rows[2].style.opacity).toBe("0.6");
+    rendered.update({ summary_table: { show_table: true, ...opacities, table_opacity_selected: 0.75 } });
+    const updated = rendered.element.querySelectorAll<HTMLElement>("tbody tr");
+    expect(updated[2].style.opacity).toBe("0.75");
+    expect(updated[0].style.opacity).toBe("0.2");
   });
 
   it("gives way to the MISC chart when indicators are supplied", () => {
