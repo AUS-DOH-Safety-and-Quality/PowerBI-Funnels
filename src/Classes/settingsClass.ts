@@ -3,12 +3,11 @@ import { deriveScaling, type DerivedScaling } from "powerbi-visuals-core/data";
 import settingsModel, { type settingsValueType } from "../settings";
 import { orderedBoundsError } from "powerbi-visuals-core/settings";
 
-/** Expected counts are not whole numbers, and percent labels only suit untransformed values */
+/** Percent labels only suit untransformed values */
 export function derive(settings: settingsValueType): DerivedScaling {
   const funnel = settings.funnel;
   return deriveScaling(funnel, {
     proportion: funnel.chart_type === "PR",
-    wholeCounts: funnel.chart_type !== "SR",
     percentAllowed: funnel.transformation === "none"
   });
 }

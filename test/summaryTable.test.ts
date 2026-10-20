@@ -91,6 +91,23 @@ describe("summary table", () => {
     expect(rowTexts(rendered, 5)[6]).toBe("Deterioration");
   });
 
+  it.each(["PR", "SR", "RC"] as const)("writes integral %s counts without the reported decimals", chart_type => {
+    const counts = [["4", "10"], ["16", "90"], ["25", "100"]];
+    const rendered = renderVisual({ summary_table: { show_table: true }, funnel: { chart_type, sig_figs: 3 } }, sample);
+    for (let i = 0; i < counts.length; i++) {
+      expect(rowTexts(rendered, i).slice(2, 4)).toEqual(counts[i]);
+      expect(rowTexts(rendered, i)[1]).toMatch(/\.\d{3}%?$/);
+    }
+  });
+
+  it.each(["PR", "SR", "RC"] as const)("writes non-integral %s counts with the reported decimals rather than rounding them", chart_type => {
+    const rendered = renderVisual({ summary_table: { show_table: true }, funnel: { chart_type, sig_figs: 3 } }, {
+      key: ["A", "B", "C"], numerators: [4, 16.5, 25], denominators: [10, 90.25, 100]
+    });
+    expect(rowTexts(rendered, 0).slice(2, 4)).toEqual(["4", "10"]);
+    expect(rowTexts(rendered, 1).slice(2, 4)).toEqual(["16.500", "90.250"]);
+  });
+
   it("selects a row on click and fades the others by the table opacities", async () => {
     const host = keyedHost();
     host.hostCapabilities.allowInteractions = true;

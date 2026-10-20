@@ -17,7 +17,7 @@ export type svgBaseType = SvgSelection;
 const columnKinds: Readonly<Record<string, ColumnKind>> = {
   value: "number", target: "number", alt_target: "number",
   ll99: "number", ll95: "number", ll68: "number", ul68: "number", ul95: "number", ul99: "number",
-  numerator: "integer", denominator: "integer",
+  numerator: "input", denominator: "input",
   two_sigma: "flag", three_sigma: "flag"
 };
 

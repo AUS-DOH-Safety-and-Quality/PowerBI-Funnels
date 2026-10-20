@@ -44,7 +44,7 @@ function lineOverrides(key: string, values: Readonly<Record<string, string | boo
 describe("tooltip contents", () => {
   it.each([
     { chart_type: "PR", label: "Proportion", value: "50.00%", target: "26.67%", suffix: "%", counts: ["50", "100"] },
-    { chart_type: "SR", label: "Standardised Ratio", value: "0.50", target: "1.00", suffix: "", counts: ["50.00", "100.00"] },
+    { chart_type: "SR", label: "Standardised Ratio", value: "0.50", target: "1.00", suffix: "", counts: ["50", "100"] },
     { chart_type: "RC", label: "Rate", value: "0.50", target: "0.27", suffix: "", counts: ["50", "100"] }
   ] as const)("lists the group, $label, counts, limits and target in order for a $chart_type chart",
     ({ chart_type, label, value, target, suffix, counts }) => {
@@ -119,10 +119,9 @@ describe("tooltip contents", () => {
       const settings = cases[i].settings;
       const items = tooltip(settings);
       expect(items[1].value, JSON.stringify(settings)).toBe(cases[i].value);
-      // Counts are never scaled or suffixed; expected counts keep the reported decimals
-      const sr = "chart_type" in settings.funnel && settings.funnel.chart_type === "SR";
-      expect(items[2].value).toBe(sr ? "50.00" : "50");
-      expect(items[3].value).toBe(sr ? "100.00" : "100");
+      // Counts are never scaled or suffixed, and integral counts have no decimals
+      expect(items[2].value).toBe("50");
+      expect(items[3].value).toBe("100");
       for (let j = 0; j < limitNames.length; j++) {
         expect(entry(items, limitNames[j]), limitNames[j]).toMatch(cases[i].pattern);
       }
@@ -131,10 +130,10 @@ describe("tooltip contents", () => {
 });
 
 describe("count tooltips", () => {
-  it("shows expected counts with the reported decimals rather than rounding them", () => {
+  it("shows non-integral expected counts with the reported decimals and integral counts without", () => {
     const expected = { key: ["A", "B", "C"], numerators: [3, 7, 12], denominators: [2.346, 8.5, 10.25] };
     const items = tooltip({ funnel: { chart_type: "SR", sig_figs: 3 } }, 0, expected);
-    expect(entry(items, "Numerator")).toBe("3.000");
+    expect(entry(items, "Numerator")).toBe("3");
     expect(entry(items, "Denominator")).toBe("2.346");
   });
 });

@@ -193,11 +193,23 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       items.push({ displayName: groups.names[i][0], value: groups.keys[i] });
       rowsByGroup.set(groups.keys[i], groups.rows[i]);
     }
-    // The group is a visual-level choice, so lives in the report's metadata rather than the rows
-    const selectedGroup = view.dataView.metadata.objects?.misc?.group;
-    this.miscGroup = typeof selectedGroup === "string" ? selectedGroup : "";
-    if (this.miscGroup === "" && items.length > 0) {
-      this.miscGroup = items[0].value;
+    // One group is shown for the whole chart, so every row must ask for the same one
+    const requested = this.inputSettings.settings[0].misc.group;
+    for (let i = 0; i < this.inputSettings.rowSettings.length; i++) {
+      const rows = this.inputSettings.rowSettings[i];
+      for (let j = 0; j < rows.length; j++) {
+        if (rows[j].misc.group !== requested) {
+          return { errors: ["The MISC group must be the same for every row."], warnings: [] };
+        }
+      }
+    }
+    // The pane stores a group's key; conditional formatting gives its name
+    this.miscGroup = requested === "" && items.length > 0 ? items[0].value : requested;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].value === requested || items[i].displayName === requested) {
+        this.miscGroup = items[i].value;
+        break;
+      }
     }
     const targetRows = rowsByGroup.get(this.miscGroup);
     if (targetRows === undefined) {

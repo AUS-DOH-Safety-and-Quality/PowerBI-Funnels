@@ -31,6 +31,17 @@ function miscSettings(): SettingsOverrides[] {
   return rows;
 }
 
+/** Chooses the MISC group on every row, as both the pane and a conditional formatting rule deliver it */
+function selectGroup(view: powerbi.DataView, group: string): void {
+  const category = must(view.categorical?.categories)[0];
+  const objects = new Array<powerbi.DataViewObjects>(category.values.length);
+  for (let i = 0; i < objects.length; i++) {
+    const row = category.objects?.[i];
+    objects[i] = { ...row, misc: { ...row?.misc, group } };
+  }
+  category.objects = objects;
+}
+
 function miscView(numerators?: PrimitiveValue[], settings = miscSettings(), inputs = miscInputs(numerators)): powerbi.DataView {
   return buildDataView(inputs, settings);
 }
@@ -100,7 +111,7 @@ describe("MISC calculations", () => {
     }
   });
 
-  it("populates and persists a group dropdown without filtering the comparison population", () => {
+  it("populates a group dropdown and shows the chosen group without filtering the comparison population", () => {
     const host = keyedHost();
     const model = new viewModelClass(host);
     const view = miscView();
@@ -116,7 +127,7 @@ describe("MISC calculations", () => {
       descriptor: { objectName: "misc", propertyName: "group" }, items: model.miscGroups, value: model.miscGroups[0]
     } } });
     const selected = model.miscGroups[1].value;
-    view.metadata.objects = { misc: { group: selected } };
+    selectGroup(view, selected);
     expect(update(model, view, host).status).toBe(true);
     expect(model.miscPoints[0].group_text).toBe("B");
     expect(model.miscPoints[0].numerator).toBe(20);
@@ -125,6 +136,48 @@ describe("MISC calculations", () => {
     expect(model.miscGroup).toBe(selected);
     expect(must(findBy(model.getFormattingModel().cards, "uid", "misc_card_uid")).groups[0].slices[0].control.properties.value)
       .toEqual(model.miscGroups[1]);
+  });
+
+  it("lets the group dropdown take conditional formatting", () => {
+    const model = new viewModelClass(keyedHost());
+    expect(update(model, miscView()).status).toBe(true);
+    const slice = must(findBy(model.getFormattingModel().cards, "uid", "misc_card_uid")).groups[0].slices[0];
+    expect(slice.control.properties.descriptor).toEqual({
+      objectName: "misc", propertyName: "group", selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] }, instanceKind: 3
+    });
+  });
+
+  it.each([
+    { label: "name", keys: ["A", "A", "B", "B", "C", "C", "D", "D"], group: "B" },
+    { label: "numeric name", keys: [1, 1, 2, 2, 3, 3, 4, 4], group: "2" }
+  ])("shows the group a rule gives by $label, and selects it in the pane", ({ keys, group }) => {
+    const model = new viewModelClass(keyedHost());
+    const view = miscView(undefined, miscSettings(), { ...miscInputs(), key: keys });
+    selectGroup(view, group);
+    expect(update(model, view).status).toBe(true);
+    expect(model.miscPoints).toHaveLength(2);
+    expect(model.miscPoints[0].numerator).toBe(20);
+    expect(model.miscPoints[1].numerator).toBe(20);
+    expect(model.miscGroup).toBe(model.miscGroups[1].value);
+    expect(must(findBy(model.getFormattingModel().cards, "uid", "misc_card_uid")).groups[0].slices[0].control.properties.value)
+      .toEqual(model.miscGroups[1]);
+  });
+
+  it.each([
+    { label: "different groups", groups: ["B", "B", "B", "B", "C", "C", "C", "C"] },
+    { label: "a group and blanks", groups: ["B", "", "B", "", "B", "", "B", ""] }
+  ])("rejects rows asking for $label, then recovers", ({ groups }) => {
+    const model = new viewModelClass(keyedHost());
+    const rows = miscSettings();
+    for (let i = 0; i < rows.length; i++) {
+      rows[i] = { ...rows[i], misc: { group: groups[i] } };
+    }
+    expect(update(model, miscView(undefined, rows))).toEqual({ status: false, error: "The MISC group must be the same for every row." });
+    expect(model.miscPoints).toEqual([]);
+    const view = miscView();
+    selectGroup(view, "B");
+    expect(update(model, view).status).toBe(true);
+    expect(model.miscPoints[0].group_text).toBe("B");
   });
 
   it("keeps raw-row warnings, formatting and highlights aligned across interleaved indicators", () => {
@@ -185,7 +238,7 @@ describe("MISC calculations", () => {
     expect(items).toHaveLength(4);
     expect(model.inputSettings.settings[0].funnel.chart_type).toBe("PR");
     expect(model.inputSettings.settings[1].funnel.chart_type).toBe("RC");
-    view.metadata.objects = { misc: { group: items[1].value } };
+    selectGroup(view, items[1].value);
     expect(update(model, view).status).toBe(true);
     expect(model.miscPoints[0].numerator).toBe(20);
     expect(model.miscPoints[0].identity.getKey()).toBe("Group[2];Indicator[2];");
@@ -228,7 +281,7 @@ describe("MISC calculations", () => {
     expect(model.miscPoints).toEqual([]);
     // Both indicators still have funnels, so the group list is intact
     expect(model.miscGroups).toHaveLength(4);
-    view.metadata.objects = { misc: { group: model.miscGroups[1].value } };
+    selectGroup(view, model.miscGroups[1].value);
     expect(update(model, view).status).toBe(true);
     expect(model.miscPoints).toHaveLength(2);
     expect(model.miscPoints[0].group_text).toBe("B");
@@ -251,7 +304,7 @@ describe("MISC calculations", () => {
     expect(model.miscGroups).toEqual([]);
     expect(model.miscPoints).toEqual([]);
     const stale = miscView();
-    stale.metadata.objects = { misc: { group: "not a group" } };
+    selectGroup(stale, "not a group");
     expect(update(model, stale)).toEqual({ status: false, error: "Select a MISC group present in the data." });
     expect(model.miscGroups).toHaveLength(4);
     expect(model.miscGroup).toBe("not a group");
@@ -282,7 +335,7 @@ describe("MISC rendering", () => {
       expect(bars[0].getAttribute("fill")).toBe(host.colorPalette.foreground.value);
       bars[1].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 20 }));
       expect(menu).toHaveBeenCalledWith(visual.viewModel.miscPoints[1].identity, { x: 10, y: 20 });
-      view.metadata.objects = { misc: { group: visual.viewModel.miscGroups[1].value } };
+      selectGroup(view, visual.viewModel.miscGroups[1].value);
       visual.update({ dataViews: [view], viewport: { width: 700, height: 400 }, type: updateType.style });
       expect(visual.viewModel.miscPoints[0].group_text).toBe("B");
     } finally {

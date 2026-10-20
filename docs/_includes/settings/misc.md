@@ -4,7 +4,7 @@
 
 | Setting | Description | Default | Values |
 | --- | --- | --- | --- |
-| Group | Group the multi-indicator chart shows, with a bar per indicator. | (blank) |  |
+| Group | Group the multi-indicator chart shows, with a bar per indicator; blank shows the first. Conditional formatting gives the group's name, and must give the same one for every row. | (blank) |  |
 | Lower Sigma Bound | Left end of the z-score axis; must be below 0. | -5 | Number, below 0 |
 | Upper Sigma Bound | Right end of the z-score axis; must be above 0. | 5 | Number, above 0 |
 | Bar Height Ratio | Share of each row's height the bar fills. | 0.65 | Number from 0 to 1 |

@@ -496,14 +496,9 @@ describe("MISC validation", () => {
   });
 
   it("reports a selected group that is no longer in the data", () => {
-    let group = "missing";
-    const rendered = renderVisual(rowSettings({}), data, { prepare: dataView => {
-      addIndicators(dataView);
-      dataView.metadata.objects = { misc: { group } };
-    } });
+    const rendered = renderVisual(rowSettings({ misc: { group: "missing" } }), data, { prepare: addIndicators });
     expect(errorMessage(rendered)).toBe("Select a MISC group present in the data.");
     expect(all(rendered, ".misc-bar")).toHaveLength(0);
-    group = "";
     rendered.update(rowSettings({}));
     expect(all(rendered, ".errormessage")).toHaveLength(0);
     expect(all(rendered, ".misc-bar")).toHaveLength(3);
