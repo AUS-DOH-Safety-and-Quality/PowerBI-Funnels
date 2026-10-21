@@ -30,7 +30,9 @@ function tableShown(rendered: Rendered): boolean {
   const div = must(rendered.element.querySelector("div"));
   const svg = must(rendered.element.querySelector("svg"));
   expect(div.style.width).toBe(div.style.height);
-  return div.style.width === "100%" && svg.getAttribute("width") === "0";
+  const shown = div.style.width === "100%" && svg.getAttribute("width") === "0";
+  expect(rendered.visual.showsTable).toBe(shown);
+  return shown;
 }
 
 describe("summary table", () => {

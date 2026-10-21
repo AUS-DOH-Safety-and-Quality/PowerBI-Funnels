@@ -3,7 +3,7 @@
 import type powerbi from "powerbi-visuals-api";
 import {
   PlotVisual, highlightOpacity, initialiseSvg, valueTickFormat, createTableContainer, showTable, drawSummaryTable, highlightTable,
-  type ColumnKind, type PlotOptions, type SvgSelection, type TableSelection
+  type AlternateView, type ColumnKind, type PlotOptions, type SvgSelection, type TableSelection
 } from "powerbi-visuals-core/rendering";
 import drawMisc from "./D3 Plotting Functions/drawMisc";
 import { viewModelClass, type plotData } from "./Classes";
@@ -39,18 +39,18 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
     return this.viewModel.inputSettings.settings[0];
   }
 
-  protected override drawAlternate(): boolean {
+  protected override drawAlternate(): AlternateView | undefined {
     const viewModel = this.viewModel;
     if (viewModel.showMisc) {
       this.svg.call(drawMisc, this);
-      return true;
+      return "svg";
     }
     const svg = this.svg.node();
     if (svg !== null && !this.svg.select(".misc-root").empty()) {
       initialiseSvg(svg, true);
     }
     if (!this.settings.summary_table.show_table) {
-      return false;
+      return undefined;
     }
     this.resizeCanvas(0, 0);
     drawSummaryTable(this.tableDiv, {
@@ -65,7 +65,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
       onSelectionChange: () => this.updateHighlighting()
     });
     this.addContextMenu(this.tableDiv.node(), true);
-    return true;
+    return "table";
   }
 
   updateHighlighting(): void {
