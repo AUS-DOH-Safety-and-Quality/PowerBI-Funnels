@@ -33,7 +33,7 @@ const smrY = function(inputData: dataObject): number[] {
  * Un-adjusted limits are exact via the Poisson/chi-square relationship, so z-scores
  * map through the chi-square CDF and the standard normal quantile
  */
-const smrZ = function(inputData: dataObject) {
+const smrZ = function(inputData: dataObject): number[] {
   const numerators: readonly number[] = inputData.numerators;
   const denominators: readonly number[] = inputData.denominators;
   const n: number = numerators.length;
@@ -47,7 +47,7 @@ const smrZ = function(inputData: dataObject) {
   return rtn;
 }
 
-const smrLimitOD = function(args: limitArgs) {
+const smrLimitOD = function(args: limitArgs): number {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;
@@ -57,7 +57,7 @@ const smrLimitOD = function(args: limitArgs) {
   return Math.pow(clamp(limit_transformed, 0, undefined), 2);
 }
 
-const smrLimit = function(args: limitArgs) {
+const smrLimit = function(args: limitArgs): number {
   const denominators: number = args.denominators;
   const p: number = args.p;
   const is_upper: boolean = p > 0.5;

@@ -91,7 +91,7 @@ describe("CSV download", () => {
     for (let i = 0; i < result.rows.length; i++) {
       const row = result.rows[i];
       const denominator = Number(row.denominator);
-      const position = must(must(dots[i].getAttribute("transform")).match(/translate\(([^,]+), ([^)]+)\)/));
+      const position = must(/translate\(([^,]+), ([^)]+)\)/.exec(must(dots[i].getAttribute("transform"))));
       expect(Number(position[1])).toBeCloseTo(frame.xScale(denominator), 6);
       expect(Number(position[2])).toBeCloseTo(frame.yScale(Number(row.value)), 6);
       for (let j = 0; j < lines.length; j++) {
@@ -203,7 +203,13 @@ describe("CSV download scaling", () => {
       const value = Number(truncated.rows[i].value);
       const ll99 = Number(truncated.rows[i].ll99);
       const ul99 = Number(truncated.rows[i].ul99);
-      expect(truncated.rows[i].three_sigma).toBe(value < ll99 ? "deterioration" : (value > ul99 ? "improvement" : "none"));
+      let expected = "none";
+      if (value < ll99) {
+        expected = "deterioration";
+      } else if (value > ul99) {
+        expected = "improvement";
+      }
+      expect(truncated.rows[i].three_sigma).toBe(expected);
     }
     expect(untruncated.rows[1].three_sigma).toBe("none");
     expect(truncated.rows[1].three_sigma).toBe("improvement");

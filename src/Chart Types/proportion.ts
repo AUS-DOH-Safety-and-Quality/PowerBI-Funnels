@@ -35,11 +35,11 @@ const prY = function(inputData: dataObject): number[] {
 }
 
 /** Un-adjusted limits are the adjusted limits with tau2 = 0, so the z-scores are unchanged */
-const prZ = function(_inputData: dataObject, args: zArgs) {
+const prZ = function(_inputData: dataObject, args: zArgs): readonly number[] {
   return args.zScores;
 }
 
-const prLimit = function(args: limitArgs) {
+const prLimit = function(args: limitArgs): number {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;

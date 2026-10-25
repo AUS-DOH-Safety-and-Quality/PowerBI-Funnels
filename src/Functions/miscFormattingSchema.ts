@@ -1,8 +1,8 @@
 import type { FormattingItem } from "powerbi-visuals-core/powerbi";
-import type { SettingDefinition } from "powerbi-visuals-core/settings";
+import type { SettingCard, SettingDefinition } from "powerbi-visuals-core/settings";
 import settingsModel from "../settings";
 
-export default function miscFormattingSchema(items: FormattingItem[]) {
+export default function miscFormattingSchema(items: FormattingItem[]): Record<string, SettingCard> {
   const misc = settingsModel.misc;
   const outliers = settingsModel.outliers;
   const scatter = settingsModel.scatter;

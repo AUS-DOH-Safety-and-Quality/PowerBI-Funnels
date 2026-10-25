@@ -13,7 +13,7 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   const yAxis = settings.y_axis;
   const lines = settings.lines;
   const palette = model.colourPalette;
-  const colour = (value: string) => palette.isHighContrast ? palette.foregroundColour : value;
+  const colour = (value: string): string => palette.isHighContrast ? palette.foregroundColour : value;
   svg.style("background", () => palette.isHighContrast ? palette.backgroundColour : null);
   const root = svg.append("g").classed("misc-root", true);
   const top = canvas.upper_padding + 55;
