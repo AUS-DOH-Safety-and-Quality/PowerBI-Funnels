@@ -35,7 +35,7 @@ function domain(element: HTMLElement, axis: Axis): string {
 }
 
 function translation(element: Element): { x: number; y: number } {
-  const match = must(must(element.getAttribute("transform")).match(/^translate\(([^,]+),\s*([^)]+)\)$/));
+  const match = must(/^translate\(([^,]+),\s*([^)]+)\)$/.exec(must(element.getAttribute("transform"))));
   return { x: Number(match[1]), y: Number(match[2]) };
 }
 

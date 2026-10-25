@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import { chartClass, type limitArgs, type groupSettings } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import adjustZScores from "../Funnel Calculations/adjustZScores";
@@ -9,7 +10,7 @@ const smrSE = function(inputData: dataObject, plottingDenominators?: readonly nu
   const n: number = denominators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = 1.0 / (2 * Math.sqrt(denominators[i]));
+    result[i] = 1.0 / (2 * Math.sqrt(at(denominators, i)));
   }
   return result;
 }
@@ -24,7 +25,7 @@ const smrY = function(inputData: dataObject): number[] {
   const n: number = numerators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = Math.sqrt(numerators[i] / denominators[i]);
+    result[i] = Math.sqrt(at(numerators, i) / at(denominators, i));
   }
   return result;
 }
@@ -33,21 +34,22 @@ const smrY = function(inputData: dataObject): number[] {
  * Un-adjusted limits are exact via the Poisson/chi-square relationship, so z-scores
  * map through the chi-square CDF and the standard normal quantile
  */
-const smrZ = function(inputData: dataObject) {
+const smrZ = function(inputData: dataObject): number[] {
   const numerators: readonly number[] = inputData.numerators;
   const denominators: readonly number[] = inputData.denominators;
   const n: number = numerators.length;
   const rtn: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    const ratio: number = numerators[i] / denominators[i];
+    const denominator: number = at(denominators, i);
+    const ratio: number = at(numerators, i) / denominator;
     const offset: number = ratio > 1 ? 1 : 0;
-    const log_p: number = chisqCDF(ratio * 2 * denominators[i], 2 * (denominators[i] + offset), true, true);
+    const log_p: number = chisqCDF(ratio * 2 * denominator, 2 * (denominator + offset), true, true);
     rtn[i] = normalQuantile(log_p, 0, 1, true, true)
   }
   return rtn;
 }
 
-const smrLimitOD = function(args: limitArgs) {
+const smrLimitOD = function(args: limitArgs): number {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;
@@ -57,7 +59,7 @@ const smrLimitOD = function(args: limitArgs) {
   return Math.pow(clamp(limit_transformed, 0, undefined), 2);
 }
 
-const smrLimit = function(args: limitArgs) {
+const smrLimit = function(args: limitArgs): number {
   const denominators: number = args.denominators;
   const p: number = args.p;
   const is_upper: boolean = p > 0.5;

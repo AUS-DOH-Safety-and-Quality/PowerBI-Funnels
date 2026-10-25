@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import { max } from "powerbi-visuals-core/math";
 import type { AxisBounds } from "powerbi-visuals-core/rendering";
 import type viewModelClass from "../Classes/viewModelClass";
@@ -8,13 +9,13 @@ export default function axisRanges(viewModel: viewModelClass): { x: AxisBounds; 
   if (inputData === undefined) {
     throw new Error("Axis ranges require validated data.");
   }
-  const settings = viewModel.inputSettings.settings[0];
+  const settings = viewModel.inputSettings.group(0).settings;
   let yUpperLimit = settings.y_axis.ylimit_u;
   if (yUpperLimit === undefined) {
     // Automatic bound follows the plotted (transformed and scaled) values
     yUpperLimit = -Infinity;
     for (let i = 0; i < viewModel.plotPoints.length; i++) {
-      yUpperLimit = Math.max(yUpperLimit, viewModel.plotPoints[i].value);
+      yUpperLimit = Math.max(yUpperLimit, at(viewModel.plotPoints, i).value);
     }
   }
   return {

@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import validateInputData from "./validateInputData";
 import type { settingsClass } from "../Classes";
 import type { settingsValueType } from "../settings";
@@ -13,17 +14,17 @@ export type dataObject = InputRows<settingsValueType["scatter"], settingsValueTy
 
 export default function extractInputData(view: ValidatedDataView<"numerators" | "denominators">, inputSettingsClass: settingsClass,
   rows: readonly number[], group = 0): InputDataResult<dataObject> {
-  const keyColumn = view.categories.key[0];
+  const keyColumn = at(view.categories.key, 0);
   const keys = new Array<string | undefined>(rows.length);
   for (let i = 0; i < rows.length; i++) {
-    keys[i] = formatPrimitiveValue(keyColumn.values[rows[i]]);
+    keys[i] = formatPrimitiveValue(keyColumn.values[at(rows, i)]);
   }
-  const numerators = readNumbers(view.values.numerators[0], rows);
-  const denominators = readNumbers(view.values.denominators[0], rows);
+  const numerators = readNumbers(at(view.values.numerators, 0), rows);
+  const denominators = readNumbers(at(view.values.denominators, 0), rows);
   const extracted = extractRows(view, rows, {
     keys,
-    validation: validateInputData(keys, numerators, denominators, inputSettingsClass.settings[group].funnel.chart_type),
-    rowSettings: inputSettingsClass.rowSettings[group],
+    validation: validateInputData(keys, numerators, denominators, inputSettingsClass.group(group).settings.funnel.chart_type),
+    rowSettings: at(inputSettingsClass.rowSettings, group),
     settings: { messages: inputSettingsClass.validationStatus.messages, messagePositionByRowIndex: inputSettingsClass.messagePositionByRowIndex }
   });
   if (extracted.status === "invalid") {
@@ -35,9 +36,10 @@ export default function extractInputData(view: ValidatedDataView<"numerators" | 
   const keptNumerators = new Array<number>(kept.length);
   const keptDenominators = new Array<number>(kept.length);
   for (let x = 0; x < kept.length; x++) {
-    const i = kept[x];
-    id[x] = rows[i];
-    keyRows[x] = { x, id: rows[i], label: keptValue(keys, i) };
+    const i = at(kept, x);
+    const row = at(rows, i);
+    id[x] = row;
+    keyRows[x] = { x, id: row, label: keptValue(keys, i) };
     keptNumerators[x] = keptValue(numerators, i);
     keptDenominators[x] = keptValue(denominators, i);
   }
@@ -53,7 +55,7 @@ export function lacksCount(data: dataObject, chartType: settingsValueType["funne
     return false;
   }
   for (let i = 0; i < data.numerators.length; i++) {
-    if (data.numerators[i] > 0) {
+    if (at(data.numerators, i) > 0) {
       return false;
     }
   }

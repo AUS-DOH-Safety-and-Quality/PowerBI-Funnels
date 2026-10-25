@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import { chartClass, type limitArgs, type groupSettings, type zArgs } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import { sum, clamp } from "powerbi-visuals-core/math";
@@ -10,8 +11,8 @@ const rcSE = function(inputData: dataObject, plottingDenominators?: readonly num
   const result: number[] = new Array<number>(denominators.length);
 
   for (let i: number = 0; i < denominators.length; i++) {
-    const denominator: number = denominators[i];
-    const numerator: number = target === undefined ? numerators[i] : target * denominator;
+    const denominator: number = at(denominators, i);
+    const numerator: number = target === undefined ? at(numerators, i) : target * denominator;
     result[i] = Math.sqrt(
       numerator / Math.pow(numerator + 0.5, 2) + denominator / Math.pow(denominator + 0.5, 2)
     );
@@ -37,7 +38,7 @@ const rcY = function(inputData: dataObject): number[] {
   const n: number = numerators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = Math.log((numerators[i] + 0.5) / (denominators[i] + 0.5));
+    result[i] = Math.log((at(numerators, i) + 0.5) / (at(denominators, i) + 0.5));
   }
   return result;
 }
@@ -50,7 +51,7 @@ const rcZ = function(inputData: dataObject, args: zArgs): number[] {
   const SE: number[] = rcSE(inputData, denominators);
   const result: number[] = new Array<number>(numerators.length);
   for (let i: number = 0; i < numerators.length; i++) {
-    result[i] = (Math.log(numerators[i] / denominators[i]) - target) / Math.sqrt(Math.pow(SE[i], 2) + args.tau2);
+    result[i] = (Math.log(at(numerators, i) / at(denominators, i)) - target) / Math.sqrt(Math.pow(at(SE, i), 2) + args.tau2);
   }
   return result;
 }

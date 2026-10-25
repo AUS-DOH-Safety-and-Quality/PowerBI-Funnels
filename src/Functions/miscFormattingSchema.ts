@@ -1,8 +1,9 @@
+import { at } from "powerbi-visuals-core/util";
 import type { FormattingItem } from "powerbi-visuals-core/powerbi";
-import type { SettingDefinition } from "powerbi-visuals-core/settings";
+import type { SettingCard, SettingDefinition } from "powerbi-visuals-core/settings";
 import settingsModel from "../settings";
 
-export default function miscFormattingSchema(items: FormattingItem[]) {
+export default function miscFormattingSchema(items: FormattingItem[]): Record<string, SettingCard> {
   const misc = settingsModel.misc;
   const outliers = settingsModel.outliers;
   const scatter = settingsModel.scatter;
@@ -14,7 +15,7 @@ export default function miscFormattingSchema(items: FormattingItem[]) {
   const properties = ["show", "width", "type", "colour", "opacity", "ttip_show", "ttip_label"] as const;
   for (let i = 0; i < levels.length; i++) {
     for (let j = 0; j < properties.length; j++) {
-      const name = `${properties[j]}_${levels[i]}` as const;
+      const name = `${at(properties, j)}_${at(levels, i)}` as const;
       lineSettings[name] = lines[name];
     }
   }

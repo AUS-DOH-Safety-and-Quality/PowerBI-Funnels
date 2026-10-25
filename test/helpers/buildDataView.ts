@@ -7,7 +7,7 @@ import type { settingsValueType } from "../../src/settings";
 
 export type SettingsOverrides = Overrides<settingsValueType>;
 export type Settings = SettingsOverrides | SettingsOverrides[];
-export type Inputs = Partial<Record<"key" | "numerators" | "denominators" | "labels" | "tooltips", PrimitiveValue[]>> & {
+export type Inputs = Partial<Record<"key" | "numerators" | "denominators" | "labels" | "tooltips", PrimitiveValue[] | undefined>> & {
   /** Further columns by role, such as indicators or named tooltip columns */
   columns?: DataViewColumnInput[];
 };

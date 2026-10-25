@@ -37,7 +37,7 @@ describe("renderer boundaries", () => {
     expect(xGrid).toHaveLength(xTicks.length);
     for (let i = 0; i < xTicks.length; i++) {
       // d3 offsets tick groups by half a pixel on low-DPI screens
-      const tickX = Number(must(xTicks[i].getAttribute("transform")).match(/translate\(([^,]+),/)?.[1]);
+      const tickX = Number((/translate\(([^,]+),/.exec(must(xTicks[i].getAttribute("transform"))))?.[1]);
       expect(Math.abs(Number(xGrid[i].getAttribute("x1")) - tickX)).toBeLessThanOrEqual(0.5);
       expect(xGrid[i].getAttribute("x2")).toBe(xGrid[i].getAttribute("x1"));
     }

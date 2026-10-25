@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import { chartClass, type limitArgs, type groupSettings, type zArgs } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import adjustZScores from "../Funnel Calculations/adjustZScores";
@@ -8,7 +9,7 @@ const prSE = function(inputData: dataObject, plottingDenominators?: readonly num
   const n: number = denominators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = 1.0 / (2 * Math.sqrt(denominators[i]));
+    result[i] = 1.0 / (2 * Math.sqrt(at(denominators, i)));
   }
   return result;
 }
@@ -29,17 +30,17 @@ const prY = function(inputData: dataObject): number[] {
   const n: number = numerators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = Math.asin(Math.sqrt(numerators[i] / denominators[i]));
+    result[i] = Math.asin(Math.sqrt(at(numerators, i) / at(denominators, i)));
   }
   return result;
 }
 
 /** Un-adjusted limits are the adjusted limits with tau2 = 0, so the z-scores are unchanged */
-const prZ = function(_inputData: dataObject, args: zArgs) {
+const prZ = function(_inputData: dataObject, args: zArgs): readonly number[] {
   return args.zScores;
 }
 
-const prLimit = function(args: limitArgs) {
+const prLimit = function(args: limitArgs): number {
   const target: number = args.target_transformed;
   const q: number = args.q;
   const SE: number = args.SE;

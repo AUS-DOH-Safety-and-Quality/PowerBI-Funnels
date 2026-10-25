@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import { indicatorFields, limitValue, type FrontendChart } from "powerbi-visuals-core/frontends";
 import { checkFlagDirection } from "powerbi-visuals-core/data";
 import { limitStatus } from "powerbi-visuals-core/spc";
@@ -17,16 +18,16 @@ const limitColumns = [
 function limitRow(fields: Readonly<Record<string, string | number | undefined>>, limits: Readonly<limitData>,
                   includeAltTarget: boolean): LimitRow {
   const row: LimitRow = {};
-  const fieldNames = Object.keys(fields);
-  for (let i = 0; i < fieldNames.length; i++) {
-    row[fieldNames[i]] = limitValue(fields[fieldNames[i]]);
+  const fieldEntries = Object.entries(fields);
+  for (let i = 0; i < fieldEntries.length; i++) {
+    const [name, value] = at(fieldEntries, i);
+    row[name] = limitValue(value);
   }
-  const limitValues: Readonly<Record<string, number | undefined>> = limits;
-  const limitNames = Object.keys(limitValues);
-  for (let i = 0; i < limitNames.length; i++) {
-    const name = limitNames[i];
+  const limitEntries = Object.entries<number | undefined>(limits);
+  for (let i = 0; i < limitEntries.length; i++) {
+    const [name, value] = at(limitEntries, i);
     if (name !== "denominators" && (includeAltTarget || name !== "alt_target")) {
-      row[name] = limitValue(limitValues[name]);
+      row[name] = limitValue(value);
     }
   }
   return row;
@@ -38,7 +39,7 @@ function appendResults(rows: LimitRow[], rowIds: number[], limitLines: LimitRow[
   const points = result.points.slice().sort((a, b) => a.x - b.x);
   const indicators = indicatorFields(result.indicators, limitColumns);
   for (let i = 0; i < points.length; i++) {
-    const point = points[i];
+    const point = at(points, i);
     const fields: Record<string, string | number | undefined> = {
       ...indicators,
       denominator: point.x,
@@ -62,7 +63,7 @@ function appendResults(rows: LimitRow[], rowIds: number[], limitLines: LimitRow[
     rowIds.push(point.id);
   }
   for (let i = 0; i < result.limits.length; i++) {
-    const limits = result.limits[i];
+    const limits = at(result.limits, i);
     limitLines.push(limitRow({ ...indicators, denominator: limits.denominators }, limits, showAltTarget));
   }
 }
@@ -77,7 +78,7 @@ export const frontend: FrontendChart<Visual> = {
     const rowIds: number[] = [];
     const limitLines: LimitRow[] = [];
     for (let i = 0; i < viewModel.funnelResults.length; i++) {
-      appendResults(limits, rowIds, limitLines, viewModel.funnelResults[i], viewModel.showMisc);
+      appendResults(limits, rowIds, limitLines, at(viewModel.funnelResults, i), viewModel.showMisc);
     }
     return { limits, rowIds, limitLines };
   }

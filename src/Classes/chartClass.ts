@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import type { dataObject } from "../Functions/extractInputData";
 import type { groupSettings } from "../Classes";
 import { chisqQuantile, max, normalQuantile } from "powerbi-visuals-core/math";
@@ -54,8 +55,9 @@ const levels = ["99", "95", "68"] as const;
 /** Limits that widen towards the next denominator's, or meet, are blanked, so a funnel never folds back on itself */
 function pruneCrossing(inner: limitData, next: Readonly<limitData>): void {
   for (let i = 0; i < levels.length; i++) {
-    const lower = `ll${levels[i]}` as const;
-    const upper = `ul${levels[i]}` as const;
+    const level = at(levels, i);
+    const lower = `ll${level}` as const;
+    const upper = `ul${level}` as const;
     const nextLower = next[lower];
     const nextUpper = next[upper];
     let low = inner[lower];
@@ -175,7 +177,8 @@ export default class chartClass {
     const probs: number[] = [0.001, 0.025, 0.16, 0.84, 0.975, 0.999];
     const result = new Array<intervalData>(probs.length);
     for (let i = 0; i < probs.length; i++) {
-      result[i] = { prob: probs[i], quantile: normalQuantile(probs[i], 0, 1, true, false), label: limitLineNames[i] };
+      const prob = at(probs, i);
+      result[i] = { prob, quantile: normalQuantile(prob, 0, 1, true, false), label: at(limitLineNames, i) };
     }
     return result;
   }
@@ -196,7 +199,7 @@ export default class chartClass {
     // Each denominator is checked against one just beyond it, so pruning is independent of the plotting grid
     const nextDenominators = new Array<number>(plottingDenominators.length);
     for (let idx = 0; idx < plottingDenominators.length; idx++) {
-      nextDenominators[idx] = plottingDenominators[idx] * (1 + 1e-3);
+      nextDenominators[idx] = at(plottingDenominators, idx) * (1 + 1e-3);
     }
     const plottingSE: number[] = this.getSE({
       odAdjust: odAdjust,
@@ -211,7 +214,7 @@ export default class chartClass {
       const row: limitData = { denominators: denom, target, alt_target,
         ll99: undefined, ll95: undefined, ll68: undefined, ul68: undefined, ul95: undefined, ul99: undefined };
       for (let i = 0; i < intervals.length; i++) {
-        const interval = intervals[i];
+        const interval = at(intervals, i);
         const functionArgs: limitArgs = {
           p: interval.prob,
           q: interval.quantile,
@@ -233,8 +236,8 @@ export default class chartClass {
 
     const calcLimits = new Array<limitData>(plottingDenominators.length);
     for (let idx = 0; idx < plottingDenominators.length; idx++) {
-      const row = limitRow(plottingDenominators[idx], plottingSE[idx]);
-      pruneCrossing(row, limitRow(nextDenominators[idx], nextSE[idx]));
+      const row = limitRow(at(plottingDenominators, idx), at(plottingSE, idx));
+      pruneCrossing(row, limitRow(at(nextDenominators, idx), at(nextSE, idx)));
       calcLimits[idx] = row;
     }
     return calcLimits;

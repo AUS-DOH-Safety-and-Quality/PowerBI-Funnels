@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 /**
  * Between-unit variance by the DerSimonian & Laird method-of-moments estimator;
  * zero when phi shows no overdispersion, or for one unit, which cannot estimate it.
@@ -11,7 +12,7 @@ function getTau2(phi: number, SE: readonly number[]): number {
   let w_sum: number = 0;
   let w_sq_sum: number = 0;
   for (let i: number = 0; i < N; i++) {
-    const w: number = 1.0 / Math.pow(SE[i], 2);
+    const w: number = 1.0 / Math.pow(at(SE, i), 2);
     w_sum += w;
     w_sq_sum += Math.pow(w, 2);
   }
