@@ -36,7 +36,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
   }
 
   protected get settings(): settingsValueType {
-    return this.viewModel.inputSettings.settings[0];
+    return this.viewModel.inputSettings.group(0).settings;
   }
 
   protected override drawAlternate(): AlternateView | undefined {
@@ -58,7 +58,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
       rows: viewModel.plotPoints,
       kinds: columnKinds,
       settings: this.settings.summary_table,
-      formatValue: viewModel.inputSettings.derivedSettings[0].formatValue,
+      formatValue: viewModel.inputSettings.group(0).derivedSettings.formatValue,
       width: viewModel.svgWidth,
       host: this.host,
       selectionManager: this.selectionManager,
@@ -97,7 +97,7 @@ export class Visual extends PlotVisual<plotData, viewModelClass, settingsValueTy
     return {
       tickFormats: {
         x: undefined,
-        y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, this.viewModel.inputSettings.derivedSettings[0].percentLabels)
+        y: valueTickFormat(settings.y_axis.ylimit_sig_figs ?? settings.funnel.sig_figs, this.viewModel.inputSettings.group(0).derivedSettings.percentLabels)
       },
       verticalCrosshair: true,
       lineSettings: () => settings.lines,

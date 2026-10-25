@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import { chartClass, type limitArgs, type groupSettings, type zArgs } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import adjustZScores from "../Funnel Calculations/adjustZScores";
@@ -8,7 +9,7 @@ const prSE = function(inputData: dataObject, plottingDenominators?: readonly num
   const n: number = denominators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = 1.0 / (2 * Math.sqrt(denominators[i]));
+    result[i] = 1.0 / (2 * Math.sqrt(at(denominators, i)));
   }
   return result;
 }
@@ -29,7 +30,7 @@ const prY = function(inputData: dataObject): number[] {
   const n: number = numerators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = Math.asin(Math.sqrt(numerators[i] / denominators[i]));
+    result[i] = Math.asin(Math.sqrt(at(numerators, i) / at(denominators, i)));
   }
   return result;
 }

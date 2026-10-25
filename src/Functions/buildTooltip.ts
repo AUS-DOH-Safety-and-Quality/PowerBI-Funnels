@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import type powerbi from "powerbi-visuals-api";
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import settingsModel, { type settingsValueType } from "../settings";
@@ -7,7 +8,7 @@ import getTransformation from "../Funnel Calculations/getTransformation";
 import { valueTooltips, limitTooltips, appendPatternTooltips } from "powerbi-visuals-core/powerbi";
 import type { DerivedScaling } from "powerbi-visuals-core/data";
 
-const valueLabel: Readonly<Record<string, string>> = {
+const valueLabel: Readonly<Record<settingsValueType["funnel"]["chart_type"], string>> = {
   "PR" : "Proportion",
   "SR" : "Standardised Ratio",
   "RC" : "Rate"
@@ -19,14 +20,14 @@ export default function buildTooltip(index: number,
                                       inputData: dataObject,
                                       inputSettings: settingsValueType,
                                       derivedSettings: DerivedScaling): VisualTooltipDataItem[] {
-  const data_type: string = inputSettings.funnel.chart_type;
+  const data_type = inputSettings.funnel.chart_type;
   const multiplier: number = derivedSettings.multiplier;
   const transform_text = inputSettings.funnel.transformation;
   const transform: (x: number) => number = getTransformation(transform_text);
 
-  const group: string = inputData.keys[index].label;
-  const numerator: number = inputData.numerators[index];
-  const denominator: number = inputData.denominators[index];
+  const group: string = at(inputData.keys, index).label;
+  const numerator: number = at(inputData.numerators, index);
+  const denominator: number = at(inputData.denominators, index);
 
   const ratio: number = transform((numerator / denominator) * multiplier);
   const formatValues = derivedSettings.formatValue;
@@ -44,10 +45,11 @@ export default function buildTooltip(index: number,
   if (transform_text !== "none") {
     const transformations = settingsModel.funnel.settingsGroups.all.transformation.items;
     for (let i = 0; i < transformations.length; i++) {
-      if (transformations[i].value === transform_text) {
+      const transformation = at(transformations, i);
+      if (transformation.value === transform_text) {
         tooltip.push({
           displayName: "Plot Scaling",
-          value: transformations[i].displayName
+          value: transformation.displayName
         });
       }
     }
@@ -59,6 +61,6 @@ export default function buildTooltip(index: number,
   if (outliers.two_sigma) {
     patterns.push("Two Sigma Outlier")
   }
-  appendPatternTooltips(tooltip, patterns, inputData.tooltips[index]);
+  appendPatternTooltips(tooltip, patterns, at(inputData.tooltips, index));
   return tooltip;
 }

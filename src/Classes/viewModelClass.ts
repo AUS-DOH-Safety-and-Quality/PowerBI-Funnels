@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import type powerbi from "powerbi-visuals-api";
 type IVisualHost = powerbi.extensibility.visual.IVisualHost;
 type VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
@@ -124,7 +125,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
 
   /** The MISC pane with its group choices, or the funnel pane without the MISC card */
   override getFormattingModel(): FormattingModel {
-    const settings = this.inputSettings.settings[0];
+    const settings = this.inputSettings.group(0).settings;
     if (this.showMisc) {
       return buildFormattingModel(miscFormattingSchema(this.miscGroups), { ...settings, misc: { ...settings.misc, group: this.miscGroup } });
     }
@@ -162,7 +163,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
     if (this.showMisc) {
       return this.initialiseMisc(view, host, indicatorGroups);
     }
-    const result = extractInputData(view, this.inputSettings, indicatorGroups.rows[0]);
+    const result = extractInputData(view, this.inputSettings, at(indicatorGroups.rows, 0));
     if (result.status === "invalid") {
       return { errors: [result.error], warnings: [] };
     }
@@ -182,32 +183,35 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
 
   private initialiseMisc(view: ValidatedDataView<"numerators" | "denominators">, host: IVisualHost,
     indicators: CategoryGroups): GroupResults {
-    const keyColumn = view.categories.key[0];
+    const keyColumn = at(view.categories.key, 0);
     const groups = groupCategoryRows([keyColumn], keyColumn.values.length);
     const items = this.miscGroups;
     const rowsByGroup = new Map<string, number[]>();
     for (let i = 0; i < groups.rows.length; i++) {
-      if (keyColumn.values[groups.rows[i][0]] == null) {
+      const rows = at(groups.rows, i);
+      const key = at(groups.keys, i);
+      if (keyColumn.values[at(rows, 0)] == null) {
         continue;
       }
-      items.push({ displayName: groups.names[i][0], value: groups.keys[i] });
-      rowsByGroup.set(groups.keys[i], groups.rows[i]);
+      items.push({ displayName: at(at(groups.names, i), 0), value: key });
+      rowsByGroup.set(key, rows);
     }
     // One group is shown for the whole chart, so every row must ask for the same one
-    const requested = this.inputSettings.settings[0].misc.group;
+    const requested = this.inputSettings.group(0).settings.misc.group;
     for (let i = 0; i < this.inputSettings.rowSettings.length; i++) {
-      const rows = this.inputSettings.rowSettings[i];
+      const rows = at(this.inputSettings.rowSettings, i);
       for (let j = 0; j < rows.length; j++) {
-        if (rows[j].misc.group !== requested) {
+        if (at(rows, j).misc.group !== requested) {
           return { errors: ["The MISC group must be the same for every row."], warnings: [] };
         }
       }
     }
     // The pane stores a group's key; conditional formatting gives its name
-    this.miscGroup = requested === "" && items.length > 0 ? items[0].value : requested;
+    this.miscGroup = requested === "" ? items[0]?.value ?? requested : requested;
     for (let i = 0; i < items.length; i++) {
-      if (items[i].value === requested || items[i].displayName === requested) {
-        this.miscGroup = items[i].value;
+      const item = at(items, i);
+      if (item.value === requested || item.displayName === requested) {
+        this.miscGroup = item.value;
         break;
       }
     }
@@ -220,14 +224,14 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
     const warnings: string[] = [];
     this.inputData = undefined;
     for (let i = 0; i < indicators.rows.length; i++) {
-      const rows = indicators.rows[i];
+      const rows = at(indicators.rows, i);
       const group = this.inputSettings.group(i);
-      const indicator = indicators.labels[i];
-      const rowSettings = this.inputSettings.rowSettings[i];
-      const direction = rowSettings[0].outliers.improvement_direction;
+      const indicator = at(indicators.labels, i);
+      const rowSettings = at(this.inputSettings.rowSettings, i);
+      const direction = at(rowSettings, 0).outliers.improvement_direction;
       let oneDirection = direction !== "neutral";
       for (let j = 1; oneDirection && j < rowSettings.length; j++) {
-        oneDirection = rowSettings[j].outliers.improvement_direction === direction;
+        oneDirection = at(rowSettings, j).outliers.improvement_direction === direction;
       }
       if (!oneDirection) {
         errors.push(labelledMessage(indicator, "Each MISC indicator must have one improvement direction: increase or decrease."));
@@ -256,18 +260,18 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
       const indicatorValues: Record<string, string | undefined> = {};
       const indicatorColumns = view.categories.indicator ?? [];
       for (let j = 0; j < indicatorColumns.length; j++) {
-        const column = indicatorColumns[j];
-        indicatorValues[column.source.displayName] = formatPrimitiveValue(column.values[rows[0]]);
+        const column = at(indicatorColumns, j);
+        indicatorValues[column.source.displayName] = formatPrimitiveValue(column.values[at(rows, 0)]);
       }
       this.funnelResults.push({
         indicators: indicatorValues, points: this.plotPoints, limits: this.calculatedLimits, settings: group.settings
       });
       for (let j = 0; j < data.id.length; j++) {
-        const row = data.id[j];
+        const row = at(data.id, j);
         if (!selectedRows.has(row)) {
           continue;
         }
-        const point = this.plotPoints[j];
+        const point = at(this.plotPoints, j);
         const score = point.z * (direction === "decrease" ? -1 : 1);
         this.miscPoints.push({
           ...point,
@@ -307,26 +311,27 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
     };
     const limitsByDenominator = new Map<number, limitData>();
     for (let i = 0; i < this.calculatedLimits.length; i++) {
-      limitsByDenominator.set(this.calculatedLimits[i].denominators, this.calculatedLimits[i]);
+      const limit = at(this.calculatedLimits, i);
+      limitsByDenominator.set(limit.denominators, limit);
     }
 
     for (let i: number = 0; i < inputData.id.length; i++) {
-      const original_index: number = inputData.id[i];
-      const numerator: number = inputData.numerators[i];
-      const denominator: number = inputData.denominators[i];
+      const original_index: number = at(inputData.id, i);
+      const numerator: number = at(inputData.numerators, i);
+      const denominator: number = at(inputData.denominators, i);
       const value: number = transform((numerator / denominator) * multiplier);
       const limits = limitsByDenominator.get(denominator);
       if (limits === undefined) {
         throw new Error("Missing limits for an observed denominator.");
       }
       // Rows may share the store's default settings, so colour a copy
-      const aesthetics = { ...inputData.scatter_formatting[i] };
+      const aesthetics = { ...at(inputData.scatter_formatting, i) };
       if (this.colourPalette.isHighContrast) {
         aesthetics.colour = this.colourPalette.foregroundColour;
       }
       const two_sigma_outlier = checkFlagDirection(flag_two_sigma ? limitStatus(value, limits.ll95, limits.ul95) : "none", flagSettings);
       const three_sigma_outlier = checkFlagDirection(flag_three_sigma ? limitStatus(value, limits.ll99, limits.ul99) : "none", flagSettings);
-      const category = inputData.keys[i].label;
+      const category = at(inputData.keys, i).label;
       // A three-sigma flag outranks a two-sigma one
       applyFlagColours(aesthetics, inputSettings.settings.outliers, [
         [two_sigma_outlier, "two_sigma_colour"], [three_sigma_outlier, "three_sigma_colour"]
@@ -337,7 +342,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
         x: denominator,
         numerator: numerator,
         value: value,
-        z: zScores[i],
+        z: at(zScores, i),
         group_text: category,
         limits,
         table_row: {
@@ -359,7 +364,7 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
         ),
         label: {
           text_value: inputData.labels[i],
-          aesthetics: inputData.label_formatting[i],
+          aesthetics: at(inputData.label_formatting, i),
           angle: undefined,
           distance: undefined
         },
@@ -370,32 +375,28 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
   }
 
   initialiseGroupedLines(): void {
-    const labels: StandardLineName[] = [];
-    if (this.inputSettings.settings[0].lines.show_target) {
-      labels.push("target");
+    const lineSettings = this.inputSettings.group(0).settings.lines;
+    const lines: [StandardLineName, lineData[]][] = [];
+    if (lineSettings.show_target) {
+      lines.push(["target", []]);
     }
-    if (this.inputSettings.settings[0].lines.show_alt_target) {
-      labels.push("alt_target");
+    if (lineSettings.show_alt_target) {
+      lines.push(["alt_target", []]);
     }
-    if (this.inputSettings.settings[0].lines.show_99) {
-      labels.push("ll99", "ul99");
+    if (lineSettings.show_99) {
+      lines.push(["ll99", []], ["ul99", []]);
     }
-    if (this.inputSettings.settings[0].lines.show_95) {
-      labels.push("ll95", "ul95");
+    if (lineSettings.show_95) {
+      lines.push(["ll95", []], ["ul95", []]);
     }
-    if (this.inputSettings.settings[0].lines.show_68) {
-      labels.push("ll68", "ul68");
-    }
-
-    const lines = new Array<[StandardLineName, lineData[]]>(labels.length);
-    for (let j = 0; j < labels.length; j++) {
-      lines[j] = [labels[j], []];
+    if (lineSettings.show_68) {
+      lines.push(["ll68", []], ["ul68", []]);
     }
     for (let i = 0; i < this.calculatedLimits.length; i++) {
-      const limits = this.calculatedLimits[i];
-      for (let j = 0; j < labels.length; j++) {
-        const label = labels[j];
-        lines[j][1].push({ x: limits.denominators, line_value: limits[label], group: label });
+      const limits = at(this.calculatedLimits, i);
+      for (let j = 0; j < lines.length; j++) {
+        const [label, points] = at(lines, j);
+        points.push({ x: limits.denominators, line_value: limits[label], group: label });
       }
     }
     this.groupedLines = lines;
@@ -408,10 +409,10 @@ export default class viewModelClass extends PlotViewModelBase<typeof settingsMod
     const lower: number | undefined = inputSettings.settings.funnel.ll_truncate;
     const upper: number | undefined = inputSettings.settings.funnel.ul_truncate;
     for (let i = 0; i < this.calculatedLimits.length; i++) {
-      const limit = this.calculatedLimits[i];
+      const limit = at(this.calculatedLimits, i);
       limit.target = transform(limit.target * multiplier);
       for (let j = 0; j < limitLineNames.length; j++) {
-        const name = limitLineNames[j];
+        const name = at(limitLineNames, j);
         const value = limit[name];
         if (value !== undefined) {
           limit[name] = clamp(transform(value * multiplier), lower, upper);

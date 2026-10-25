@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import { clamp, normalQuantile, scaleLinear } from "powerbi-visuals-core/math";
 import { axisLabelPlacement } from "powerbi-visuals-core/rendering";
 import type { svgBaseType, Visual } from "../visual";
@@ -6,7 +7,7 @@ import type { miscPoint } from "../Classes/viewModelClass";
 export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   svg.selectChildren().remove();
   const model = visual.viewModel;
-  const settings = model.inputSettings.settings[0];
+  const settings = model.inputSettings.group(0).settings;
   const canvas = settings.canvas;
   const misc = settings.misc;
   const xAxis = settings.x_axis;
@@ -28,7 +29,7 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   if (!model.headless) {
     const nodes = labels.nodes();
     for (let i = 0; i < nodes.length; i++) {
-      labelWidth = Math.max(labelWidth, nodes[i].getBBox().width);
+      labelWidth = Math.max(labelWidth, at(nodes, i).getBBox().width);
     }
   }
   const left = canvas.left_padding + labelWidth + 10;
@@ -43,8 +44,7 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   ] as const;
   const drawn = { "99": false, "95": false, target: false };
   for (let i = 0; i < limits.length; i++) {
-    const value = limits[i].value;
-    const level = limits[i].level;
+    const { value, level } = at(limits, i);
     if (!lines[`show_${level}`] || value < misc.lower || value > misc.upper) {
       continue;
     }
@@ -59,7 +59,7 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
   if (xAxis.xlimit_ticks) {
     const ticks = scale.ticks(xAxis.xlimit_tick_count);
     for (let i = 0; i < ticks.length; i++) {
-      const tick = ticks[i];
+      const tick = at(ticks, i);
       root.append("text").classed("misc-x-tick", true).attr("x", scale(tick)).attr("y", bottom + xAxis.xlimit_tick_size + 5)
         .attr("text-anchor", "middle").style("font-family", xAxis.xlimit_tick_font)
         .style("font-size", `${xAxis.xlimit_tick_size}px`).attr("fill", colour(xAxis.xlimit_tick_colour))
@@ -76,15 +76,14 @@ export default function drawMisc(svg: svgBaseType, visual: Visual): void {
     { text: misc.favourable_label, x: (zero + right) / 2, colour: settings.outliers.three_sigma_colour_improvement }
   ];
   for (let i = 0; i < directions.length; i++) {
-    const direction = directions[i];
+    const direction = at(directions, i);
     root.append("text").classed("misc-direction", true).attr("x", direction.x).attr("y", top - 10)
       .attr("text-anchor", "middle").style("font-family", xAxis.xlimit_tick_font).style("font-size", "12px")
       .style("font-weight", "bold").attr("fill", colour(direction.colour)).text(direction.text);
   }
   const legends = [{ level: "95", text: "95% Control Limits" }, { level: "99", text: "99% Control Limits" }] as const;
   for (let i = 0; i < legends.length; i++) {
-    const level = legends[i].level;
-    const text = legends[i].text;
+    const { level, text } = at(legends, i);
     if (!drawn[level]) {
       continue;
     }

@@ -1,3 +1,4 @@
+import { at } from "powerbi-visuals-core/util";
 import { chartClass, type limitArgs, type groupSettings } from "../Classes"
 import type { dataObject } from "../Functions/extractInputData";
 import adjustZScores from "../Funnel Calculations/adjustZScores";
@@ -9,7 +10,7 @@ const smrSE = function(inputData: dataObject, plottingDenominators?: readonly nu
   const n: number = denominators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = 1.0 / (2 * Math.sqrt(denominators[i]));
+    result[i] = 1.0 / (2 * Math.sqrt(at(denominators, i)));
   }
   return result;
 }
@@ -24,7 +25,7 @@ const smrY = function(inputData: dataObject): number[] {
   const n: number = numerators.length;
   const result: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    result[i] = Math.sqrt(numerators[i] / denominators[i]);
+    result[i] = Math.sqrt(at(numerators, i) / at(denominators, i));
   }
   return result;
 }
@@ -39,9 +40,10 @@ const smrZ = function(inputData: dataObject): number[] {
   const n: number = numerators.length;
   const rtn: number[] = new Array<number>(n);
   for (let i: number = 0; i < n; i++) {
-    const ratio: number = numerators[i] / denominators[i];
+    const denominator: number = at(denominators, i);
+    const ratio: number = at(numerators, i) / denominator;
     const offset: number = ratio > 1 ? 1 : 0;
-    const log_p: number = chisqCDF(ratio * 2 * denominators[i], 2 * (denominators[i] + offset), true, true);
+    const log_p: number = chisqCDF(ratio * 2 * denominator, 2 * (denominator + offset), true, true);
     rtn[i] = normalQuantile(log_p, 0, 1, true, true)
   }
   return rtn;
