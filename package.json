@@ -11,7 +11,7 @@
     "docs": "quarto preview docs"
   },
   "dependencies": {
-    "powerbi-visuals-core": "github:AUS-DOH-Safety-and-Quality/powerbi-visuals-core#a390601"
+    "powerbi-visuals-core": "github:AUS-DOH-Safety-and-Quality/powerbi-visuals-core#bd9b6ce"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
