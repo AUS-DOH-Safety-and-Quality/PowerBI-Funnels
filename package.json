@@ -6,6 +6,7 @@
     "prepackage": "npm run typecheck",
     "package": "pbiviz package",
     "package:dev": "package-dev",
+    "build": "npm run package",
     "eslint": "npx eslint .",
     "test": "vitest --run",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
