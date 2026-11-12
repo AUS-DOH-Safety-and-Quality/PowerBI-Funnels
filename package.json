@@ -5,12 +5,13 @@
     "start": "pbiviz start",
     "prepackage": "npm run typecheck",
     "package": "pbiviz package",
+    "package:dev": "package-dev",
     "eslint": "npx eslint .",
     "test": "vitest --run",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "docs": "quarto preview docs"
   },
   "dependencies": {
-    "powerbi-visuals-core": "github:AUS-DOH-Safety-and-Quality/powerbi-visuals-core#acf285f"
+    "powerbi-visuals-core": "github:AUS-DOH-Safety-and-Quality/powerbi-visuals-core#610c763"
   }
 }
